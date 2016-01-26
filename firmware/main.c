@@ -1,6 +1,4 @@
 #define F_CPU 20000000UL
-#define F_CPU 14745600UL
-#define MCU atmega8p
 #define Wait() while(!(SPSR & (1<<SPIF)))
 
 #include <avr/io.h>
