@@ -1,47 +1,56 @@
+//------------------------------------------------------------------------------
+// Overlay64 -- LUMA video overlay driver
+//
+// LM1881 CSYNC -> INT0 (Pin 4)
+// LM1881 VSYNC -> INT1 (Pin 5)
+// LUMA SIGNAL <- 1k <- VCC via PNP <- MOSI (Pin 17)
+//
+//------------------------------------------------------------------------------
+
 #define F_CPU 16000000UL
 #define TICKS_PER_USEC F_CPU/1000000UL
-
-#define Wait() while(!(SPSR & (1<<SPIF)))
-#define US(a) a*(TICKS_PER_USEC)
+#define US(n) n*(TICKS_PER_USEC)
 
 #include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <util/delay.h>
 
 #include "font.h"
 #include "screen.h"
 #include "screen.c"
 
-// LM1881 CSYNC -> INT0 (Pin 4)
-// LM1881 VSYNC -> INT1 (Pin 5)
-// Atmega OUT   -> MOSI (Pin 17)
+static volatile uint16_t line=0; // The current horizontal line
 
-// The current horizontal line
-static volatile uint16_t line=0;
+//------------------------------------------------------------------------------
 
-ISR(INT1_vect) {
+ISR(INT1_vect) { // VSYNC (each frame)...
+
+  // Vertical blanking period starts...
   TCNT1 = 0;
   
   // get input and update screen
-  // this must happen within 180us
+  // this must happen within 180us = 2880 cycles @ 16MHz
 
   //wait for the vertical blanking period to end
   while(TCNT1<US(180));
   line=0;
 }
 
-ISR(INT0_vect) {
+//------------------------------------------------------------------------------
 
+ISR(INT0_vect) { // HSYNC (each line)...
+
+  uint8_t lin, chr, pos;
+
+  TCNT1=0;  
   line++;
-  TCNT1=0;
 
   if(line >= SCREEN_TOP || line <= SCREEN_BOTTOM) {
 
-    uint8_t lin = (line-32);
-    uint8_t chr = lin / CHAR_HEIGHT * SCREEN_WIDTH;
-    uint8_t pos = lin % CHAR_HEIGHT;    
+    lin = (line-32);
+    chr = lin / CHAR_HEIGHT * SCREEN_WIDTH;
+    pos = lin % CHAR_HEIGHT;    
 
     while(TCNT1<US(8));   
 
@@ -53,36 +62,52 @@ ISR(INT0_vect) {
   }
 }
 
-static int setup() {
-  TCCR1B = (1<<CS10) + (1<<WGM12);
-  TIMSK1=0;
-  OCR1A = 0xffff;
+//------------------------------------------------------------------------------
+
+static int SetupHardware() {
   
+  // Setup Timer1
+  TCCR1B = (1<<CS10);              // Run at system clock 
+  TIMSK1 = 0;                      // Disable all timer interrupts
+
+  // Setup Interrupts
   EICRA = (1<<ISC01) | (1<<ISC11); // Set interrupt on falling edge
   EIMSK = (1<<INT0) | (1<<INT1);   // Enable interrupts for int0 and int1
 
-  ADCSRA&=~(1<<ADEN); // Turn off ADC
+  // Turn off ADC  
+  ADCSRA&=~(1<<ADEN); 
 
-  //Setup SPI
-  SPDR = 0;
-  DDRB = (1<<DDB2) | (1<<DDB3);
-  SPCR = (1<<SPE) | (1<<MSTR) | (1<<CPHA) | (1<<CPOL);
+  // Setup SPI 
+  DDRB = (1<<DDB2) | (1<<DDB3);    // SS and MOSI as outputs
+  SPCR =
+    (1<<SPE) | (1<<MSTR) |         // Enable SPI as Master
+    (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
 
+  // Prepare test screen
   write(screen, 0, 0, "COOL");
   write(screen, 1, 0, "OSD!");
   write(screen, 2, 0, "1234");
   write(screen, 3, 0, "+-*/");      
-  
+
+  // Enable Interrupts
   sei();
+
+  // Setup sleep mode
   set_sleep_mode(SLEEP_MODE_IDLE);
   sleep_enable();
+
   return 1;
 }
 
+//------------------------------------------------------------------------------
+
 int main(void) {
-  setup();
+  SetupHardware();
+  
   while(1) sleep_mode();
   return 0;    
 }
+
+//------------------------------------------------------------------------------
 
 

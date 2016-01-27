@@ -33,7 +33,6 @@ int main(int argc, char **argv) {
     printf("\n");
   }
 
-  printf("Deleting line 3...\n\n");
   clear(screen, 2, 0, 4);
   
   for(int line=0; line<SCREEN_HEIGHT*CHAR_HEIGHT; line++) {

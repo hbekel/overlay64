@@ -25,9 +25,9 @@ font: font.rom
 	dd if=font.rom of=font bs=8 count=32 skip=32
 	dd if=font.rom of=font bs=8 count=32 seek=32
 
-test: test.c screen.h screen.c font.h font.c 
+test: clean test.c screen.h screen.c font.h font.c 
 	gcc -std=c99 -o test test.c
-	./test
+	./test | less
 
 dump: main.elf
 	$(OBJDUMP) -d -S main.elf | less
