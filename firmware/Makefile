@@ -1,7 +1,7 @@
 MCU=atmega328p
 CC=gcc
 GCC=avr-gcc
-CFLAGS=-std=c99 -O3 -Wall -Wno-unused 
+CFLAGS=-std=c99 $(DEBUG) -O3 -Wall -Wno-unused 
 OBJCOPY=avr-objcopy
 OBJDUMP=avr-objdump
 FORMAT=ihex

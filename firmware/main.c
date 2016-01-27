@@ -10,6 +10,7 @@
 #define F_CPU 16000000UL
 #define TICKS_PER_USEC F_CPU/1000000UL
 #define US(n) n*(TICKS_PER_USEC)
+#define NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 
 #include <string.h>
 #include <avr/io.h>
@@ -48,14 +49,19 @@ ISR(INT0_vect) { // HSYNC (each line)...
 
   if(line >= SCREEN_TOP || line <= SCREEN_BOTTOM) {
 
+    // this takes...
     lin = (line-32);
     chr = lin / CHAR_HEIGHT * SCREEN_WIDTH;
-    pos = lin % CHAR_HEIGHT;    
+    pos = lin % CHAR_HEIGHT;
+    // ..14 cycles
 
     while(TCNT1<US(8));   
 
     for(i=0; i<=SCREEN_WIDTH; i++) { // unrolled
-      SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
+      // getting the byte out should take 17 cycles
+      // SPDR out at Fosc/2 takes 18 cycles(?), so one
+      // additional nop should get the next char out just in time?
+      SPDR = font[screen[chr++]*CHAR_HEIGHT+pos]; NOP();
     }
   }
 }
