@@ -9,20 +9,15 @@
 #include <avr/sleep.h>
 #include <util/delay.h>
 
+#include "screen.h"
+#include "font.h"
+
 // LM1881 CSYNC -> INT0 (Pin 4)
 // LM1881 VSYNC -> INT1 (Pin 5)
 // Atmega OUT   -> MOSI (Pin 17)
 
+// The current horizontal line
 static volatile uint16_t line=0;
-uint8_t test[3*7] = {
-  0b11111110, 0b11111110, 0b11000110,
-  0b11000000, 0b11000000, 0b11000110,
-  0b11000000, 0b11000000, 0b11000110,
-  0b11000000, 0b11111110, 0b11111110,
-  0b11000000, 0b11000110, 0b00000110,   
-  0b11000000, 0b11000110, 0b00000110,
-  0b11111110, 0b11111110, 0b00000110,  
-};
 
 ISR(INT1_vect) {
   //wait 180us for the vertical blanking period to end
@@ -32,20 +27,23 @@ ISR(INT1_vect) {
 }
 
 ISR(INT0_vect) {
-  uint16_t tmp;
+
   line++;
-  
-  TCNT1=0;  
+  TCNT1=0;
 
-  if(line >= 34 && line <= 40) {
+  if(line >= SCREEN_TOP || line <= SCREEN_BOTTOM) {
 
-    while(TCNT1<US(9));   
+    uint8_t lin = (line-32);
+    uint8_t chr = lin / CHAR_HEIGHT * SCREEN_WIDTH;
+    uint8_t pos = lin % CHAR_HEIGHT;    
 
-    tmp = (line-34)*3;
-    SPDR = test[tmp+0]; _delay_us(2);
-    SPDR = test[tmp+1]; _delay_us(2);
-    SPDR = test[tmp+2]; _delay_us(2);
-    return;
+    while(TCNT1<US(8));   
+
+    // Repeat SCREEN_WIDTH times... (4 times for now)
+    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
+    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
+    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
+    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
   }
 }
 
@@ -64,6 +62,28 @@ int setup() {
   DDRB = (1<<DDB2) | (1<<DDB3);
   SPCR = (1<<SPE) | (1<<MSTR) | (1<<CPHA) | (1<<CPOL);
 
+  uint8_t i = 0;
+  
+  screen[i++] = 'C'-0x20;
+  screen[i++] = '6'-0x20;
+  screen[i++] = '4'-0x20;
+  screen[i++] = '?'-0x20;
+
+  screen[i++] = 'O'-0x20;
+  screen[i++] = 'S'-0x20;
+  screen[i++] = 'D'-0x20;
+  screen[i++] = '!'-0x20;  
+
+  screen[i++] = 'F'-0x20;
+  screen[i++] = 'U'-0x20;
+  screen[i++] = 'C'-0x20;
+  screen[i++] = 'K'-0x20;    
+
+  screen[i++] = 'Y'-0x20;
+  screen[i++] = 'E'-0x20;
+  screen[i++] = 'A'-0x20;
+  screen[i++] = 'H'-0x20;    
+  
   sei();
   set_sleep_mode(SLEEP_MODE_IDLE);
   sleep_enable();

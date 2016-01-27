@@ -1,0 +1,15 @@
+#ifndef SCREEN_H
+#define SCREEN_H
+
+#define CHAR_WIDTH    8
+#define CHAR_HEIGHT   8
+
+#define SCREEN_WIDTH  4
+#define SCREEN_HEIGHT 4
+#define SCREEN_TOP    32
+#define SCREEN_BOTTOM SCREEN_TOP + CHAR_HEIGHT * SCREEN_HEIGHT
+
+uint8_t screen[SCREEN_WIDTH*SCREEN_HEIGHT];
+
+#endif // SCREEN_H
+
