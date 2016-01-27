@@ -41,7 +41,7 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 
 ISR(INT0_vect) { // HSYNC (each line)...
 
-  uint8_t lin, chr, pos;
+  uint8_t lin, chr, pos, i;
 
   TCNT1=0;  
   line++;
@@ -54,17 +54,15 @@ ISR(INT0_vect) { // HSYNC (each line)...
 
     while(TCNT1<US(8));   
 
-    // Repeat SCREEN_WIDTH times... (4 times for now)
-    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
-    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
-    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
-    SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
+    for(i=0; i<=SCREEN_WIDTH; i++) { // unrolled
+      SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
+    }
   }
 }
 
 //------------------------------------------------------------------------------
 
-int SetupHardware() {
+static int SetupHardware() {
   
   // Setup Timer1
   TCCR1B = (1<<CS10);              // Run at system clock 

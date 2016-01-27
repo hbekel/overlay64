@@ -1,10 +1,10 @@
 MCU=atmega328p
-
+CC=gcc
 GCC=avr-gcc
-CFLAGS=-std=c99 -O2 -g -Wall -Wno-unused -mmcu=$(MCU)
-FORMAT=ihex
+CFLAGS=-std=c99 -O3 -Wall -Wno-unused 
 OBJCOPY=avr-objcopy
 OBJDUMP=avr-objdump
+FORMAT=ihex
 
 AVRDUDE=avrdude
 DFLAGS=-p m328p -c stk200 -P /dev/parport0
@@ -20,7 +20,7 @@ HEADERS=main.h \
 all: main.hex
 
 main.elf: $(SOURCES) $(HEADERS)
-	$(GCC) $(CFLAGS) -o main.elf $(SOURCES) 
+	$(GCC) $(CFLAGS) -mmcu=$(MCU) -o main.elf $(SOURCES) 
 
 main.hex: main.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock -R .signature main.elf main.hex
@@ -28,14 +28,14 @@ main.hex: main.elf
 font.c: font
 	(echo "#include <stdint.h>"; xxd -c 8 -i font) > font.c
 	sed -i 's/unsigned char/uint8_t/;/^unsigned int/d' font.c
-	rm font
+	rm -f font
 
 font: font.rom
 	dd if=font.rom of=font bs=8 count=32 skip=32
 	dd if=font.rom of=font bs=8 count=32 seek=32
 
 test: clean font.c
-	gcc -std=c99 -o test test.c screen.c font.c
+	$(CC) $(CFLAGS) -o test test.c screen.c font.c
 	./test | less
 
 dump: main.elf
