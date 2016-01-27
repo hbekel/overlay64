@@ -19,5 +19,8 @@ main.hex: main.elf
 program: main.hex
 	$(AVRDUDE) $(DFLAGS) -U flash:w:main.hex
 
+fuse:
+	$(AVRDUDE) $(DFLAGS) -U lfuse:w:0xf7:m -U hfuse:w:0xd9:m -U efuse:w:0xfc:m 
+
 clean:
 	rm -f *.elf *.hex
