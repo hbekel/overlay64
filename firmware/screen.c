@@ -1,4 +1,8 @@
-static void write(uint8_t *screen, uint8_t row, uint8_t col, char* str) {
+#include <string.h>
+
+#include "screen.h"
+
+void write(uint8_t *screen, uint8_t row, uint8_t col, char* str) {
 
   uint8_t len = strlen(str);
   screen += row * SCREEN_WIDTH + col;
@@ -8,7 +12,7 @@ static void write(uint8_t *screen, uint8_t row, uint8_t col, char* str) {
   }    
 }
 
-static void clear(uint8_t *screen, uint8_t row, uint8_t col, uint8_t len) {
+void clear(uint8_t *screen, uint8_t row, uint8_t col, uint8_t len) {
   screen += row * SCREEN_WIDTH + col;
   for(uint8_t i=0; i<len; i++) {
     screen[i] = 0x00;

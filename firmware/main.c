@@ -16,9 +16,9 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 
-#include "font.h"
+#include "main.h"
 #include "screen.h"
-#include "screen.c"
+#include "font.h"
 
 static volatile uint16_t line=0; // The current horizontal line
 
@@ -64,7 +64,7 @@ ISR(INT0_vect) { // HSYNC (each line)...
 
 //------------------------------------------------------------------------------
 
-static int SetupHardware() {
+int SetupHardware() {
   
   // Setup Timer1
   TCCR1B = (1<<CS10);              // Run at system clock 

@@ -5,8 +5,6 @@
 #include "screen.h"
 #include "font.h"
 
-#include "screen.c"
-
 void putbyte(uint8_t byte) {
   for(int i=7; i>=0; i--) {
     printf("%s", (byte & (1<<(i))) ? "X" : " ");

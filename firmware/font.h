@@ -1,6 +1,6 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include "font.c"
+uint8_t font[64*8];
 
 #endif // FONT_H
