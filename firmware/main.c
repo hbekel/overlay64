@@ -4,13 +4,15 @@
 #define Wait() while(!(SPSR & (1<<SPIF)))
 #define US(a) a*(TICKS_PER_USEC)
 
+#include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
 
-#include "screen.h"
 #include "font.h"
+#include "screen.h"
+#include "screen.c"
 
 // LM1881 CSYNC -> INT0 (Pin 4)
 // LM1881 VSYNC -> INT1 (Pin 5)
@@ -20,8 +22,12 @@
 static volatile uint16_t line=0;
 
 ISR(INT1_vect) {
-  //wait 180us for the vertical blanking period to end
   TCNT1 = 0;
+  
+  // get input and update screen
+  // this must happen within 180us
+
+  //wait for the vertical blanking period to end
   while(TCNT1<US(180));
   line=0;
 }
@@ -47,7 +53,7 @@ ISR(INT0_vect) {
   }
 }
 
-int setup() {
+static int setup() {
   TCCR1B = (1<<CS10) + (1<<WGM12);
   TIMSK1=0;
   OCR1A = 0xffff;
@@ -62,27 +68,10 @@ int setup() {
   DDRB = (1<<DDB2) | (1<<DDB3);
   SPCR = (1<<SPE) | (1<<MSTR) | (1<<CPHA) | (1<<CPOL);
 
-  uint8_t i = 0;
-  
-  screen[i++] = 'C'-0x20;
-  screen[i++] = '6'-0x20;
-  screen[i++] = '4'-0x20;
-  screen[i++] = '?'-0x20;
-
-  screen[i++] = 'O'-0x20;
-  screen[i++] = 'S'-0x20;
-  screen[i++] = 'D'-0x20;
-  screen[i++] = '!'-0x20;  
-
-  screen[i++] = 'F'-0x20;
-  screen[i++] = 'U'-0x20;
-  screen[i++] = 'C'-0x20;
-  screen[i++] = 'K'-0x20;    
-
-  screen[i++] = 'Y'-0x20;
-  screen[i++] = 'E'-0x20;
-  screen[i++] = 'A'-0x20;
-  screen[i++] = 'H'-0x20;    
+  write(screen, 0, 0, "COOL");
+  write(screen, 1, 0, "OSD!");
+  write(screen, 2, 0, "1234");
+  write(screen, 3, 0, "+-*/");      
   
   sei();
   set_sleep_mode(SLEEP_MODE_IDLE);

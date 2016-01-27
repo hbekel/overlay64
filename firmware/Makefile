@@ -1,7 +1,7 @@
 MCU=atmega328p
 
 GCC=avr-gcc
-CFLAGS=-O2 -g -Wall -mmcu=$(MCU)
+CFLAGS=-std=c99 -O2 -g -Wall -Wno-unused -mmcu=$(MCU)
 FORMAT=ihex
 OBJCOPY=avr-objcopy
 OBJDUMP=avr-objdump
@@ -11,8 +11,8 @@ DFLAGS=-p m328p -c stk200 -P /dev/parport0
 
 all: main.hex
 
-main.elf: main.c screen.h font.h font.c
-	$(GCC) $(CFLAGS) -o main.elf main.c
+main.elf: main.c screen.h screen.c font.h font.c
+	$(GCC) $(CFLAGS) -o main.elf main.c 
 
 main.hex: main.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock -R .signature main.elf main.hex
@@ -25,7 +25,7 @@ font: font.rom
 	dd if=font.rom of=font bs=8 count=32 skip=32
 	dd if=font.rom of=font bs=8 count=32 seek=32
 
-test: test.c screen.h font.h font.c 
+test: test.c screen.h screen.c font.h font.c 
 	gcc -std=c99 -o test test.c
 	./test
 
