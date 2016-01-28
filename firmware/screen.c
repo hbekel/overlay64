@@ -2,7 +2,7 @@
 
 #include "screen.h"
 
-void write(uint8_t *screen, uint8_t row, uint8_t col, char* str) {
+void write(volatile uint8_t *screen, uint8_t row, uint8_t col, char* str) {
 
   uint8_t len = strlen(str);
   screen += row * SCREEN_WIDTH + col;
@@ -12,9 +12,9 @@ void write(uint8_t *screen, uint8_t row, uint8_t col, char* str) {
   }    
 }
 
-void clear(uint8_t *screen, uint8_t row, uint8_t col, uint8_t len) {
+void clear(volatile uint8_t *screen, uint8_t row, uint8_t col, uint8_t len) {
   screen += row * SCREEN_WIDTH + col;
   while(len--) {
-    screen[len] = 0x00;
+    screen[len] = 0;
   }
 }
