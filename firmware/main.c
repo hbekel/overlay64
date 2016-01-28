@@ -23,7 +23,8 @@
 #include "screen.h"
 #include "font.h"
 
-static volatile uint16_t line=0; // The current horizontal line
+static volatile uint16_t line = 0; // The current horizontal line
+static volatile uint8_t enabled = 1;;
 
 //------------------------------------------------------------------------------
 
@@ -41,7 +42,6 @@ ISR(INT1_vect) { // VSYNC (each frame)...
   write(screen, 0, 40, "8580");
   write(screen, 1, 1, "D400");
   write(screen, 1, 40, "D420");
-  write(screen, 29, 7, "**** C64 OVERLAY DRIVER V1 ****");  
 
   //wait for the vertical blanking period to end
   while(TCNT1<US(180));
@@ -58,6 +58,8 @@ ISR(INT0_vect) { // HSYNC (each line)...
   TCNT1=0;  
   line++;
 
+  if(!enabled) goto skip;
+  
   if(line >= SCREEN_TOP && line < SCREEN_BOTTOM) {
 
     lin = (line-SCREEN_TOP);
@@ -68,8 +70,13 @@ ISR(INT0_vect) { // HSYNC (each line)...
     
     for(i=0; i<SCREEN_WIDTH; i++) {
       SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
-    }
+    }   
   }
+  
+  if(line >= SCREEN_BOTTOM) {    
+  skip:
+    enabled = (PIND & 1<<PD7) ? 0 : 1;
+  }  
 }
 
 //------------------------------------------------------------------------------
@@ -105,6 +112,10 @@ static int SetupHardware() {
     (1<<SPE) | (1<<MSTR) |         // Enable SPI as Master
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
   SPSR = (1<<SPI2X);               // Double speed
+
+  // Setup /OE
+  DDRD  &= ~(1<<PD7);
+  PORTD |= (1<<PD7);
   
   // Enable Interrupts
   sei();
