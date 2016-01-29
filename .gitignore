@@ -3,5 +3,6 @@
 *.hex
 *.elf
 *.exe
+*.stackdump
 firmware/font
 firmware/font.c
