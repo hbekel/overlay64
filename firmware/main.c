@@ -37,7 +37,7 @@ ISR(INT1_vect) { // VSYNC (each frame)...
   // Vertical blanking period starts...
   TCNT1 = 0;
   
-  // get input and update screen
+  // get input and update screen according to config
   // this must happen within 180us = 2880 cycles @ 16MHz
 
   Config_apply(config);
@@ -91,7 +91,7 @@ static void WriteTestScreen() {
 
 //------------------------------------------------------------------------------
 
-static int SetupHardware() {
+static void SetupHardware() {
   
   // Setup Timer1
   TCCR1B = (1<<CS10);              // Run at system clock 
@@ -115,24 +115,33 @@ static int SetupHardware() {
   // Setup /OE
   DDRD  &= ~(1<<PD7);
   PORTD |= (1<<PD7);
-  
-  // Enable Interrupts
-  sei();
 
+  // Setup Inputs
+  DDRB  &= ~((1<<PB0) | (1<<PB1));
+  PORTB |=  ((1<<PB0) | (1<<PB1));
+
+  DDRC  &= ~((1<<PC0) | (1<<PC1) | (1<<PC2) | (1<<PC3) | (1<<PC4) | (1<<PC5));
+  PORTC |=  ((1<<PC0) | (1<<PC1) | (1<<PC2) | (1<<PC3) | (1<<PC4) | (1<<PC5));
+
+  DDRD  &= ~((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
+  PORTD |=  ((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
+
+  //Enable Interrputs
+  sei();
+    
   // Setup sleep mode
   set_sleep_mode(SLEEP_MODE_IDLE);
   sleep_enable();
-
-  return 1;
 }
 
 //------------------------------------------------------------------------------
 
 int main(void) {
-  SetupHardware();
 
   config = Config_new_with_ports(&PINB, &PINC, &PIND);
   Config_read(config, &eeprom);
+
+  SetupHardware();
   
   while(1) sleep_mode();
   return 0;    
