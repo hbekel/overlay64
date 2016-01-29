@@ -22,9 +22,13 @@
 #include "main.h"
 #include "screen.h"
 #include "font.h"
+#include "eeprom.h"
+#include "config.h"
 
 static volatile uint16_t line = 0; // The current horizontal line
 static volatile uint8_t enabled = 1;;
+
+Config* config;
 
 //------------------------------------------------------------------------------
 
@@ -36,12 +40,7 @@ ISR(INT1_vect) { // VSYNC (each frame)...
   // get input and update screen
   // this must happen within 180us = 2880 cycles @ 16MHz
 
-  write(screen, 0, 15, "KERNAL:  XLINK");
-  write(screen, 1, 15, "CHARSET: SMALL");
-  write(screen, 0, 1, "6581");
-  write(screen, 0, 40, "8580");
-  write(screen, 1, 1, "D400");
-  write(screen, 1, 40, "D420");
+  Config_apply(config);
 
   //wait for the vertical blanking period to end
   while(TCNT1<US(180));
@@ -131,6 +130,10 @@ static int SetupHardware() {
 
 int main(void) {
   SetupHardware();
+
+  config = Config_new_with_ports(&PINB, &PINC, &PIND);
+  Config_read(config, &eeprom);
+  
   while(1) sleep_mode();
   return 0;    
 }

@@ -11,11 +11,16 @@ DFLAGS=-p m328p -c stk200 -P /dev/parport0
 
 SOURCES=main.c \
 	screen.c \
-	font.c
+	font.c \
+	eeprom.c \
+	config.c \
+	../config.c
 
 HEADERS=main.h \
 	screen.h \
-	font.h
+	font.h \
+	config.h \
+	../config.h
 
 all: main.hex
 
