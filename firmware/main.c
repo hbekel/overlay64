@@ -105,7 +105,7 @@ static void SetupHardware() {
   ADCSRA&=~(1<<ADEN); 
 
   // Setup SPI 
-  DDRB = (1<<DDB2) | (1<<DDB3) | (1<DDB5);    // SS and MOSI as outputs
+  DDRB = (1<<DDB2) | (1<<DDB3) | (1<DDB5); // SS and MOSI as outputs
   SPDR = 0;
   SPCR =
     (1<<SPE) | (1<<MSTR) |         // Enable SPI as Master
