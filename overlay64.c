@@ -13,7 +13,7 @@
 #define WRITE  0x03
 #define CLEAR  0x04
 
-Config* config;
+volatile Config* config;
 
 //------------------------------------------------------------------------------
 // Utitlity functions for parsing
@@ -44,7 +44,7 @@ static bool parseString(StringList* words, int *i, char **str) {
   char *word = StringList_get(words, *i);
   char *result = *str;
   
-  if(!word[0] == '"') {
+  if(!(word[0] == '"')) {
     return false;
   }
   (*i)++; word++;
@@ -78,7 +78,7 @@ static bool parseString(StringList* words, int *i, char **str) {
 // Functions for parsing datatstructures from text format
 //------------------------------------------------------------------------------
 
-bool Config_parse(Config* self, FILE* in) {  
+bool Config_parse(volatile Config* self, FILE* in) {  
   bool result = true;
   char buf[0x10000];
   char *word;
@@ -195,6 +195,10 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
       self->string = Config_add_string(config, str);
     }
   }
+  else if(parseInt(StringList_get(words, *i), 0, &value)) {
+    self->len = value;
+    (*i)++;
+  }
   free(str);
   return true;
 }
@@ -203,7 +207,7 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
 // Function for writing out datastructures in text format
 //------------------------------------------------------------------------------
 
-void Config_print(Config* self, FILE* out) {
+void Config_print(volatile Config* self, FILE* out) {
   CommandList_print(self->immediateCommands, out);
   
   for(int i=0; i<self->num_samples; i++) {
@@ -213,7 +217,7 @@ void Config_print(Config* self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Config_index_of_pin(Config* self, Pin* pin) {
+uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
   for(int i=0; i<14; i++) {
     if(self->pins[i] == pin) {
       return i;
@@ -224,7 +228,7 @@ uint8_t Config_index_of_pin(Config* self, Pin* pin) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Config_index_of_string(Config* self, char* string) {
+uint8_t Config_index_of_string(volatile Config* self, char* string) {
   for(int i=0; i<self->num_strings; i++) {
     if(self->strings[i] == string) {
       return i;
@@ -235,7 +239,7 @@ uint8_t Config_index_of_string(Config* self, char* string) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Config_index_of_command(Config* self, Command* command) {
+uint8_t Config_index_of_command(volatile Config* self, Command* command) {
   for(int i=0; i<self->commands->num_commands; i++) {
     if(Command_equals(self->commands->commands[i], command)) {
       return i;
@@ -300,7 +304,7 @@ static void Config_write_magic(FILE* out) {
   fputc(CONFIG_MAGIC[1], out);
 }
 
-static void Config_write_strings(Config* self, FILE* out) {
+static void Config_write_strings(volatile Config* self, FILE* out) {
   fputc(self->num_strings, out);
   for(uint8_t i=0; i<self->num_strings; i++) {
     fputc(strlen(self->strings[i]), out);
@@ -308,19 +312,19 @@ static void Config_write_strings(Config* self, FILE* out) {
   }
 }
 
-static void Config_write_samples(Config* self, FILE* out) {
+static void Config_write_samples(volatile Config* self, FILE* out) {
   fputc(self->num_samples, out);
   for(uint8_t i=0; i<self->num_samples; i++) {
     Sample_write(self->samples[i], out);
   }
 }
 
-static void Config_write_commands(Config* self, FILE* out) {
+static void Config_write_commands(volatile Config* self, FILE* out) {
   CommandList_write(self->commands, out);
   CommandList_write_indexed(self->immediateCommands, out);
 }
 
-void Config_write(Config* self, FILE* out) {
+void Config_write(volatile Config* self, FILE* out) {
   Config_write_magic(out);
   Config_write_strings(self, out);
   Config_write_commands(self, out);
@@ -375,7 +379,6 @@ void Command_write(Command *self, FILE* out) {
 }
 
 //------------------------------------------------------------------------------
-
 
 int main(int argc, char **argv) {
 

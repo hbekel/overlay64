@@ -52,20 +52,20 @@ typedef struct {
 
 } Config;
 
-extern Config* config;
+volatile Config* config;
 
-Config *Config_new(void);
-Config* Config_new_with_ports(uint8_t volatile *port0,
+volatile Config *Config_new(void);
+volatile Config* Config_new_with_ports(uint8_t volatile *port0,
                               uint8_t volatile *port1,
                               uint8_t volatile *port2);
 
-Sample* Config_add_sample(Config *self, Sample* sample);
-bool Config_has_string(Config *self, char* string, uint8_t *index);
-char *Config_add_string(Config *self, char* string);
-bool Config_has_command(Config *self, Command* command, uint8_t *index);
-Command* Config_add_command(Config *self, Command* command);
-bool Config_read(Config *self, FILE *in);
-void Config_free(Config* self);
+Sample* Config_add_sample(volatile Config *self, Sample* sample);
+bool Config_has_string(volatile Config *self, char* string, uint8_t *index);
+char *Config_add_string(volatile Config *self, char* string);
+bool Config_has_command(volatile Config *self, Command* command, uint8_t *index);
+Command* Config_add_command(volatile Config *self, Command* command);
+bool Config_read(volatile Config *self, FILE *in);
+void Config_free(volatile Config* self);
 
 Sample* Sample_new(void);
 Pin* Sample_add_pin(Sample* self, Pin* pin);
@@ -85,7 +85,7 @@ void CommandList_read(CommandList *self, FILE *in);
 void CommandList_read_indexed(CommandList *self, FILE* in);
 void CommandList_free(CommandList* self);
 
-Pin *Pin_new(Config* config, uint8_t port, uint8_t pos);
+Pin *Pin_new(volatile Config* config, uint8_t port, uint8_t pos);
 void Pin_free(Pin *self);
 
 #endif // CONFIG_H

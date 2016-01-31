@@ -4,13 +4,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-bool Config_parse(Config* self, FILE* in);
-void Config_print(Config* self, FILE* out);
-void Config_write(Config* self, FILE* out);
+bool Config_parse(volatile Config* self, FILE* in);
+void Config_print(volatile Config* self, FILE* out);
+void Config_write(volatile Config* self, FILE* out);
 
-uint8_t Config_index_of_pin(Config* self, Pin* pin);
-uint8_t Config_index_of_string(Config* self, char* string);
-uint8_t Config_index_of_command(Config* self, Command* command);
+uint8_t Config_index_of_pin(volatile Config* self, Pin* pin);
+uint8_t Config_index_of_string(volatile Config* self, char* string);
+uint8_t Config_index_of_command(volatile Config* self, Command* command);
 
 bool Sample_parse(Sample* self, StringList* words, int *i);
 void Sample_print(Sample* self, FILE* out);

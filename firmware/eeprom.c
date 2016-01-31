@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <avr/io.h>
 
-static int ReadEeprom(FILE* file) {
+int ReadEeprom(FILE* file) {
 
   static volatile uint16_t addr = 0;
   

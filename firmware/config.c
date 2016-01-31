@@ -1,11 +1,11 @@
 #include "config.h"
 #include "screen.h"
 
-extern volatile uint8_t screen[SCREEN_WIDTH*SCREEN_HEIGHT];
+extern volatile uint8_t screen[];
 
 //------------------------------------------------------------------------------
 
-void Config_apply(Config* self) {
+void Config_apply(volatile Config* self) {
 
   CommandList_execute(self->immediateCommands);
 
@@ -42,11 +42,12 @@ void CommandList_execute(CommandList* self) {
 //------------------------------------------------------------------------------
 
 void Command_execute(Command* self) {
+
   if(self->action == ACTION_WRITE) {
-    write(screen, self->row, self->col, self->string);
+    Write(screen, self->row, self->col, self->string);
   }
   if(self->action == ACTION_CLEAR) {
-    clear(screen, self->row, self->col, self->len);
+    Clear(screen, self->row, self->col, self->len);
   }
 }
 

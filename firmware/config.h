@@ -3,7 +3,7 @@
 
 #include "../config.h"
 
-void Config_apply(Config* self);
+void Config_apply(volatile Config* self);
 void Sample_apply(Sample* self);
 uint8_t Pin_read(Pin* self);
 void CommandList_execute(CommandList* self);

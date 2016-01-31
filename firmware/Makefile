@@ -7,7 +7,7 @@ OBJDUMP=avr-objdump
 FORMAT=ihex
 
 AVRDUDE=avrdude
-DFLAGS=-p m328p -c stk200 -P /dev/parport0
+DFLAGS=-p m328p -c stk200 -P /dev/parport0 -V
 
 SOURCES=main.c \
 	screen.c \
@@ -32,7 +32,7 @@ main.hex: main.elf
 
 font.c: font
 	(echo "#include <stdint.h>"; xxd -c 8 -i font) > font.c
-	sed -i 's/unsigned char/uint8_t/;/^unsigned int/d' font.c
+	sed -i -r 's/unsigned char/const uint8_t/;/^unsigned int/d' font.c
 
 font: font.rom
 	dd if=font.rom of=font bs=8 count=32 skip=32

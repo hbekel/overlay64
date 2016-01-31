@@ -18,6 +18,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/eeprom.h>
 
 #include "main.h"
 #include "screen.h"
@@ -25,10 +26,11 @@
 #include "eeprom.h"
 #include "config.h"
 
-static volatile uint16_t line = 0; // The current horizontal line
-static volatile uint8_t enabled = 1;;
+volatile uint8_t frame;
+volatile uint16_t line;
+volatile uint8_t enabled;
 
-Config* config;
+volatile Config* config;
 
 //------------------------------------------------------------------------------
 
@@ -36,15 +38,18 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 
   // Vertical blanking period starts...
   TCNT1 = 0;
+
+  // Update frame counter
+  frame++;
   
   // get input and update screen according to config
   // this must happen within 180us = 2880 cycles @ 16MHz
 
   Config_apply(config);
 
-  //wait for the vertical blanking period to end
+  // wait for the vertical blanking period to end
   while(TCNT1<US(180));
-  line=0;
+  line = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -73,26 +78,34 @@ ISR(INT0_vect) { // HSYNC (each line)...
   }
   
   if(line >= SCREEN_BOTTOM) {    
+
   skip:
-    enabled = (PIND & 1<<PD7) ? 0 : 1;
+    if(!(PIND & 1<<PD7)) {
+      enabled = true;
+      frame = 0;
+    }
+    if(enabled && (frame > 2*50)) {
+      enabled = false;
+    }
   }  
 }
 
 //------------------------------------------------------------------------------
 
 static void WriteTestScreen() {
-  char *test = "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
-  test[SCREEN_WIDTH] = '\0';
+  char test[65];                 
 
-  for(int i=0; i<SCREEN_HEIGHT; i++) {
-    write(screen, i, 0, test);
+  for(uint8_t i=32; i<64+32; i++) {
+    test[i-32] = i;
   }
+  test[64] = 0;
+  Write(screen, 0, 0, test);
 }
 
 //------------------------------------------------------------------------------
 
 static void SetupHardware() {
-  
+
   // Setup Timer1
   TCCR1B = (1<<CS10);              // Run at system clock 
   TIMSK1 = 0;                      // Disable all timer interrupts
@@ -111,7 +124,7 @@ static void SetupHardware() {
     (1<<SPE) | (1<<MSTR) |         // Enable SPI as Master
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
   SPSR = (1<<SPI2X);               // Double speed
-
+  
   // Setup /OE
   DDRD  &= ~(1<<PD7);
   PORTD |= (1<<PD7);
@@ -125,7 +138,7 @@ static void SetupHardware() {
 
   DDRD  &= ~((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
   PORTD |=  ((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
-
+  
   //Enable Interrputs
   sei();
     
@@ -142,7 +155,6 @@ int main(void) {
   Config_read(config, &eeprom);
 
   SetupHardware();
-  
   while(1) sleep_mode();
   return 0;    
 }

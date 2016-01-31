@@ -11,17 +11,17 @@ static uint8_t D = 2;
 
 //------------------------------------------------------------------------------
 
-Config* Config_new(void) {
+volatile Config* Config_new(void) {
   return Config_new_with_ports(NULL, NULL, NULL);
 }
 
 //------------------------------------------------------------------------------
 
-Config* Config_new_with_ports(uint8_t volatile *port0,
+volatile Config* Config_new_with_ports(uint8_t volatile *port0,
                       uint8_t volatile *port1,
                       uint8_t volatile *port2) {
 
-  Config* self = (Config*) calloc(1, sizeof(Config));
+  volatile Config* self = (Config*) calloc(1, sizeof(Config));
 
   self->ports[0] = port0;
   self->ports[1] = port1;
@@ -54,7 +54,7 @@ Config* Config_new_with_ports(uint8_t volatile *port0,
 
 //------------------------------------------------------------------------------
 
-void Config_free(Config* self) {
+void Config_free(volatile Config* self) {
   for(uint8_t i=0; i<self->num_samples; i++) {
     Sample_free(self->samples[i]);
   }
@@ -65,12 +65,12 @@ void Config_free(Config* self) {
   }
   CommandList_free(self->immediateCommands);
   CommandList_free(self->commands);
-  free(self);
+  free((void*)self);
 }
 
 //------------------------------------------------------------------------------
 
-Sample* Config_add_sample(Config *self, Sample* sample) {
+Sample* Config_add_sample(volatile Config *self, Sample* sample) {
   self->samples = (Sample**) realloc(self->samples, (self->num_samples+1)*sizeof(Sample**));
   self->samples[self->num_samples] = sample;
   self->num_samples++;
@@ -79,7 +79,7 @@ Sample* Config_add_sample(Config *self, Sample* sample) {
 
 //------------------------------------------------------------------------------
 
-bool Config_has_string(Config *self, char* string, uint8_t *index) {
+bool Config_has_string(volatile Config *self, char* string, uint8_t *index) {
 
   for(uint8_t i=0; i<self->num_strings; i++) {    
     if(strcmp(self->strings[i], string) == 0) {
@@ -92,7 +92,7 @@ bool Config_has_string(Config *self, char* string, uint8_t *index) {
 
 //------------------------------------------------------------------------------
 
-char* Config_add_string(Config *self, char* string) {
+char* Config_add_string(volatile Config *self, char* string) {
   self->strings = (char**) realloc(self->strings, (self->num_strings+1) * sizeof(char *));
   self->strings[self->num_strings] = calloc(strlen(string)+1, sizeof(char));
   strncpy(self->strings[self->num_strings], string, strlen(string));
@@ -102,7 +102,7 @@ char* Config_add_string(Config *self, char* string) {
 
 //------------------------------------------------------------------------------
 
-bool Config_has_command(Config *self, Command* command, uint8_t *index) {
+bool Config_has_command(volatile Config *self, Command* command, uint8_t *index) {
   for(uint8_t i=0; i<self->commands->num_commands; i++) {
     if(Command_equals(self->commands->commands[i], command)) {
       *index = i;
@@ -114,7 +114,7 @@ bool Config_has_command(Config *self, Command* command, uint8_t *index) {
 
 //------------------------------------------------------------------------------
 
-Command* Config_add_command(Config *self, Command* command) {
+Command* Config_add_command(volatile Config *self, Command* command) {
   uint8_t index = 0;
   if(Config_has_command(self, command, &index)) {
     return self->commands->commands[index];
@@ -169,6 +169,10 @@ void Sample_free(Sample* self) {
 Command* Command_new(void) {
   Command* self = (Command*) calloc(1, sizeof(Command));
   self->action = ACTION_NONE;
+  self->row = 0;
+  self->col = 0;
+  self->len = 0;
+  self->string = NULL;
   return self;
 }
 
@@ -252,7 +256,7 @@ void CommandList_free(CommandList* self) {
 
 //------------------------------------------------------------------------------
 
-Pin *Pin_new(Config* c, uint8_t port, uint8_t pos) {
+Pin *Pin_new(volatile Config* c, uint8_t port, uint8_t pos) {
   Pin* self = (Pin*) calloc(1, sizeof(Pin));
   self->port = c->ports[port];
   self->pos = pos;
@@ -283,7 +287,7 @@ static bool Config_peek_magic(FILE* in) {
   return true;
 }
 
-static void Config_read_strings(Config* self, FILE* in) {
+static void Config_read_strings(volatile Config* self, FILE* in) {
   uint8_t num_strings = fgetc(in);  
   uint8_t len;
   char * string;
@@ -298,19 +302,19 @@ static void Config_read_strings(Config* self, FILE* in) {
   }
 }
 
-static void Config_read_commands(Config* self, FILE* in) {
+static void Config_read_commands(volatile Config* self, FILE* in) {
   CommandList_read(self->commands, in);
   CommandList_read_indexed(self->immediateCommands, in);
 }
 
-static void Config_read_samples(Config* self, FILE* in) {
+static void Config_read_samples(volatile Config* self, FILE* in) {
   uint8_t len  = fgetc(in);
   for(uint8_t i=0; i<len; i++) {
     Sample_read(Config_add_sample(self, Sample_new()), in);
   }
 }
 
-bool Config_read(Config *self, FILE *in) {
+bool Config_read(volatile Config *self, FILE *in) {
 
   if(Config_peek_magic(in)) {
 

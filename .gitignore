@@ -4,5 +4,7 @@
 *.elf
 *.exe
 *.stackdump
+overlay64
+*.bin
 firmware/font
 firmware/font.c
