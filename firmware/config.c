@@ -1,7 +1,4 @@
 #include "config.h"
-#include "screen.h"
-
-extern volatile uint8_t screen[];
 
 //------------------------------------------------------------------------------
 
@@ -44,10 +41,10 @@ void CommandList_execute(CommandList* self) {
 void Command_execute(Command* self) {
 
   if(self->action == ACTION_WRITE) {
-    Write(screen, self->row, self->col, self->string);
+    Config_row_write(config, self->row, self->col, self->string);
   }
   if(self->action == ACTION_CLEAR) {
-    Clear(screen, self->row, self->col, self->len);
+    Config_row_clear(config, self->row, self->col, self->len);
   }
 }
 

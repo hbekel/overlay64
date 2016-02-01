@@ -21,7 +21,6 @@
 #include <avr/eeprom.h>
 
 #include "main.h"
-#include "screen.h"
 #include "font.h"
 #include "eeprom.h"
 #include "config.h"
@@ -56,8 +55,8 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 
 ISR(INT0_vect) { // HSYNC (each line)...
 
-  uint8_t lin, pos, i;
-  uint16_t chr;
+  Row* row;
+  uint8_t lin, ofs;              
   
   TCNT1=0;  
   line++;
@@ -66,14 +65,14 @@ ISR(INT0_vect) { // HSYNC (each line)...
   
   if(line >= SCREEN_TOP && line < SCREEN_BOTTOM) {
 
-    lin = (line-SCREEN_TOP);
-    chr = lin / CHAR_HEIGHT * SCREEN_WIDTH;
-    pos = lin % CHAR_HEIGHT;
+    lin = line - SCREEN_TOP;
+    row = config->rows[lin / CHAR_HEIGHT];
+    ofs = lin % CHAR_HEIGHT;
 
     while(TCNT1<US(9)); NOPS(10);
     
-    for(i=0; i<SCREEN_WIDTH; i++) {
-      SPDR = font[screen[chr++]*CHAR_HEIGHT+pos];
+    for(uint8_t i=0; i<SCREEN_COLUMNS; i++) {
+      SPDR = font[Row_get_character(row, i)*CHAR_HEIGHT+ofs];
     }   
   }
   
@@ -99,7 +98,7 @@ static void WriteTestScreen() {
     test[i-32] = i;
   }
   test[64] = 0;
-  Write(screen, 0, 0, test);
+  Config_row_write(config, 0, 0, test);
 }
 
 //------------------------------------------------------------------------------

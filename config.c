@@ -48,6 +48,10 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
 
   self->strings = (char**) NULL;
   self->num_strings = 0;
+
+  for(i=0; i<SCREEN_ROWS; i++) {
+    self->rows[i] = Row_new();
+  }
   
   return self;
 }
@@ -65,6 +69,11 @@ void Config_free(volatile Config* self) {
   }
   CommandList_free(self->immediateCommands);
   CommandList_free(self->commands);
+
+  for(uint8_t i=0; i<30; i++) {
+    Row_free(self->rows[i]);
+  }
+  
   free((void*)self);
 }
 
@@ -125,6 +134,59 @@ Command* Config_add_command(volatile Config *self, Command* command) {
 
 //------------------------------------------------------------------------------
 
+void Config_allocate_rows(volatile Config *self) {
+
+  Command *command;
+  Row* row;
+  uint8_t len;
+  
+  for(uint8_t i=0; i<self->commands->num_commands; i++) {
+    command = self->commands->commands[i];
+    row = self->rows[command->row];
+
+    if(command->col < row->begin) {      
+      row->begin = command->col;
+    }
+    if((command->col + command->len) > row->end) {
+      row->end = command->col + command->len;
+    }
+  }
+
+  for(uint8_t i=0; i<SCREEN_ROWS; i++) {
+    row = self->rows[i];
+    len = row->end - row->begin;
+    if(len > 0) {
+      row->mem = (uint8_t*) calloc(len, sizeof(char));
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Config_row_write(volatile Config *config, uint8_t row, uint8_t col, char* src) {
+  Row* r = config->rows[row];
+  if(Row_empty(r)) return;
+
+  uint8_t *dst = r->mem + (col-r->begin);
+  uint8_t len = strlen(src);
+
+  for(uint8_t i=0; i<len; i++) {
+    dst[i] = (uint8_t) src[i] - 0x20;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Config_row_clear(volatile Config *config, uint8_t row, uint8_t col, uint8_t len) {
+  Row* r = config->rows[row];
+  if(Row_empty(r)) return;
+
+  uint8_t *dst = r->mem + (col-r->begin);
+  memset(dst, 0, len);
+}
+
+//------------------------------------------------------------------------------
+
 Sample* Sample_new(void) {
   Sample* self = (Sample*) calloc(1, sizeof(Sample));
   self->pins = (Pin**) calloc(1, sizeof(Pin**));
@@ -174,6 +236,13 @@ Command* Command_new(void) {
   self->len = 0;
   self->string = NULL;
   return self;
+}
+
+//------------------------------------------------------------------------------
+
+void Command_set_string(Command* self, char *string) {
+  self->string = string;
+  self->len = strlen(string);
 }
 
 //------------------------------------------------------------------------------
@@ -270,6 +339,38 @@ void Pin_free(Pin* self) {
 }
 
 //------------------------------------------------------------------------------
+
+Row* Row_new(void) {
+  Row* self = (Row*) calloc(1, sizeof(Row));
+  return self;
+}
+
+//------------------------------------------------------------------------------
+
+bool Row_empty(Row* self) {
+  return self->mem == NULL;
+}
+
+//------------------------------------------------------------------------------
+
+uint8_t Row_get_character(Row* self, uint8_t col) {
+  if(Row_empty(self)) return 0;
+  if(col >= self->begin && col <= self->end) {
+    return self->mem[col-self->begin];
+  }
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+
+void Row_free(Row *self) {
+  if(self->mem != NULL) {
+    free(self->mem);
+  }
+  free(self);
+}
+
+//------------------------------------------------------------------------------
 // functions to read datastructures from binary format
 //------------------------------------------------------------------------------
 
@@ -321,6 +422,7 @@ bool Config_read(volatile Config *self, FILE *in) {
     Config_read_strings(self, in);
     Config_read_commands(self, in);
     Config_read_samples(self, in);
+    Config_allocate_rows(self);
     return true;
   }
   return false;
@@ -356,7 +458,10 @@ void Command_read(Command* self, FILE* in) {
   self->row = fgetc(in);
   self->col = fgetc(in);
   self->len = fgetc(in);
-  self->string = config->strings[fgetc(in)];
+
+  if(self->action == ACTION_WRITE) {
+    Command_set_string(self, config->strings[fgetc(in)]);
+  }
 }
 
 //------------------------------------------------------------------------------

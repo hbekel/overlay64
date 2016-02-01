@@ -5,6 +5,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define CHAR_WIDTH    8
+#define CHAR_HEIGHT   8
+
+#define SCREEN_COLUMNS 45
+#define SCREEN_ROWS    30
+
+#define SCREEN_TOP    40
+#define SCREEN_BOTTOM SCREEN_TOP + CHAR_HEIGHT * SCREEN_ROWS
+
 #define ACTION_NONE  0x00
 #define ACTION_WRITE 0x01
 #define ACTION_CLEAR 0x02
@@ -38,6 +47,12 @@ typedef struct {
 } Sample;
 
 typedef struct {
+  uint8_t begin;
+  uint8_t end;
+  uint8_t *mem;
+} Row;
+
+typedef struct {
   uint8_t volatile *ports[3]; // the actual ports to use
   Pin *pins[13]; // the available pins
   
@@ -49,6 +64,8 @@ typedef struct {
   
   char **strings;
   uint8_t num_strings;
+
+  Row *rows[SCREEN_ROWS];
 
 } Config;
 
@@ -65,6 +82,9 @@ char *Config_add_string(volatile Config *self, char* string);
 bool Config_has_command(volatile Config *self, Command* command, uint8_t *index);
 Command* Config_add_command(volatile Config *self, Command* command);
 bool Config_read(volatile Config *self, FILE *in);
+void Config_allocate_rows(volatile Config *self);
+void Config_row_write(volatile Config *config, uint8_t row, uint8_t col, char* src);
+void Config_row_clear(volatile Config *config, uint8_t row, uint8_t col, uint8_t len);
 void Config_free(volatile Config* self);
 
 Sample* Sample_new(void);
@@ -74,6 +94,7 @@ CommandList* Sample_add_commands(Sample* self, CommandList* commands);
 void Sample_free(Sample* self);
 
 Command* Command_new(void);
+void Command_set_string(Command* self, char *string);
 bool Command_equals(Command* self, Command* command);
 void Command_read(Command* self, FILE* in);
 void Command_free(Command* self);
@@ -87,5 +108,10 @@ void CommandList_free(CommandList* self);
 
 Pin *Pin_new(volatile Config* config, uint8_t port, uint8_t pos);
 void Pin_free(Pin *self);
+
+Row* Row_new(void);
+uint8_t Row_get_character(Row* self, uint8_t col);
+bool Row_empty(Row* self);
+void Row_free(Row *self);
 
 #endif // CONFIG_H

@@ -1,8 +1,8 @@
 CC=gcc
 CFLAGS=-std=c99 -g -O2 -Wall
 
-SOURCES=strings.c config.c overlay64.c
-HEADERS=strings.h config.h overlay64.h
+SOURCES=strings.c config.c parser.c overlay64.c
+HEADERS=strings.h config.h parser.h
 
 all: overlay64
 
@@ -18,7 +18,16 @@ test: all overlay64.conf
 	diff tmp/overlay64.bin tmp/roundtrip.bin
 	rm -rf tmp
 
+test-plot: clean
+	make -C firmware font.c
+	$(CC) $(CFLAGS) -o test-plot \
+		test.c config.c parser.c strings.c \
+		firmware/config.c firmware/font.c
+	./test-plot < test.conf | less -S
 
 clean:
 	rm -f overlay64
 	rm -f overlay64.exe{,.stackdump}
+	rm -f test-plot
+	rm -f test-plot.exe{,.stackdump}
+

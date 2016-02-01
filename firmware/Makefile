@@ -1,5 +1,4 @@
 MCU=atmega328p
-CC=gcc
 GCC=avr-gcc
 CFLAGS=-std=c99 $(DEBUG) -O3 -Wall -Wno-unused 
 OBJCOPY=avr-objcopy
@@ -10,14 +9,12 @@ AVRDUDE=avrdude
 DFLAGS=-p m328p -c stk200 -P /dev/parport0 -V
 
 SOURCES=main.c \
-	screen.c \
 	font.c \
 	eeprom.c \
 	config.c \
 	../config.c
 
 HEADERS=main.h \
-	screen.h \
 	font.h \
 	config.h \
 	../config.h
@@ -37,10 +34,6 @@ font.c: font
 font: font.rom
 	dd if=font.rom of=font bs=8 count=32 skip=32
 	dd if=font.rom of=font bs=8 count=32 seek=32
-
-test: clean font.c
-	$(CC) $(CFLAGS) -o test test.c screen.c font.c
-	./test | less
 
 dump: main.elf
 	$(OBJDUMP) -d -S main.elf | less
