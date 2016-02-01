@@ -38,40 +38,14 @@ static bool parseInt(char* word, int base, uint8_t *value) {
 //------------------------------------------------------------------------------
 
 static bool parseString(StringList* words, int *i, char **str) {
-
-#pragma GCC diagnostic ignored "-Wsequence-point"
-  
-  char *word = StringList_get(words, *i);
-  char *result = *str;
-  
-  if(!(word[0] == '"')) {
-    return false;
+  if((*i) < words->size) {
+    (*str) = words->strings[(*i)];
+    if((*str)[0] == '"') {
+      (*str)++;
+      return true;
+    }
   }
-  (*i)++; word++;
-
-  strcpy(*str, word);
-
-  if((*str)[strlen(*str)-1] == '"') {
-    (*str)[strlen(*str)-1] = '\0';
-    return true;
-  }
-  
-  (*str)+=strlen(word);
-  strcpy(*str, " "); (*str)++;
-
-  while((word = StringList_get(words, *i))[strlen(word)-1] != '"') {
-    (*i)++;
-    strcpy(*str, word);
-    (*str)+=strlen(word);
-    strcpy(*str, " "); (*str)++;
-  }
-  (*i)++;
-  strcpy(*str, word);
-  (*str)[strlen(*str)-1] = '\0';
-  (*str) = result;
-  return true;
-
-#pragma GCC diagnostic pop
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -88,7 +62,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
   fread(buf, sizeof(char), sizeof(buf), in);
   
   StringList* words = StringList_new();
-  StringList_append_tokenized(words, buf, "\n\t ");
+  StringList_append_quoted(words, buf, "\n\t ");
   int i = 0;
 
   while(i<words->size) {
@@ -174,7 +148,8 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
 
   uint8_t value;
   char *str = (char*) calloc(4096, sizeof(char));
-  
+  uint8_t index;
+      
   self->action = (keyword == WRITE) ?
     ACTION_WRITE : ((keyword == CLEAR) ? ACTION_CLEAR : ACTION_NONE);  
   
@@ -187,8 +162,8 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
     self->col = value;
     (*i)++;
   }
-  if(parseString(words, i, &str)) {
-    uint8_t index;    
+  if(parseString(words, i, &str)) {    
+    (*i)++;
     if(Config_has_string(config, str, &index)) {
       Command_set_string(self, config->strings[index]);
     }
@@ -251,6 +226,14 @@ uint8_t Config_index_of_command(volatile Config* self, Command* command) {
 
 //------------------------------------------------------------------------------
 
+static void binary(uint8_t value, char **result) {
+  uint8_t pos = 0;
+  
+  for(int i=7; i>=0; i--) {
+    (*result)[pos++] = (value & (1<<i)) ? '1' : '0';
+  }
+}
+
 void Sample_print(Sample* self, FILE* out) {
 
   fprintf(out, "sample ");
@@ -260,11 +243,16 @@ void Sample_print(Sample* self, FILE* out) {
   }
   
   fprintf(out, "\n");
+
+  char *condition = (char*) calloc(9, sizeof(char));
   
   for(int i=0; i<self->num_commands; i++) {
-    fprintf(out, "when %d\n", i);
+    binary(i, &condition);
+    fprintf(out, "when %s\n", condition);
     CommandList_print(self->commands[i], out);
   }
+  
+  free(condition);
 }
 
 //------------------------------------------------------------------------------
@@ -277,6 +265,20 @@ void CommandList_print(CommandList *self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
+static void escape(char *input, char **output) {
+  char c;
+  int pos = 0;
+  
+  for(int i=0; i<strlen(input); i++) {
+    c = input[i];
+
+    if(c == '"' || c == '\\') {
+      (*output)[pos++] = '\\';
+    }
+    (*output)[pos++] = c;
+  }
+}
+
 void Command_print(Command *self, FILE* out) {
 
   if(self->action == ACTION_WRITE) {
@@ -287,7 +289,12 @@ void Command_print(Command *self, FILE* out) {
     fprintf(out, "clear ");
   }
 
-  fprintf(out, "%d %d \"%s\"\n", self->row, self->col, self->string);
+  char *escaped = (char*) calloc(strlen(self->string)*2+1, sizeof(char));
+  escape(self->string, &escaped);
+                                 
+  fprintf(out, "%d %d \"%s\"\n", self->row, self->col, escaped);
+
+  free(escaped);
 }
 
 //------------------------------------------------------------------------------

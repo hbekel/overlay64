@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 #include "strings.h"
 
@@ -31,6 +33,56 @@ void StringList_append_tokenized(StringList *self, const char* input, const char
     } 
   }
   free(string);
+}
+
+void StringList_append_quoted(StringList *self, const char* input, const char *delim) {
+
+  bool literal = false;
+  bool escaped = false;
+
+  char *token = (char *) calloc(4096, sizeof(char));
+  int pos = 0;
+  char c;
+  
+  for(int i=0; i<strlen(input); i++) {
+    c = input[i];
+    
+    if(c == '\\' && !escaped) {
+      escaped = true;
+      continue;
+    }
+    
+    if(c == '"' && !escaped) {
+      literal = !literal;
+      if(!literal) {
+        StringList_append(self, token);
+        token[pos=0] = '\0';
+        continue;
+      }
+    }
+
+    if((!literal) && (strchr(delim, c) != NULL)) {      
+      if(strlen(token)) {
+        StringList_append(self, token);
+        token[pos=0] = '\0';
+      }
+      continue;
+    }
+    
+    pos = strlen(token);
+    token[pos] = c;
+    token[pos+1] = '\0';
+
+    if(escaped) {
+      escaped = false;
+    }
+  }
+  
+  if(strlen(token)) {
+    StringList_append(self, token);
+    token[pos=0] = '\0';
+  }  
+  free(token);
 }
 
 char* StringList_get(StringList *self, int index) {
