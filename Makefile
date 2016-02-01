@@ -1,4 +1,5 @@
 CC=gcc
+MINGW32?=i686-w64-mingw32
 CFLAGS=-std=c99 -g -O2 -Wall
 
 SOURCES=strings.c config.c parser.c overlay64.c
@@ -8,6 +9,9 @@ all: overlay64
 
 overlay64: $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) -o overlay64 $(SOURCES)
+
+win32: $(SOURCES) $(HEADERS)
+	$(MINGW32)-gcc $(CFLAGS) -o overlay64 $(SOURCES) 
 
 test: all overlay64.conf
 	rm -rf tmp
