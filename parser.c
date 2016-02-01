@@ -388,8 +388,8 @@ uint16_t Config_get_footprint(volatile Config* self) {
 
   fp += 2;                // the pointer to the config itself
   fp += 3*2;              // the pointers to the ports
-  fp += 13*2;             // the pointers to the pins
-  fp += 13*3;             // the actual pins
+  fp += INPUT_PINS*2;     // the pointers to the pins
+  fp += INPUT_PINS*3;     // the actual pins
 
   fp += 2;                // the pointer to the commands CommandList
   fp += CommandList_get_footprint(self->commands);

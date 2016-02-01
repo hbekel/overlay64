@@ -42,7 +42,7 @@ ISR(INT1_vect) { // VSYNC (each frame)...
   frame++;
   
   // get input and update screen according to config
-  // this must happen within 180us = 2880 cycles @ 16MHz
+  // this must happen within 180us = 3600 cycles @ 16MHz
 
   Config_apply(config);
 
@@ -56,7 +56,7 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 ISR(INT0_vect) { // HSYNC (each line)...
 
   Row* row;
-  uint8_t lin, ofs;              
+  uint8_t col, lin, ofs; 
   
   TCNT1=0;  
   line++;
@@ -71,8 +71,8 @@ ISR(INT0_vect) { // HSYNC (each line)...
 
     while(TCNT1<US(9)); NOPS(10);
     
-    for(uint8_t i=0; i<SCREEN_COLUMNS; i++) {
-      SPDR = font[Row_get_character(row, i)*CHAR_HEIGHT+ofs];
+    for(col=0; col<SCREEN_COLUMNS; col++) {
+      SPDR = font[Row_get(row, col)*CHAR_HEIGHT+ofs];
     }   
   }
   
@@ -87,18 +87,6 @@ ISR(INT0_vect) { // HSYNC (each line)...
       enabled = false;
     }
   }  
-}
-
-//------------------------------------------------------------------------------
-
-static void WriteTestScreen() {
-  char test[65];                 
-
-  for(uint8_t i=32; i<64+32; i++) {
-    test[i-32] = i;
-  }
-  test[64] = 0;
-  Config_row_write(config, 0, 0, test);
 }
 
 //------------------------------------------------------------------------------

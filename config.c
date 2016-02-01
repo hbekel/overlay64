@@ -163,30 +163,6 @@ void Config_allocate_rows(volatile Config *self) {
 
 //------------------------------------------------------------------------------
 
-void Config_row_write(volatile Config *config, uint8_t row, uint8_t col, char* src) {
-  Row* r = config->rows[row];
-  if(Row_empty(r)) return;
-
-  uint8_t *dst = r->mem + (col-r->begin);
-  uint8_t len = strlen(src);
-
-  for(uint8_t i=0; i<len; i++) {
-    dst[i] = (uint8_t) src[i] - 0x20;
-  }
-}
-
-//------------------------------------------------------------------------------
-
-void Config_row_clear(volatile Config *config, uint8_t row, uint8_t col, uint8_t len) {
-  Row* r = config->rows[row];
-  if(Row_empty(r)) return;
-
-  uint8_t *dst = r->mem + (col-r->begin);
-  memset(dst, 0, len);
-}
-
-//------------------------------------------------------------------------------
-
 Sample* Sample_new(void) {
   Sample* self = (Sample*) calloc(1, sizeof(Sample));
   self->pins = (Pin**) calloc(1, sizeof(Pin**));
@@ -353,12 +329,34 @@ bool Row_empty(Row* self) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Row_get_character(Row* self, uint8_t col) {
+inline uint8_t Row_get(Row* self, uint8_t col) {
   if(Row_empty(self)) return 0;
   if(col >= self->begin && col <= self->end) {
     return self->mem[col-self->begin];
   }
   return 0;
+}
+
+//------------------------------------------------------------------------------
+
+void Row_write(Row *self, uint8_t col, char* src) {
+  if(Row_empty(self)) return;
+
+  uint8_t *dst = self->mem + (col - self->begin);
+  uint8_t len = strlen(src);
+
+  for(uint8_t i=0; i<len; i++) {
+    dst[i] = (uint8_t) src[i] - 0x20;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Row_clear(Row* self, uint8_t col, uint8_t len) {
+  if(Row_empty(self)) return;
+
+  uint8_t *dst = self->mem + (col - self->begin);
+  memset(dst, 0, len);
 }
 
 //------------------------------------------------------------------------------

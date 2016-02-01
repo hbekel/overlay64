@@ -40,11 +40,15 @@ void CommandList_execute(CommandList* self) {
 
 void Command_execute(Command* self) {
 
+  Row* row = config->rows[self->row];
+  
   if(self->action == ACTION_WRITE) {
-    Config_row_write(config, self->row, self->col, self->string);
+    Row_write(row, self->col, self->string);
+    //Config_row_write(config, self->row, self->col, self->string);
   }
   if(self->action == ACTION_CLEAR) {
-    Config_row_clear(config, self->row, self->col, self->len);
+    Row_clear(row, self->col, self->len);
+    //Config_row_clear(config, self->row, self->col, self->len);
   }
 }
 

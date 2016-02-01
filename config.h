@@ -14,6 +14,8 @@
 #define SCREEN_TOP    40
 #define SCREEN_BOTTOM SCREEN_TOP + CHAR_HEIGHT * SCREEN_ROWS
 
+#define INPUT_PINS 13
+
 #define ACTION_NONE  0x00
 #define ACTION_WRITE 0x01
 #define ACTION_CLEAR 0x02
@@ -54,7 +56,7 @@ typedef struct {
 
 typedef struct {
   uint8_t volatile *ports[3]; // the actual ports to use
-  Pin *pins[13]; // the available pins
+  Pin *pins[INPUT_PINS]; // the available pins
   
   Sample **samples;
   uint8_t num_samples;
@@ -83,8 +85,6 @@ bool Config_has_command(volatile Config *self, Command* command, uint8_t *index)
 Command* Config_add_command(volatile Config *self, Command* command);
 bool Config_read(volatile Config *self, FILE *in);
 void Config_allocate_rows(volatile Config *self);
-void Config_row_write(volatile Config *config, uint8_t row, uint8_t col, char* src);
-void Config_row_clear(volatile Config *config, uint8_t row, uint8_t col, uint8_t len);
 void Config_free(volatile Config* self);
 
 Sample* Sample_new(void);
@@ -110,7 +110,9 @@ Pin *Pin_new(volatile Config* config, uint8_t port, uint8_t pos);
 void Pin_free(Pin *self);
 
 Row* Row_new(void);
-uint8_t Row_get_character(Row* self, uint8_t col);
+uint8_t Row_get(Row* self, uint8_t col);
+void Row_write(Row *self, uint8_t col, char* src);
+void Row_clear(Row* self, uint8_t col, uint8_t len);
 bool Row_empty(Row* self);
 void Row_free(Row *self);
 

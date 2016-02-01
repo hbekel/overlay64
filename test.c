@@ -24,11 +24,10 @@ int main(int argc, char **argv) {
   for(int line=0; line<SCREEN_ROWS*CHAR_HEIGHT; line++) {
 
     Row* row = config->rows[line/CHAR_HEIGHT];
+    int ofs = line%CHAR_HEIGHT;    
 
-    int pos = line%CHAR_HEIGHT;    
-
-    for(int i=0; i<SCREEN_COLUMNS; i++) {
-      putbyte(font[Row_get_character(row, i)*CHAR_HEIGHT+pos]);
+    for(int col=0; col<SCREEN_COLUMNS; col++) {
+      putbyte(font[Row_get(row, col)*CHAR_HEIGHT+ofs]);
     }
     printf("\n");
   }
