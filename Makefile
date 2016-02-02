@@ -13,6 +13,12 @@ overlay64: $(SOURCES) $(HEADERS)
 win32: $(SOURCES) $(HEADERS)
 	$(MINGW32)-gcc $(CFLAGS) -o overlay64 $(SOURCES) 
 
+overlay64.bin: overlay64.conf
+	./overlay64 < overlay64.conf > overlay64.bin
+
+flash: overlay64.bin
+	avrdude -p m328p -c stk200 -P /dev/parport0 -U eeprom:w:overlay64.bin:r	
+
 test: all overlay64.conf
 	rm -rf tmp
 	mkdir tmp

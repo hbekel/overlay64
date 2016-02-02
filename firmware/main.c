@@ -20,6 +20,9 @@
 #define MOSI (1<<PB3)
 #define SS   (1<<PB2)
 
+#define ENABLE_SPI  DDRB |= MOSI
+#define DISABLE_SPI DDRB &= ~MOSI; PORTB &= ~MOSI
+
 volatile uint8_t frame;     // frame counter for timing the auto-disable feature
 volatile uint16_t scanline; // current scanline of the whole video frame
 volatile uint8_t enabled;   // whether or not the display is currently enabled
@@ -28,7 +31,7 @@ volatile Config* config;    // Configuration read from eeprom
 
 //------------------------------------------------------------------------------
 
-static void init() {
+static void setup() {
 
   // Create config and assign ports
   config = Config_new_with_ports(&PINB, &PINC, &PIND);
@@ -49,7 +52,6 @@ static void init() {
 
   // Setup SPI 
   DDRB = SS | MOSI;                // /SS and MOSI as outputs
-  SPDR = 0;
   SPCR =
     (1<<SPE) | (1<<MSTR) |         // Enable SPI as Master
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
@@ -112,7 +114,7 @@ ISR(INT0_vect) { // HSYNC (each line)...
   TCNT1=0;  
   scanline++;
 
-  if(!enabled) goto check;
+  if(!enabled) goto skip;
   
   if(scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM) {
 
@@ -123,6 +125,12 @@ ISR(INT0_vect) { // HSYNC (each line)...
     row = config->rows[line / CHAR_HEIGHT];
     byte = line % CHAR_HEIGHT;
 
+    // Skip empty rows
+    if(row == config->empty) goto skip;
+
+    // Enable the SPI Output pin
+    ENABLE_SPI;
+    
     // Wait for the remaining time until visible area is reached
     while(TCNT1<US(9)); NOPS(10);
 
@@ -133,9 +141,10 @@ ISR(INT0_vect) { // HSYNC (each line)...
     }   
   }
   
-  if(scanline >= SCREEN_BOTTOM) {    
-
-  check:
+  if(scanline >= SCREEN_BOTTOM) {          
+    
+  skip:
+    DISABLE_SPI;
     
     if(!(PIND & OE)) {
       enabled = true;
@@ -152,7 +161,7 @@ ISR(INT0_vect) { // HSYNC (each line)...
 
 int main(void) {
 
-  init();
+  setup();
   while(1) sleep_mode();
   return 0;    
 }
