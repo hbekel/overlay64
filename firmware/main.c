@@ -1,10 +1,5 @@
 //------------------------------------------------------------------------------
-// Overlay64 -- LUMA video overlay driver
-//
-// LM1881 CSYNC -> INT0 (Pin 4)
-// LM1881 VSYNC -> INT1 (Pin 5)
-// LUMA SIGNAL <- 1k <- VCC via PNP <- MOSI (Pin 17)
-//
+// Overlay64 -- Video Overlay Driver -- Atmega328p @ 20MHz
 //------------------------------------------------------------------------------
 
 #define F_CPU 20000000UL
@@ -98,7 +93,7 @@ ISR(INT0_vect) { // HSYNC (each line)...
       frame = 0;
     }
     
-    if(enabled && (frame > 2*50)) {
+    if(enabled && frame > config->timeout) {
       enabled = false;
     }
   }  

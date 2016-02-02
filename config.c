@@ -27,6 +27,8 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
   self->ports[1] = port1;
   self->ports[2] = port2;
 
+  self->timeout = 2*50; 
+
   self->immediateCommands = CommandList_new();
   self->commands = CommandList_new();
   self->samples = (Sample**) calloc(1, sizeof(Sample**));
@@ -324,6 +326,10 @@ static bool Config_peek_magic(FILE* in) {
   return true;
 }
 
+static void Config_read_timeout(volatile Config* self, FILE* in) {
+  self->timeout = fgetc(in);
+}
+
 static void Config_read_strings(volatile Config* self, FILE* in) {
   uint8_t num_strings = fgetc(in);  
   uint8_t len;
@@ -354,7 +360,7 @@ static void Config_read_samples(volatile Config* self, FILE* in) {
 bool Config_read(volatile Config *self, FILE *in) {
 
   if(Config_peek_magic(in)) {
-
+    Config_read_timeout(self, in);
     Config_read_strings(self, in);
     Config_read_commands(self, in);
     Config_read_samples(self, in);

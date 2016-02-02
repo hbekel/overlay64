@@ -8,10 +8,11 @@
 #include "config.h"
 #include "parser.h"
 
-#define SAMPLE 0x01
-#define WHEN   0x02
-#define WRITE  0x03
-#define CLEAR  0x04
+#define TIMEOUT 0x01
+#define SAMPLE  0x02
+#define WHEN    0x03
+#define WRITE   0x04
+#define CLEAR   0x05
 
 volatile Config* config;
 
@@ -21,10 +22,11 @@ volatile Config* config;
 
 static bool parseKeyword(char* word, int *keyword) {
   return
-    ((strncmp(word, "sample", 6) == 0) && (*keyword = SAMPLE)) ||
-    ((strncmp(word, "when",   4) == 0) && (*keyword = WHEN)) ||
-    ((strncmp(word, "write",  5) == 0) && (*keyword = WRITE)) ||
-    ((strncmp(word, "clear",  5) == 0) && (*keyword = CLEAR));      
+    ((strncmp(word, "sample",   6) == 0) && (*keyword = SAMPLE)) ||
+    ((strncmp(word, "when",     4) == 0) && (*keyword = WHEN)) ||
+    ((strncmp(word, "write",    5) == 0) && (*keyword = WRITE)) ||
+    ((strncmp(word, "clear",    5) == 0) && (*keyword = CLEAR)) ||
+    ((strncmp(word, "timeout",  7) == 0) && (*keyword = TIMEOUT));      
 }
 
 //------------------------------------------------------------------------------
@@ -57,6 +59,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
   char buf[0x10000];
   char *word;
   int keyword;
+  uint8_t timeout;
   Command* command;
   
   fread(buf, sizeof(char), sizeof(buf), in);
@@ -81,6 +84,12 @@ bool Config_parse(volatile Config* self, FILE* in) {
         if(!result) break;
         
         CommandList_add_command(self->immediateCommands, command);
+      }
+      else if(keyword == TIMEOUT) {
+        if(parseInt(StringList_get(words, i), 0,  &timeout)) {
+          self->timeout = timeout;
+        }
+        i++;
       }
     }
   }
@@ -186,6 +195,9 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
 //------------------------------------------------------------------------------
 
 void Config_print(volatile Config* self, FILE* out) {
+
+  fprintf(out, "timeout %d\n", self->timeout);
+  
   CommandList_print(self->immediateCommands, out);
   
   for(int i=0; i<self->num_samples; i++) {
@@ -314,6 +326,10 @@ static void Config_write_magic(FILE* out) {
   fputc(CONFIG_MAGIC[1], out);
 }
 
+static void Config_write_timeout(volatile Config* self, FILE* out) {
+  fputc(self->timeout, out);
+}
+
 static void Config_write_strings(volatile Config* self, FILE* out) {
   fputc(self->num_strings, out);
   for(uint8_t i=0; i<self->num_strings; i++) {
@@ -336,6 +352,7 @@ static void Config_write_commands(volatile Config* self, FILE* out) {
 
 void Config_write(volatile Config* self, FILE* out) {
   Config_write_magic(out);
+  Config_write_timeout(self, out);
   Config_write_strings(self, out);
   Config_write_commands(self, out);
   Config_write_samples(self, out);
@@ -400,6 +417,8 @@ uint16_t Config_get_footprint(volatile Config* self) {
   fp += INPUT_PINS*2;     // the pointers to the pins
   fp += INPUT_PINS*3;     // the actual pins
 
+  fp += 1;                // timeout 
+  
   fp += 2;                // the pointer to the commands CommandList
   fp += CommandList_get_footprint(self->commands);
 

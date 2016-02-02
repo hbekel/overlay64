@@ -51,6 +51,8 @@ typedef struct {
 typedef struct {
   uint8_t volatile *ports[3]; // the actual ports to use
   Pin *pins[INPUT_PINS];      // the available pins
+
+  uint8_t timeout;
   
   Sample **samples;
   uint8_t num_samples;
