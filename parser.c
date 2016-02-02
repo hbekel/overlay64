@@ -15,6 +15,13 @@
 #define CLEAR   0x05
 
 volatile Config* config;
+uint16_t written = 0;
+
+static int fputcc(int ch, FILE* fp) {
+  fputc(ch, fp);
+  written++;
+  return ch;
+}
 
 //------------------------------------------------------------------------------
 // Utitlity functions for parsing
@@ -322,24 +329,24 @@ void Pin_print(Pin* self, FILE* out) {
 //------------------------------------------------------------------------------
 
 static void Config_write_magic(FILE* out) {
-  fputc(CONFIG_MAGIC[0], out);
-  fputc(CONFIG_MAGIC[1], out);
+  fputcc(CONFIG_MAGIC[0], out);
+  fputcc(CONFIG_MAGIC[1], out);
 }
 
 static void Config_write_timeout(volatile Config* self, FILE* out) {
-  fputc(self->timeout, out);
+  fputcc(self->timeout, out);
 }
 
 static void Config_write_strings(volatile Config* self, FILE* out) {
-  fputc(self->num_strings, out);
+  fputcc(self->num_strings, out);
   for(uint8_t i=0; i<self->num_strings; i++) {
-    fputc(strlen(self->strings[i]), out);
+    fputcc(strlen(self->strings[i]), out);
     fputs(self->strings[i], out);
   }
 }
 
 static void Config_write_samples(volatile Config* self, FILE* out) {
-  fputc(self->num_samples, out);
+  fputcc(self->num_samples, out);
   for(uint8_t i=0; i<self->num_samples; i++) {
     Sample_write(self->samples[i], out);
   }
@@ -362,7 +369,7 @@ void Config_write(volatile Config* self, FILE* out) {
 
 void Sample_write(Sample* self, FILE* out) {
 
-  fputc(self->num_pins, out);
+  fputcc(self->num_pins, out);
   for(uint8_t i=0; i<self->num_pins; i++) {
     Pin_write(self->pins[i], out);
   }
@@ -374,22 +381,22 @@ void Sample_write(Sample* self, FILE* out) {
 //------------------------------------------------------------------------------
 
 void Pin_write(Pin* self, FILE* out) {
-  fputc(Config_index_of_pin(config, self), out);
+  fputcc(Config_index_of_pin(config, self), out);
 }
 
 //------------------------------------------------------------------------------
 
 void CommandList_write_indexed(CommandList *self, FILE* out) {
-  fputc(self->num_commands, out);
+  fputcc(self->num_commands, out);
   for(uint8_t i=0; i<self->num_commands; i++) {
-    fputc(Config_index_of_command(config, self->commands[i]), out);
+    fputcc(Config_index_of_command(config, self->commands[i]), out);
   }
 }
 
 //------------------------------------------------------------------------------
 
 void CommandList_write(CommandList *self, FILE* out) {
-  fputc(self->num_commands, out);
+  fputcc(self->num_commands, out);
   for(uint8_t i=0; i<self->num_commands; i++) {
     Command_write(self->commands[i], out);
   }
@@ -398,11 +405,11 @@ void CommandList_write(CommandList *self, FILE* out) {
 //------------------------------------------------------------------------------
 
 void Command_write(Command *self, FILE* out) {
-  fputc(self->action, out);
-  fputc(self->row, out);  
-  fputc(self->col, out);
-  fputc(self->len, out);
-  fputc(Config_index_of_string(config, self->string), out);    
+  fputcc(self->action, out);
+  fputcc(self->row, out);  
+  fputcc(self->col, out);
+  fputcc(self->len, out);
+  fputcc(Config_index_of_string(config, self->string), out);    
 }
 
 //------------------------------------------------------------------------------
