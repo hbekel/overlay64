@@ -35,11 +35,11 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
-Rev ""
-Comp ""
-Comment1 ""
+Title "Simple Video Overlay Driver"
+Date "2016-02-02"
+Rev "1"
+Comp "Henning Bekel"
+Comment1 "http://www.henning-bekel.de"
 Comment2 ""
 Comment3 ""
 Comment4 ""
@@ -246,7 +246,7 @@ L Q_NPN_BCE Q1
 U 1 1 56A78043
 P 5700 2800
 F 0 "Q1" H 6000 2850 50  0000 R CNN
-F 1 "NPN" H 6050 2750 50  0000 R CNN
+F 1 "BC547" H 6150 2750 50  0000 R CNN
 F 2 "TO_SOT_Packages_THT:TO-92_Inline_Narrow_Oval" H 5900 2900 29  0001 C CNN
 F 3 "" H 5700 2800 60  0000 C CNN
 	1    5700 2800
@@ -391,7 +391,6 @@ Wire Wire Line
 	4650 3250 4350 3250
 Wire Wire Line
 	4350 3250 4350 3200
-NoConn ~ 4350 3850
 NoConn ~ 4350 2700
 Wire Wire Line
 	5550 3150 5550 3550
@@ -500,39 +499,39 @@ Wire Wire Line
 $Comp
 L CONN_01X14 P3
 U 1 1 56A9F1EA
-P 7900 3500
-F 0 "P3" H 7900 4250 50  0000 C CNN
-F 1 "INPUT" V 8000 3500 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x14" H 7900 3500 60  0001 C CNN
-F 3 "" H 7900 3500 60  0000 C CNN
-	1    7900 3500
+P 7950 3750
+F 0 "P3" H 7950 4500 50  0000 C CNN
+F 1 "INPUT" V 8050 3750 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x14" H 7950 3750 60  0001 C CNN
+F 3 "" H 7950 3750 60  0000 C CNN
+	1    7950 3750
 	1    0    0    -1  
 $EndComp
-Text Label 7700 2850 2    60   ~ 0
+Text Label 7750 3100 2    60   ~ 0
 IN0
-Text Label 7700 2950 2    60   ~ 0
+Text Label 7750 3200 2    60   ~ 0
 IN1
-Text Label 7700 3050 2    60   ~ 0
+Text Label 7750 3300 2    60   ~ 0
 IN2
-Text Label 7700 3150 2    60   ~ 0
+Text Label 7750 3400 2    60   ~ 0
 IN3
-Text Label 7700 3250 2    60   ~ 0
+Text Label 7750 3500 2    60   ~ 0
 IN4
-Text Label 7700 3350 2    60   ~ 0
+Text Label 7750 3600 2    60   ~ 0
 IN5
-Text Label 7700 3450 2    60   ~ 0
+Text Label 7750 3700 2    60   ~ 0
 IN6
-Text Label 7700 3550 2    60   ~ 0
+Text Label 7750 3800 2    60   ~ 0
 IN7
-Text Label 7700 3650 2    60   ~ 0
+Text Label 7750 3900 2    60   ~ 0
 IN8
-Text Label 7700 3750 2    60   ~ 0
+Text Label 7750 4000 2    60   ~ 0
 IN9
-Text Label 7700 3850 2    60   ~ 0
+Text Label 7750 4100 2    60   ~ 0
 IN10
-Text Label 7700 3950 2    60   ~ 0
+Text Label 7750 4200 2    60   ~ 0
 IN11
-Text Label 7700 4050 2    60   ~ 0
+Text Label 7750 4300 2    60   ~ 0
 IN12
 $Comp
 L R R2
@@ -551,7 +550,7 @@ Wire Wire Line
 	5400 2800 5500 2800
 Text Label 4350 4800 0    60   ~ 0
 ~OE
-Text Label 7700 4150 2    60   ~ 0
+Text Label 7750 4400 2    60   ~ 0
 ~OE
 Text Label 6150 3550 0    60   ~ 0
 LUMA
