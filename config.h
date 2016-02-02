@@ -23,7 +23,7 @@
 extern uint8_t CONFIG_MAGIC[2];
 
 typedef struct {
-  uint8_t volatile *port; // will point into Config->ports
+  uint8_t volatile *port; // pointer into Config->ports
   uint8_t pos; 
 } Pin;
 
@@ -32,7 +32,7 @@ typedef struct {
   uint8_t row;
   uint8_t col;
   uint16_t len;
-  char* string;
+  char* string; // pointer into config->strings
 } Command;
 
 typedef struct {
@@ -41,7 +41,7 @@ typedef struct {
 } CommandList;
 
 typedef struct {
-  Pin **pins; // list of pointers into Config->pins
+  Pin **pins; // pointers into Config->pins
   uint8_t num_pins;
   
   CommandList **commands; // one command list for each state
@@ -50,7 +50,7 @@ typedef struct {
 
 typedef struct {
   uint8_t volatile *ports[3]; // the actual ports to use
-  Pin *pins[INPUT_PINS]; // the available pins
+  Pin *pins[INPUT_PINS];      // the available pins
   
   Sample **samples;
   uint8_t num_samples;

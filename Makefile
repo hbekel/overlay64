@@ -30,8 +30,7 @@ test-plot: clean
 	./test-plot < test.conf | less -S
 
 clean:
-	rm -f overlay64
-	rm -f overlay64.exe{,.stackdump}
-	rm -f test-plot
-	rm -f test-plot.exe{,.stackdump}
+	rm -f *.bin
+	rm -f overlay64{,.exe{,.stackdump}}
+	rm -f test-plot{,.exe{,.stackdump}}
 

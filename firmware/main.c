@@ -14,22 +14,24 @@
 #define NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 #define NOPS(n) for(uint8_t i=0; i<n; i++) NOP()
 
-#include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <avr/eeprom.h>
 
 #include "main.h"
 #include "font.h"
 #include "eeprom.h"
 #include "config.h"
 
-volatile uint8_t frame;
-volatile uint16_t line;
-volatile uint8_t enabled;
+#define OE   (1<<PD7)
+#define MOSI (1<<PB3)
+#define SS   (1<<PB2)
 
-volatile Config* config;
+volatile uint8_t frame;     // frame counter used for timing the auto-disable feature
+volatile uint16_t scanline; // current scanline of the whole video frame
+volatile uint8_t enabled;   // whether or not the display is currently enabled
+
+volatile Config* config;    // Configuration read from eeprom
 
 //------------------------------------------------------------------------------
 
@@ -41,48 +43,61 @@ ISR(INT1_vect) { // VSYNC (each frame)...
   // Update frame counter
   frame++;
   
-  // get input and update screen according to config
-  // this must happen within 180us = 3600 cycles @ 16MHz
+  // Get input and update screen according to config
+  // This must happen within 180us = 3600 cycles @ 16MHz
 
   Config_apply(config);
 
-  // wait for the vertical blanking period to end
+  // Wait for the remaining time until the end of the
+  // vertical blanking period (180us)
   while(TCNT1<US(180));
-  line = 0;
+
+  // We're on the first scanline now
+  scanline = 0;
 }
 
 //------------------------------------------------------------------------------
 
 ISR(INT0_vect) { // HSYNC (each line)...
 
-  uint8_t* row;
-  uint8_t col, lin, ofs; 
+  uint8_t* row;   // Character data for the current row
+  uint8_t line;   // Logical line of the visible screen
+  uint8_t column; // Current character column in the current row 
+  uint8_t byte;   // Current byte of the character bitmap
   
   TCNT1=0;  
-  line++;
+  scanline++;
 
-  if(!enabled) goto skip;
+  if(!enabled) goto check;
   
-  if(line >= SCREEN_TOP && line < SCREEN_BOTTOM) {
+  if(scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM) {
 
-    lin = line - SCREEN_TOP;
-    row = config->rows[lin / CHAR_HEIGHT];
-    ofs = lin % CHAR_HEIGHT;
-
-    while(TCNT1<US(9)); NOPS(10);
+    // Still outside of the visible area...
+    // Precalculate values for the current line
     
-    for(col=0; col<SCREEN_COLUMNS; col++) {
-      SPDR = font[row[col]*CHAR_HEIGHT+ofs]; NOPS(2);
+    line = scanline - SCREEN_TOP;
+    row = config->rows[line / CHAR_HEIGHT];
+    byte = line % CHAR_HEIGHT;
+
+    // Wait for the remaining time until visible area is reached
+    while(TCNT1<US(9)); NOPS(10);
+
+    // Bitbang font data for each column via SPI
+    for(column=0; column<SCREEN_COLUMNS; column++) {
+      SPDR = font[row[column]*CHAR_HEIGHT+byte];
+      NOPS(2);
     }   
   }
   
-  if(line >= SCREEN_BOTTOM) {    
+  if(scanline >= SCREEN_BOTTOM) {    
 
-  skip:
-    if(!(PIND & 1<<PD7)) {
+  check:
+    
+    if(!(PIND & OE)) {
       enabled = true;
       frame = 0;
     }
+    
     if(enabled && (frame > 2*50)) {
       enabled = false;
     }
@@ -105,16 +120,16 @@ static void SetupHardware() {
   ADCSRA&=~(1<<ADEN); 
 
   // Setup SPI 
-  DDRB = (1<<DDB2) | (1<<DDB3) | (1<DDB5); // SS and MOSI as outputs
+  DDRB = SS | MOSI;                // /SS and MOSI as outputs
   SPDR = 0;
   SPCR =
     (1<<SPE) | (1<<MSTR) |         // Enable SPI as Master
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
   SPSR = (1<<SPI2X);               // Double speed
   
-  // Setup /OE
-  DDRD  &= ~(1<<PD7);
-  PORTD |= (1<<PD7);
+  // Setup /OE (PD7)
+  DDRD  &= ~OE;
+  PORTD |= OE;
 
   // Setup Inputs
   DDRB  &= ~((1<<PB0) | (1<<PB1));
@@ -142,6 +157,7 @@ int main(void) {
   Config_read(config, &eeprom);
 
   SetupHardware();
+  
   while(1) sleep_mode();
   return 0;    
 }
