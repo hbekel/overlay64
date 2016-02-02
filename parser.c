@@ -175,7 +175,7 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
     self->len = value;
     (*i)++;
   }
-  free(str);
+  //free(str);
   return true;
 }
 
@@ -417,13 +417,15 @@ uint16_t Config_get_footprint(volatile Config* self) {
   }
 
   fp += SCREEN_ROWS * 2;  // the pointers to the rows
+  fp += SCREEN_COLUMNS;   // the empty line
+
   for(uint8_t i=0; i<SCREEN_ROWS; i++) {
-    fp += Row_get_footprint(self->rows[i]);
+    fp += (self->rows[i] != self->empty) ? SCREEN_COLUMNS : 0;
   }
 
   fp += 64*8;  // the font data
   fp += 1+1+2; // global vars frame, enabled, line
-  
+
   return fp;
 }
 
@@ -467,13 +469,3 @@ uint16_t Command_get_footprint(Command* self) {
 
 //------------------------------------------------------------------------------
 
-uint16_t Row_get_footprint(Row* self) {
-  uint16_t fp = 0;
-  fp += 1+1+2; // begin, end, mem pointer
-  if(self->mem != NULL) {
-    fp += self->end - self->begin;
-  }
-  return fp;
-}
-
-//------------------------------------------------------------------------------

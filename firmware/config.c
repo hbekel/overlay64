@@ -1,4 +1,5 @@
 #include "config.h"
+#include "string.h"
 
 //------------------------------------------------------------------------------
 
@@ -40,16 +41,32 @@ void CommandList_execute(CommandList* self) {
 
 void Command_execute(Command* self) {
 
-  Row* row = config->rows[self->row];
+  uint8_t* row = config->rows[self->row];
   
   if(self->action == ACTION_WRITE) {
     Row_write(row, self->col, self->string);
-    //Config_row_write(config, self->row, self->col, self->string);
   }
   if(self->action == ACTION_CLEAR) {
     Row_clear(row, self->col, self->len);
-    //Config_row_clear(config, self->row, self->col, self->len);
   }
+}
+
+//------------------------------------------------------------------------------
+
+void Row_write(uint8_t* row, uint8_t col, char *str) {
+  uint8_t* dst = row+col;
+  uint8_t len = strlen(str);
+  
+  for(uint8_t i=0; i<len; i++) {
+    dst[i] = (uint8_t) str[i]-0x20;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Row_clear(uint8_t* row, uint8_t col, uint8_t len) {
+  uint8_t* dst = row+col;
+  memset(dst, 0, len);
 }
 
 //------------------------------------------------------------------------------

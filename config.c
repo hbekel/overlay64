@@ -49,8 +49,11 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
   self->strings = (char**) NULL;
   self->num_strings = 0;
 
-  for(i=0; i<SCREEN_ROWS; i++) {
-    self->rows[i] = Row_new();
+  self->empty = (uint8_t*) calloc(SCREEN_COLUMNS, sizeof(uint8_t));  
+  self->rows = (uint8_t**) calloc(SCREEN_ROWS, sizeof(uint8_t*));
+
+  for(uint8_t i=0; i<SCREEN_ROWS; i++) {
+    self->rows[i] = self->empty;
   }
   
   return self;
@@ -59,6 +62,7 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
 //------------------------------------------------------------------------------
 
 void Config_free(volatile Config* self) {
+
   for(uint8_t i=0; i<self->num_samples; i++) {
     Sample_free(self->samples[i]);
   }
@@ -70,10 +74,13 @@ void Config_free(volatile Config* self) {
   CommandList_free(self->immediateCommands);
   CommandList_free(self->commands);
 
-  for(uint8_t i=0; i<30; i++) {
-    Row_free(self->rows[i]);
+  for(uint8_t i=0; i<SCREEN_ROWS; i++) {
+    if(self->rows[i] != self->empty) {
+      free(self->rows[i]);
+    }
   }
-  
+  free(self->empty); 
+
   free((void*)self);
 }
 
@@ -137,26 +144,11 @@ Command* Config_add_command(volatile Config *self, Command* command) {
 void Config_allocate_rows(volatile Config *self) {
 
   Command *command;
-  Row* row;
-  uint8_t len;
   
   for(uint8_t i=0; i<self->commands->num_commands; i++) {
     command = self->commands->commands[i];
-    row = self->rows[command->row];
-
-    if(command->col < row->begin) {      
-      row->begin = command->col;
-    }
-    if((command->col + command->len) > row->end) {
-      row->end = command->col + command->len;
-    }
-  }
-
-  for(uint8_t i=0; i<SCREEN_ROWS; i++) {
-    row = self->rows[i];
-    len = row->end - row->begin;
-    if(len > 0) {
-      row->mem = (uint8_t*) calloc(len, sizeof(char));
+    if(self->rows[command->row] == self->empty) {
+      self->rows[command->row] = (uint8_t*) calloc(SCREEN_COLUMNS, sizeof(uint8_t));
     }
   }
 }
@@ -311,60 +303,6 @@ Pin *Pin_new(volatile Config* c, uint8_t port, uint8_t pos) {
 //------------------------------------------------------------------------------
 
 void Pin_free(Pin* self) {
-  free(self);
-}
-
-//------------------------------------------------------------------------------
-
-Row* Row_new(void) {
-  Row* self = (Row*) calloc(1, sizeof(Row));
-  return self;
-}
-
-//------------------------------------------------------------------------------
-
-bool Row_empty(Row* self) {
-  return self->mem == NULL;
-}
-
-//------------------------------------------------------------------------------
-
-inline uint8_t Row_get(Row* self, uint8_t col) {
-  if(Row_empty(self)) return 0;
-  if(col >= self->begin && col <= self->end) {
-    return self->mem[col-self->begin];
-  }
-  return 0;
-}
-
-//------------------------------------------------------------------------------
-
-void Row_write(Row *self, uint8_t col, char* src) {
-  if(Row_empty(self)) return;
-
-  uint8_t *dst = self->mem + (col - self->begin);
-  uint8_t len = strlen(src);
-
-  for(uint8_t i=0; i<len; i++) {
-    dst[i] = (uint8_t) src[i] - 0x20;
-  }
-}
-
-//------------------------------------------------------------------------------
-
-void Row_clear(Row* self, uint8_t col, uint8_t len) {
-  if(Row_empty(self)) return;
-
-  uint8_t *dst = self->mem + (col - self->begin);
-  memset(dst, 0, len);
-}
-
-//------------------------------------------------------------------------------
-
-void Row_free(Row *self) {
-  if(self->mem != NULL) {
-    free(self->mem);
-  }
   free(self);
 }
 

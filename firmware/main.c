@@ -55,7 +55,7 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 
 ISR(INT0_vect) { // HSYNC (each line)...
 
-  Row* row;
+  uint8_t* row;
   uint8_t col, lin, ofs; 
   
   TCNT1=0;  
@@ -72,7 +72,7 @@ ISR(INT0_vect) { // HSYNC (each line)...
     while(TCNT1<US(9)); NOPS(10);
     
     for(col=0; col<SCREEN_COLUMNS; col++) {
-      SPDR = font[Row_get(row, col)*CHAR_HEIGHT+ofs];
+      SPDR = font[row[col]*CHAR_HEIGHT+ofs]; NOPS(2);
     }   
   }
   

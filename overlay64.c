@@ -15,9 +15,10 @@ int main(int argc, char **argv) {
   else {  
     return EXIT_FAILURE;
   }
-
+  
   fprintf(stderr, "memory footprint is %d bytes\n", Config_get_footprint(config));
-    
+
+  Config_free(config);  
   return EXIT_SUCCESS;
 }
 

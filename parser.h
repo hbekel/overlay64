@@ -34,6 +34,4 @@ void Command_print(Command *self, FILE* out);
 void Command_write(Command *self, FILE* out);
 uint16_t Command_get_footprint(Command* self);
 
-uint16_t Row_get_footprint(Row* self);
-
 #endif // PARSER_H

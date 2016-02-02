@@ -8,7 +8,7 @@
 #define CHAR_WIDTH    8
 #define CHAR_HEIGHT   8
 
-#define SCREEN_COLUMNS 45
+#define SCREEN_COLUMNS 53
 #define SCREEN_ROWS    30
 
 #define SCREEN_TOP    40
@@ -49,12 +49,6 @@ typedef struct {
 } Sample;
 
 typedef struct {
-  uint8_t begin;
-  uint8_t end;
-  uint8_t *mem;
-} Row;
-
-typedef struct {
   uint8_t volatile *ports[3]; // the actual ports to use
   Pin *pins[INPUT_PINS]; // the available pins
   
@@ -67,8 +61,9 @@ typedef struct {
   char **strings;
   uint8_t num_strings;
 
-  Row *rows[SCREEN_ROWS];
-
+  uint8_t **rows;
+  uint8_t *empty;
+  
 } Config;
 
 volatile Config* config;
@@ -108,12 +103,5 @@ void CommandList_free(CommandList* self);
 
 Pin *Pin_new(volatile Config* config, uint8_t port, uint8_t pos);
 void Pin_free(Pin *self);
-
-Row* Row_new(void);
-uint8_t Row_get(Row* self, uint8_t col);
-void Row_write(Row *self, uint8_t col, char* src);
-void Row_clear(Row* self, uint8_t col, uint8_t len);
-bool Row_empty(Row* self);
-void Row_free(Row *self);
 
 #endif // CONFIG_H
