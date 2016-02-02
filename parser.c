@@ -147,7 +147,9 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
 bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
 
   uint8_t value;
-  char *str = (char*) calloc(4096, sizeof(char));
+  char *string = (char*) calloc(4096, sizeof(char));
+  char *ptr = string;
+  
   uint8_t index;
       
   self->action = (keyword == WRITE) ?
@@ -162,20 +164,20 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
     self->col = value;
     (*i)++;
   }
-  if(parseString(words, i, &str)) {    
-    (*i)++;
-    if(Config_has_string(config, str, &index)) {
+  if(parseString(words, i, &string)) {    
+    if(Config_has_string(config, string, &index)) {
       Command_set_string(self, config->strings[index]);
     }
     else {
-      Command_set_string(self, Config_add_string(config, str));
+      Command_set_string(self, Config_add_string(config, string));
     }
+    (*i)++;
   }
   else if(parseInt(StringList_get(words, *i), 0, &value)) {
     self->len = value;
     (*i)++;
   }
-  //free(str);
+  free(ptr);
   return true;
 }
 
@@ -387,7 +389,7 @@ void Command_write(Command *self, FILE* out) {
 }
 
 //------------------------------------------------------------------------------
-// functions to calculate memory footprint
+// functions for calculating the required memory footprint
 //------------------------------------------------------------------------------
 
 uint16_t Config_get_footprint(volatile Config* self) {
@@ -402,23 +404,28 @@ uint16_t Config_get_footprint(volatile Config* self) {
   fp += CommandList_get_footprint(self->commands);
 
   fp += 2;                // the pointer to the immediateCommands CommandList
-  fp += self->immediateCommands->num_commands * 2;
+  fp += CommandList_get_sparse_footprint(self->immediateCommands);
 
   fp += 1;                     // num_strings
   fp += self->num_strings * 2; // the pointers to the strings;
+
+  // the strings themselves
   for(uint8_t i=0; i<self->num_strings; i++) {
     fp += strlen(self->strings[i])+1;
   }
 
   fp += 1;                     // num_samples
   fp += self->num_samples * 2; // the pointers to the samples
+
+  // the samples themselves
   for(uint8_t i=0; i<self->num_samples; i++) {
     fp += Sample_get_footprint(self->samples[i]);
   }
 
   fp += SCREEN_ROWS * 2;  // the pointers to the rows
-  fp += SCREEN_COLUMNS;   // the empty line
+  fp += SCREEN_COLUMNS;   // the default empty line
 
+  // the allocated rows themselves
   for(uint8_t i=0; i<SCREEN_ROWS; i++) {
     fp += (self->rows[i] != self->empty) ? SCREEN_COLUMNS : 0;
   }
@@ -439,9 +446,9 @@ uint16_t Sample_get_footprint(Sample* self) {
   fp += 1; // num_commands;
   fp += self->num_commands * 2; // pointers to the CommandLists
 
+  // the CommandLists themselves
   for(uint8_t i=0; i<self->num_commands; i++) {
-    fp += 1; // num_commands in CommandList;
-    fp += self->commands[i]->num_commands * 2; // pointers to commands in CommandList
+    fp += CommandList_get_sparse_footprint(self->commands[i]);
   }
   
   return fp;
@@ -451,14 +458,25 @@ uint16_t Sample_get_footprint(Sample* self) {
 
 uint16_t CommandList_get_footprint(CommandList* self) {
   uint16_t fp = 0;
-  fp += 1;                       // num_commands;
-  fp += self->num_commands * 2;  // the pointers to the commands
+
+  fp += CommandList_get_sparse_footprint(self);
+
+  // the commands themselves
   for(uint8_t i=0; i<self->num_commands; i++) {
     fp += Command_get_footprint(self->commands[i]);
   }
   return fp;
 }
 
+//------------------------------------------------------------------------------
+ 
+uint16_t CommandList_get_sparse_footprint(CommandList* self) {
+  uint16_t fp = 0;
+  fp += 1;                       // num_commands;
+  fp += self->num_commands * 2;  // the pointers to the commands
+  return fp;
+}
+ 
 //------------------------------------------------------------------------------
 
 uint16_t Command_get_footprint(Command* self) {

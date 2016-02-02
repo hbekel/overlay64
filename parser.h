@@ -27,6 +27,7 @@ void Pin_write(Pin* self, FILE* out);
 void CommandList_print(CommandList *self, FILE* out);
 void CommandList_write_indexed(CommandList *self, FILE* out);
 void CommandList_write(CommandList *self, FILE* out);
+uint16_t CommandList_get_sparse_footprint(CommandList* self);
 uint16_t CommandList_get_footprint(CommandList* self);
 
 bool Command_parse(Command *self, int keyword, StringList* words, int *i);
