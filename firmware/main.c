@@ -21,7 +21,7 @@
 #define SS   (1<<PB2)
 
 #define ENABLE_SPI  DDRB |= MOSI
-#define DISABLE_SPI DDRB &= ~MOSI; PORTB &= ~MOSI
+#define DISABLE_SPI DDRB &= ~MOSI
 
 volatile uint8_t frame;     // frame counter for timing the auto-disable feature
 volatile uint16_t scanline; // current scanline of the whole video frame
