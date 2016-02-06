@@ -114,7 +114,9 @@ ISR(INT0_vect) { // HSYNC (each line)...
   TCNT1=0;  
   scanline++;
 
-  if(enabled && (scanline >= SCREEN_TOP) && (scanline < SCREEN_BOTTOM)) {
+  if(!enabled) goto skip;
+  
+  if(scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM) {
 
     // Still outside of the visible area...
     // Precalculate values for the current line
@@ -138,8 +140,10 @@ ISR(INT0_vect) { // HSYNC (each line)...
       NOPS(2);
     }   
   }
-  else { skip:
+  
+  if(scanline >= SCREEN_BOTTOM) {          
     
+  skip:
     DISABLE_SPI;
     
     if(!(PIND & OE)) {
