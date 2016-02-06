@@ -126,7 +126,7 @@ ISR(INT0_vect) { // HSYNC (each line)...
     byte = line % CHAR_HEIGHT;
 
     // Skip empty rows
-    if(row == config->empty) goto skip;
+    if(row == NULL) goto skip;
 
     // Enable the SPI Output pin
     ENABLE_SPI;

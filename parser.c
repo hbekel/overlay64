@@ -449,11 +449,10 @@ uint16_t Config_get_footprint(volatile Config* self) {
   }
 
   fp += SCREEN_ROWS * 2;  // the pointers to the rows
-  fp += SCREEN_COLUMNS;   // the default empty line
 
   // the allocated rows themselves
   for(uint8_t i=0; i<SCREEN_ROWS; i++) {
-    fp += (self->rows[i] != self->empty) ? SCREEN_COLUMNS : 0;
+    fp += (self->rows[i] != NULL) ? SCREEN_COLUMNS : 0;
   }
 
   fp += 64*8;  // the font data

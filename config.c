@@ -51,13 +51,8 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
   self->strings = (char**) NULL;
   self->num_strings = 0;
 
-  self->empty = (uint8_t*) calloc(SCREEN_COLUMNS, sizeof(uint8_t));  
   self->rows = (uint8_t**) calloc(SCREEN_ROWS, sizeof(uint8_t*));
 
-  for(uint8_t i=0; i<SCREEN_ROWS; i++) {
-    self->rows[i] = self->empty;
-  }
-  
   return self;
 }
 
@@ -77,11 +72,10 @@ void Config_free(volatile Config* self) {
   CommandList_free(self->commands);
 
   for(uint8_t i=0; i<SCREEN_ROWS; i++) {
-    if(self->rows[i] != self->empty) {
+    if(self->rows[i] != NULL) {
       free(self->rows[i]);
     }
   }
-  free(self->empty); 
 
   free((void*)self);
 }
@@ -149,7 +143,7 @@ void Config_allocate_rows(volatile Config *self) {
   
   for(uint8_t i=0; i<self->commands->num_commands; i++) {
     command = self->commands->commands[i];
-    if(self->rows[command->row] == self->empty) {
+    if(self->rows[command->row] == NULL) {
       self->rows[command->row] = (uint8_t*) calloc(SCREEN_COLUMNS, sizeof(uint8_t));
     }
   }

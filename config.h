@@ -64,7 +64,6 @@ typedef struct {
   uint8_t num_strings;
 
   uint8_t **rows;
-  uint8_t *empty;
   
 } Config;
 
