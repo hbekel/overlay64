@@ -34,7 +34,7 @@ volatile Config* config;    // Configuration read from eeprom
 static void setup() {
 
   // Create config and assign ports
-  config = Config_new_with_ports(&PINB, &PINC, &PIND);
+  config = Config_new_with_ports(&PINC, &PIND, &PINB);
 
   // Read config from eeprom
   Config_read(config, &eeprom);
@@ -48,7 +48,7 @@ static void setup() {
   EIMSK = (1<<INT0) | (1<<INT1);   // Enable interrupts for int0 and int1
 
   // Turn off ADC  
-  ADCSRA&=~(1<<ADEN); 
+  ADCSRA &= ~(1<<ADEN); 
 
   // Setup SPI 
   DDRB = SS | MOSI;                // /SS and MOSI as outputs

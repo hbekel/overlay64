@@ -5,9 +5,9 @@
 
 uint8_t CONFIG_MAGIC[2] = { 'O', 'V' };
 
-static uint8_t B = 0;
-static uint8_t C = 1;
-static uint8_t D = 2;
+static uint8_t C = 0;
+static uint8_t D = 1;
+static uint8_t B = 2;
 
 //------------------------------------------------------------------------------
 
@@ -34,8 +34,6 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
   self->samples = (Sample**) calloc(1, sizeof(Sample**));
 
   uint8_t i = 0;
-  self->pins[i++] = Pin_new(self, B, 0);
-  self->pins[i++] = Pin_new(self, B, 1);
   self->pins[i++] = Pin_new(self, C, 0);
   self->pins[i++] = Pin_new(self, C, 1);
   self->pins[i++] = Pin_new(self, C, 2);
@@ -47,6 +45,8 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
   self->pins[i++] = Pin_new(self, D, 4);
   self->pins[i++] = Pin_new(self, D, 5);
   self->pins[i++] = Pin_new(self, D, 6);
+  self->pins[i++] = Pin_new(self, B, 0);
+  self->pins[i++] = Pin_new(self, B, 1);
 
   self->strings = (char**) NULL;
   self->num_strings = 0;
