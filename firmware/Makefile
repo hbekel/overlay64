@@ -14,7 +14,8 @@ SOURCES=main.c \
 	config.c \
 	../config.c
 
-HEADERS=font.h \
+HEADERS=main.h \
+	font.h \
 	config.h \
 	../config.h
 

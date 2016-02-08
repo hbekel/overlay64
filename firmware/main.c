@@ -3,35 +3,26 @@
 //------------------------------------------------------------------------------
 
 #define F_CPU 20000000UL
-#define TICKS_PER_USEC F_CPU/1000000UL
-#define US(n) n*(TICKS_PER_USEC)
-#define NOP() do { __asm__ __volatile__ ("nop"); } while (0)
-#define NOPS(n) for(uint8_t i=0; i<n; i++) NOP()
-
-#define READ(reg, pins, pin) reg[0] = reg[1]; reg[1] = (pins & pin) ? 1 : 0
-#define LOW(reg) (!reg[1])
-#define HIGH(reg) (reg[1])
-#define RISING(reg) (!reg[0] && reg[1])
-#define FALLING(reg) (reg[0] && !reg[1])
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 
+#include "main.h"
 #include "font.h"
 #include "eeprom.h"
 #include "config.h"
 
-#define OR   (1<<PD7)
-#define OE   (1<<PD6)
-#define MOSI (1<<PB3)
-#define SS   (1<<PB2)
+#define OE   (1<<PD6)  // Output Enable (active low)
+#define OR   (1<<PD7)  // Output Request (active low) (enable output for timeout frames)
+#define MOSI (1<<PB3)  // SPI output pin (where the actual bitmap data is send)
+#define SS   (1<<PB2)  // SPI slave select (must be pulled up in master mode)
 
-#define ENABLE_SPI  DDRB |= MOSI
-#define DISABLE_SPI DDRB &= ~MOSI
+#define ENABLE_SPI  DDRB |= MOSI  // Enable the SPI output pin
+#define DISABLE_SPI DDRB &= ~MOSI // Disable (tristate) the SPI output pins
 
-volatile uint8_t output_enable[2]  = { true, true };
-volatile uint8_t output_request[2] = { true, true };
+volatile uint8_t output_enable[2]  = { true, true }; // state/edge for OE
+volatile uint8_t output_request[2] = { true, true }; // state/edge for OR
 
 volatile uint16_t scanline; // current scanline of the whole video frame
 volatile uint8_t enabled;   // whether or not the display is currently enabled
@@ -67,11 +58,11 @@ static void setup() {
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
   SPSR = (1<<SPI2X);               // Double speed
   
-  // Setup /OE and /OR (PD7) as inputs
+  // Setup OE (PD6) and OR (PD7) as inputs with pullups
   DDRD  &= ~OE; PORTD |= OE;
   DDRD  &= ~OR; PORTD |= OR;
 
-  // Setup Inputs
+  // Setup Inputs with pullups
   DDRB  &= ~((1<<PB0) | (1<<PB1));
   PORTB |=  ((1<<PB0) | (1<<PB1));
 
@@ -124,24 +115,23 @@ ISR(INT0_vect) { // HSYNC (each line)...
   TCNT1=0;  
   scanline++;
 
-  if(!enabled) goto skip;
-  
-  if(scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM) {
+  if(enabled && (scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM)) {
 
-    // Still outside of the visible area...
-    // Precalculate values for the current line
+    // The display is enabled and we're on a vertical line inside of
+    // the logical screen area, but still outside of the visible horizonzal area.
+    // So there is time to precalculate some values for the current line...
     
     line = scanline - SCREEN_TOP;
     row = config->rows[line / CHAR_HEIGHT];
     byte = line % CHAR_HEIGHT;
 
-    // Skip empty rows
+    // ...and to decide whether we're on an empty row...
     if(row == NULL) goto skip;
 
-    // Enable the SPI Output pin
+    // ...not an empty row, so we'll enable the SPI Output pin...
     ENABLE_SPI;
     
-    // Wait for the remaining time until visible area is reached
+    // ...and wait for the remaining time until visible area is reached
     while(TCNT1<US(9)); NOPS(10);
 
     // Bitbang font data for each column via SPI
@@ -149,29 +139,38 @@ ISR(INT0_vect) { // HSYNC (each line)...
       SPDR = font[row[column]*CHAR_HEIGHT+byte];
       NOPS(2);
     }   
-  }
-  
-  if(scanline >= SCREEN_BOTTOM) {          
+  }  
+  else {
+    // The display is not enabled or we're outside of the logical screen
+    // or there is nothing to display on this row...
     
   skip:
+    // We'll tristate the SPI pin again
     DISABLE_SPI;
+
+    // Get the current state of the control lines and also remember the
+    // previous states so that we can detect rising or falling edges    
 
     READ(output_enable, PIND, OE);
     READ(output_request, PIND, OR);
 
+    // When OE is low the output is always enabled
     if(LOW(output_enable)) {
       enabled = true;
     }
-    
+
+    // When OE goes high again, output is disabled immediately
     else if(RISING(output_enable)) {
       enabled = false;
     }    
 
+    // When OR is low, output is enabled and timeout starts
     else if(LOW(output_request)) {
       enabled = true;
       timeout = config->timeout;
     }
 
+    // When OR is high and timeout is reached, output is disabled
     else if(HIGH(output_request) && !timeout) {
       enabled = false;
     }
