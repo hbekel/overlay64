@@ -465,8 +465,6 @@ Text Label 4350 4500 0    60   ~ 0
 IN10
 Text Label 4350 4600 0    60   ~ 0
 IN11
-Text Label 4350 4700 0    60   ~ 0
-IN12
 Wire Wire Line
 	5300 4350 5200 4350
 Wire Wire Line
@@ -507,8 +505,6 @@ Text Label 7750 4100 2    60   ~ 0
 IN10
 Text Label 7750 4200 2    60   ~ 0
 IN11
-Text Label 7750 4300 2    60   ~ 0
-IN12
 $Comp
 L R R2
 U 1 1 56AA9AFF
@@ -523,8 +519,8 @@ $EndComp
 Wire Wire Line
 	4350 2800 5200 2800
 Text Label 4350 4800 0    60   ~ 0
-~OE
-Text Label 7750 4400 2    60   ~ 0
+~OR
+Text Label 7750 4300 2    60   ~ 0
 ~OE
 Text Label 6150 3550 0    60   ~ 0
 LUMA
@@ -539,7 +535,7 @@ F 3 "" H 8000 2600 60  0000 C CNN
 	1    8000 3750
 	1    0    0    -1  
 $EndComp
-Text Label 8250 4400 0    60   ~ 0
+Text Label 8250 4300 0    60   ~ 0
 ~OE
 Text Label 8250 3100 0    60   ~ 0
 IN0
@@ -565,8 +561,6 @@ Text Label 8250 4100 0    60   ~ 0
 IN10
 Text Label 8250 4200 0    60   ~ 0
 IN11
-Text Label 8250 4300 0    60   ~ 0
-IN12
 $Comp
 L JUMPER JP1
 U 1 1 56B2539D
@@ -596,4 +590,10 @@ F 3 "" H 5700 2800 50  0000 L CNN
 	1    5700 2800
 	1    0    0    -1  
 $EndComp
+Text Label 4350 4700 0    60   ~ 0
+~OE
+Text Label 8250 4400 0    60   ~ 0
+~OR
+Text Label 7750 4400 2    60   ~ 0
+~OR
 $EndSCHEMATC

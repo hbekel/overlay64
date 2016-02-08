@@ -44,7 +44,6 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
   self->pins[i++] = Pin_new(self, D, 1);
   self->pins[i++] = Pin_new(self, D, 4);
   self->pins[i++] = Pin_new(self, D, 5);
-  self->pins[i++] = Pin_new(self, D, 6);
   self->pins[i++] = Pin_new(self, B, 0);
   self->pins[i++] = Pin_new(self, B, 1);
 

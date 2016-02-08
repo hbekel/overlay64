@@ -456,7 +456,8 @@ uint16_t Config_get_footprint(volatile Config* self) {
   }
 
   fp += 64*8;  // the font data
-  fp += 1+1+2; // global vars frame, enabled, line
+  fp += 1+1+2; // globals scanline, enabled, timeout
+  fp += 2*2;   // global pin state arrays output_enable, output_request 
 
   return fp;
 }

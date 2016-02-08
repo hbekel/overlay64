@@ -8,6 +8,12 @@
 #define NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 #define NOPS(n) for(uint8_t i=0; i<n; i++) NOP()
 
+#define READ(reg, pins, pin) reg[0] = reg[1]; reg[1] = (pins & pin) ? 1 : 0
+#define LOW(reg) (!reg[1])
+#define HIGH(reg) (reg[1])
+#define RISING(reg) (!reg[0] && reg[1])
+#define FALLING(reg) (reg[0] && !reg[1])
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
@@ -16,16 +22,20 @@
 #include "eeprom.h"
 #include "config.h"
 
-#define OE   (1<<PD7)
+#define OR   (1<<PD7)
+#define OE   (1<<PD6)
 #define MOSI (1<<PB3)
 #define SS   (1<<PB2)
 
 #define ENABLE_SPI  DDRB |= MOSI
 #define DISABLE_SPI DDRB &= ~MOSI
 
-volatile uint8_t frame;     // frame counter for timing the auto-disable feature
+volatile uint8_t output_enable[2]  = { true, true };
+volatile uint8_t output_request[2] = { true, true };
+
 volatile uint16_t scanline; // current scanline of the whole video frame
 volatile uint8_t enabled;   // whether or not the display is currently enabled
+volatile uint8_t timeout;   // timeout counter until disabling display 
 
 volatile Config* config;    // Configuration read from eeprom
 
@@ -57,9 +67,9 @@ static void setup() {
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
   SPSR = (1<<SPI2X);               // Double speed
   
-  // Setup /OE (PD7) as input
-  DDRD  &= ~OE;
-  PORTD |= OE;
+  // Setup /OE and /OR (PD7) as inputs
+  DDRD  &= ~OE; PORTD |= OE;
+  DDRD  &= ~OR; PORTD |= OR;
 
   // Setup Inputs
   DDRB  &= ~((1<<PB0) | (1<<PB1));
@@ -86,8 +96,8 @@ ISR(INT1_vect) { // VSYNC (each frame)...
   // Vertical blanking period starts...
   TCNT1 = 0;
 
-  // Update frame counter
-  frame++;
+  // Decrease timeout counter
+  if(timeout > 0) timeout--;
   
   // Get input and update screen according to config
   // This must happen within 180us = 3600 cycles @ 20MHz
@@ -145,16 +155,27 @@ ISR(INT0_vect) { // HSYNC (each line)...
     
   skip:
     DISABLE_SPI;
-    
-    if(!(PIND & OE)) {
+
+    READ(output_enable, PIND, OE);
+    READ(output_request, PIND, OR);
+
+    if(LOW(output_enable)) {
       enabled = true;
-      frame = 0;
     }
     
-    if(enabled && frame > config->timeout) {
+    else if(RISING(output_enable)) {
+      enabled = false;
+    }    
+
+    else if(LOW(output_request)) {
+      enabled = true;
+      timeout = config->timeout;
+    }
+
+    else if(HIGH(output_request) && !timeout) {
       enabled = false;
     }
-  }  
+  }
 }
 
 //------------------------------------------------------------------------------
