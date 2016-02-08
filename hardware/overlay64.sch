@@ -441,29 +441,29 @@ F 3 "" H 6450 3650 60  0000 C CNN
 	1    6450 3650
 	1    0    0    -1  
 $EndComp
-Text Label 4350 2500 0    60   ~ 0
-IN0
-Text Label 4350 2600 0    60   ~ 0
-IN1
 Text Label 4350 3350 0    60   ~ 0
-IN2
+IN0
 Text Label 4350 3450 0    60   ~ 0
-IN3
+IN1
 Text Label 4350 3550 0    60   ~ 0
-IN4
+IN2
 Text Label 4350 3650 0    60   ~ 0
-IN5
+IN3
 Text Label 4350 3750 0    60   ~ 0
-IN6
+IN4
 Text Label 4350 3850 0    60   ~ 0
-IN7
+IN5
 Text Label 4350 4100 0    60   ~ 0
-IN8
+IN6
 Text Label 4350 4200 0    60   ~ 0
-IN9
+IN7
 Text Label 4350 4500 0    60   ~ 0
-IN10
+IN8
 Text Label 4350 4600 0    60   ~ 0
+IN9
+Text Label 4350 2500 0    60   ~ 0
+IN10
+Text Label 4350 2600 0    60   ~ 0
 IN11
 Wire Wire Line
 	5300 4350 5200 4350

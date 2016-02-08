@@ -8,10 +8,10 @@
     (autoroute on)
     (postroute on)
     (vias on)
-    (via_costs 50)
+    (via_costs 5)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 498)
+    (start_pass_no 522)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
@@ -70,9 +70,9 @@
   )
   (class "kicad_default"
     "Net-(C1-Pad2)" "Net-(C2-Pad2)" /LUMA "Net-(C5-Pad2)" "Net-(C6-Pad1)" /~RESET /IN8 /IN9
-    "Net-(IC1-Pad4)" "Net-(IC1-Pad5)" /IN10 /IN11 /IN12 /~OE /IN0 /IN1
-    "Net-(IC1-Pad16)" /MOSI /MISO /SCK "Net-(IC1-Pad21)" /IN2 /IN3 /IN4
-    /IN5 /IN6 /IN7 "Net-(JP1-Pad2)" "Net-(RV1-Pad3)" "Net-(U1-Pad5)" "Net-(U1-Pad7)" "Net-(Q1-Pad2)"
+    "Net-(IC1-Pad4)" "Net-(IC1-Pad5)" /IN10 /IN11 /~OE /IN0 /IN1 "Net-(IC1-Pad16)"
+    /MOSI /MISO /SCK "Net-(IC1-Pad21)" /IN2 /IN3 /IN4 /IN5
+    /IN6 /IN7 "Net-(JP1-Pad2)" "Net-(RV1-Pad3)" "Net-(U1-Pad5)" "Net-(U1-Pad7)" "Net-(Q1-Pad2)" /~OR
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule

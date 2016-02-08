@@ -21,10 +21,10 @@
       )
     )
     (boundary
-      (path pcb 0  151130 -102870  151130 -138430  182880 -138430  182880 -102870
-            151130 -102870  151130 -102870)
+      (path pcb 0  127000 -78105  127000 -113665  158750 -113665  158750 -78105
+            127000 -78105  127000 -78105)
     )
-    (keepout "" (polygon F.Cu 0  161290 -120015  161290 -131445  166370 -131445  166370 -120015))
+    (keepout "" (polygon F.Cu 0  137160 -95250  137160 -106680  142240 -106680  142240 -95250))
     (via "Via[0-1]_1000:400_um")
     (rule
       (width 250)
@@ -35,43 +35,43 @@
   )
   (placement
     (component Capacitors_ThroughHole:C_Disc_D3_P2.5
-      (place C1 160020 -120650 front 270 (PN 18pF))
-      (place C2 160020 -130810 front 90 (PN 18pF))
-      (place C3 165100 -118110 front 180 (PN 100nF))
-      (place C4 162560 -104140 front 0 (PN 100nF))
-      (place C5 156210 -127000 front 90 (PN 100nF))
-      (place C6 165100 -109220 front 90 (PN 100nF))
+      (place C1 135890 -95885 front 270 (PN 18pF))
+      (place C2 135890 -106045 front 90 (PN 18pF))
+      (place C3 140970 -93345 front 180 (PN 100nF))
+      (place C4 138430 -79375 front 0 (PN 100nF))
+      (place C5 132080 -102235 front 90 (PN 100nF))
+      (place C6 140970 -84455 front 90 (PN 100nF))
     )
     (component "Housings_DIP:DIP-28_W7.62mm"
-      (place IC1 167640 -104140 front 0 (PN "ATMEGA328P-P"))
+      (place IC1 143510 -79375 front 0 (PN "ATMEGA328P-P"))
     )
     (component Pin_Headers:Pin_Header_Straight_1x02
-      (place JP1 153670 -127000 front 180 (PN BACKDROP))
+      (place JP1 129540 -102235 front 180 (PN BACKDROP))
     )
     (component Pin_Headers:Pin_Header_Straight_2x03
-      (place P1 158750 -137160 front 90 (PN ISP))
+      (place P1 134620 -112395 front 90 (PN ISP))
     )
     (component Pin_Headers:Pin_Header_Straight_1x03
-      (place P2 153670 -135890 front 180 (PN MAIN))
+      (place P2 129540 -111125 front 180 (PN MAIN))
     )
     (component Pin_Headers:Pin_Header_Straight_2x14
-      (place P3 179070 -104140 front 0 (PN INPUT/BYPASS))
+      (place P3 154940 -79375 front 0 (PN INPUT/BYPASS))
     )
     (component Discret:R1
-      (place R1 162560 -107950 front 90 (PN 680k))
-      (place R2 160020 -116840 front 270 (PN 4k7))
+      (place R1 138430 -83185 front 90 (PN 680k))
+      (place R2 135890 -92075 front 270 (PN 4k7))
     )
     (component "Housings_DIP:DIP-8_W7.62mm"
-      (place U1 152400 -104140 front 0 (PN LM1881))
+      (place U1 128270 -79375 front 0 (PN LM1881))
     )
     (component "Crystals:Crystal_HC49-U_Vertical"
-      (place Y1 163830 -125730 front 270 (PN 20MHz))
+      (place Y1 139700 -100965 front 270 (PN 20MHz))
     )
     (component Potentiometers:Potentiometer_Bourns_3339P_Angular_ScrewUp
-      (place RV1 152400 -118110 front 0 (PN 1k))
+      (place RV1 128270 -93345 front 0 (PN 1k))
     )
     (component "TO_SOT_Packages_THT:TO-92_Inline_Narrow_Oval"
-      (place Q1 163830 -111760 front 270 (PN BC547B))
+      (place Q1 139700 -86995 front 270 (PN BC547B))
     )
   )
   (library
@@ -434,10 +434,10 @@
       (pins IC1-1 P1-5)
     )
     (net /IN8
-      (pins IC1-2 P3-17 P3-18)
+      (pins IC1-6 P3-17 P3-18)
     )
     (net /IN9
-      (pins IC1-3 P3-19 P3-20)
+      (pins IC1-11 P3-19 P3-20)
     )
     (net "Net-(IC1-Pad4)"
       (pins IC1-4 U1-1)
@@ -446,22 +446,19 @@
       (pins IC1-5 U1-3)
     )
     (net /IN10
-      (pins IC1-6 P3-21 P3-22)
+      (pins IC1-14 P3-21 P3-22)
     )
     (net /IN11
-      (pins IC1-11 P3-23 P3-24)
-    )
-    (net /IN12
-      (pins IC1-12 P3-25 P3-26)
+      (pins IC1-15 P3-23 P3-24)
     )
     (net /~OE
-      (pins IC1-13 P3-27 P3-28)
+      (pins IC1-12 P3-25 P3-26)
     )
     (net /IN0
-      (pins IC1-14 P3-1 P3-2)
+      (pins IC1-23 P3-1 P3-2)
     )
     (net /IN1
-      (pins IC1-15 P3-3 P3-4)
+      (pins IC1-24 P3-3 P3-4)
     )
     (net "Net-(IC1-Pad16)"
       (pins IC1-16)
@@ -479,22 +476,22 @@
       (pins IC1-21)
     )
     (net /IN2
-      (pins IC1-23 P3-5 P3-6)
+      (pins IC1-25 P3-5 P3-6)
     )
     (net /IN3
-      (pins IC1-24 P3-7 P3-8)
+      (pins IC1-26 P3-7 P3-8)
     )
     (net /IN4
-      (pins IC1-25 P3-9 P3-10)
+      (pins IC1-27 P3-9 P3-10)
     )
     (net /IN5
-      (pins IC1-26 P3-11 P3-12)
+      (pins IC1-28 P3-11 P3-12)
     )
     (net /IN6
-      (pins IC1-27 P3-13 P3-14)
+      (pins IC1-2 P3-13 P3-14)
     )
     (net /IN7
-      (pins IC1-28 P3-15 P3-16)
+      (pins IC1-3 P3-15 P3-16)
     )
     (net "Net-(JP1-Pad2)"
       (pins JP1-2 RV1-2 Q1-3)
@@ -511,11 +508,14 @@
     (net "Net-(Q1-Pad2)"
       (pins R2-1 Q1-2)
     )
-    (class kicad_default "" /IN0 /IN1 /IN10 /IN11 /IN12 /IN2 /IN3 /IN4 /IN5
-      /IN6 /IN7 /IN8 /IN9 /LUMA /MISO /MOSI /SCK /~OE /~RESET "Net-(C1-Pad2)"
+    (net /~OR
+      (pins IC1-13 P3-27 P3-28)
+    )
+    (class kicad_default "" /IN0 /IN1 /IN10 /IN11 /IN2 /IN3 /IN4 /IN5 /IN6
+      /IN7 /IN8 /IN9 /LUMA /MISO /MOSI /SCK /~OE /~OR /~RESET "Net-(C1-Pad2)"
       "Net-(C2-Pad2)" "Net-(C5-Pad2)" "Net-(C6-Pad1)" "Net-(IC1-Pad16)" "Net-(IC1-Pad21)"
-      "Net-(IC1-Pad4)" "Net-(IC1-Pad5)" "Net-(JP1-Pad2)" "Net-(Q1-Pad1)" "Net-(Q1-Pad2)"
-      "Net-(RV1-Pad3)" "Net-(U1-Pad5)" "Net-(U1-Pad7)"
+      "Net-(IC1-Pad4)" "Net-(IC1-Pad5)" "Net-(JP1-Pad2)" "Net-(Q1-Pad2)" "Net-(RV1-Pad3)"
+      "Net-(U1-Pad5)" "Net-(U1-Pad7)"
       (circuit
         (use_via Via[0-1]_1000:400_um)
       )
