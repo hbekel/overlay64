@@ -5,21 +5,21 @@
 #define F_CPU 20000000UL
 
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/interrupt.h>
 
 #include "main.h"
 #include "font.h"
 #include "eeprom.h"
 #include "config.h"
 
-#define OE   (1<<PD6)  // Output Enable (active low)
-#define OR   (1<<PD7)  // Output Request (active low) (enable output for timeout frames)
+#define OE   (1<<PD6)  // Output Enable (act. low)
+#define OR   (1<<PD7)  // Output Request (act. low) (output for timeout/50 sec)
 #define MOSI (1<<PB3)  // SPI output pin (where the actual bitmap data is send)
 #define SS   (1<<PB2)  // SPI slave select (must be pulled up in master mode)
 
 #define ENABLE_SPI  DDRB |= MOSI  // Enable the SPI output pin
-#define DISABLE_SPI DDRB &= ~MOSI // Disable (tristate) the SPI output pins
+#define DISABLE_SPI DDRB &= ~MOSI // Disable (tristate) the SPI output pin
 
 volatile uint8_t output_enable[2]  = { true, true }; // state/edge for OE
 volatile uint8_t output_request[2] = { true, true }; // state/edge for OR
@@ -28,7 +28,7 @@ volatile uint16_t scanline; // current scanline of the whole video frame
 volatile uint8_t enabled;   // whether or not the display is currently enabled
 volatile uint8_t timeout;   // timeout counter until disabling display 
 
-volatile Config* config;    // Configuration read from eeprom
+volatile Config* config;    // Configuration is read from eeprom
 
 //------------------------------------------------------------------------------
 
@@ -72,7 +72,7 @@ static void setup() {
   DDRD  &= ~((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
   PORTD |=  ((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
   
-  //Enable Interrputs
+  // Enable Interrputs
   sei();
     
   // Setup sleep mode
@@ -92,7 +92,6 @@ ISR(INT1_vect) { // VSYNC (each frame)...
   
   // Get input and update screen according to config
   // This must happen within 180us = 3600 cycles @ 20MHz
-
   Config_apply(config);
 
   // Wait for the remaining time until the end of the
@@ -110,7 +109,7 @@ ISR(INT0_vect) { // HSYNC (each line)...
   uint8_t* row;   // Character data for the current row
   uint8_t line;   // Logical line of the visible screen
   uint8_t column; // Current character column in the current row 
-  uint8_t byte;   // Current byte of the character bitmap
+  uint8_t byte;   // Current byte offset into the character bitmap
   
   TCNT1=0;  
   scanline++;
