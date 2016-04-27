@@ -1,3 +1,5 @@
+VERSION=0.1
+
 CC=gcc
 MINGW32?=i686-w64-mingw32
 CFLAGS=-std=c99 -g -O2 -Wall
@@ -40,3 +42,5 @@ clean:
 	rm -f overlay64{,.exe{,.stackdump}}
 	rm -f test-plot{,.exe{,.stackdump}}
 
+release: clean
+	git archive --prefix=overlay64-$(VERSION)/ -o ../overlay64-$(VERSION).tar.gz HEAD
