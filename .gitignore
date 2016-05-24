@@ -8,3 +8,4 @@ overlay64
 *.bin
 firmware/font
 firmware/font.c
+*.zip
