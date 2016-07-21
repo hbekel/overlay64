@@ -342,6 +342,7 @@ static void Config_write_strings(volatile Config* self, FILE* out) {
   for(uint8_t i=0; i<self->num_strings; i++) {
     fputcc(strlen(self->strings[i]), out);
     fputs(self->strings[i], out);
+    written += strlen(self->strings[i]);
   }
 }
 

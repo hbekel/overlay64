@@ -157,6 +157,7 @@ Sample* Sample_new(void) {
   
   self->commands = (CommandList**) calloc(1, sizeof(CommandList**));
   self->num_commands = 0;
+
   return self;
 }
 

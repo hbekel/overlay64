@@ -46,7 +46,7 @@ void Command_execute(Command* self) {
   if(self->action == ACTION_WRITE) {
     Row_write(row, self->col, self->string);
   }
-  if(self->action == ACTION_CLEAR) {
+  else if(self->action == ACTION_CLEAR) {
     Row_clear(row, self->col, self->len);
   }
 }
