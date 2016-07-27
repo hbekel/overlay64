@@ -1,4 +1,4 @@
-MCU=atmega328p
+MCU=atmega1284p
 GCC=avr-gcc
 CFLAGS=-std=c99 $(DEBUG) -O3 -Wall -Wno-unused 
 OBJCOPY=avr-objcopy
@@ -6,7 +6,7 @@ OBJDUMP=avr-objdump
 FORMAT=ihex
 
 AVRDUDE=avrdude
-DFLAGS=-p m328p -c stk200 -P /dev/parport0 -V
+DFLAGS=-p m1284p -c usbasp -V
 
 SOURCES=main.c \
 	font.c \

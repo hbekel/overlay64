@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Overlay64 -- Video Overlay Driver -- Atmega328p @ 20MHz
+// Overlay64 -- Video Overlay Driver -- Atmega1284p @ 20MHz
 //------------------------------------------------------------------------------
 
 #define F_CPU 20000000UL
@@ -45,8 +45,8 @@ static void setup() {
   TIMSK1 = 0;                      // Disable all timer interrupts
 
   // Setup Interrupts
-  EICRA = (1<<ISC01) | (1<<ISC11); // Set interrupt on falling edge
-  EIMSK = (1<<INT0) | (1<<INT1);   // Enable interrupts for int0 and int1
+  EICRA = (1<<ISC11) | (1<<ISC21); // Set interrupt on falling edge
+  EIMSK = (1<<INT1) | (1<<INT2);   // Enable interrupts for int1 (vsync) and int2 (hsync)
 
   // Turn off ADC  
   ADCSRA &= ~(1<<ADEN); 
@@ -104,7 +104,7 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 
 //------------------------------------------------------------------------------
 
-ISR(INT0_vect) { // HSYNC (each line)...
+ISR(INT2_vect) { // HSYNC (each line)...
 
   uint8_t* row;   // Character data for the current row
   uint8_t line;   // Logical line of the visible screen
