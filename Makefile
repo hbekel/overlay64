@@ -19,7 +19,7 @@ overlay64.bin: overlay64.conf
 	./overlay64 < overlay64.conf > overlay64.bin
 
 flash: overlay64.bin
-	avrdude -p m328p -c stk200 -P /dev/parport0 -U eeprom:w:overlay64.bin:r	
+	avrdude -p m1284p -c usbasp -U eeprom:w:overlay64.bin:r	
 
 program:
 	make -C firmware program

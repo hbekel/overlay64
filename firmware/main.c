@@ -62,6 +62,7 @@ static void setup() {
   DDRD  &= ~OE; PORTD |= OE;
   DDRD  &= ~OR; PORTD |= OR;
 
+  /*
   // Setup Inputs with pullups
   DDRB  &= ~((1<<PB0) | (1<<PB1));
   PORTB |=  ((1<<PB0) | (1<<PB1));
@@ -71,6 +72,7 @@ static void setup() {
 
   DDRD  &= ~((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
   PORTD |=  ((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
+  */
   
   // Enable Interrputs
   sei();

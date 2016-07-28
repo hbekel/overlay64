@@ -359,7 +359,7 @@ F 3 "" H 7150 1300 50  0000 C CNN
 	1    7150 1300
 	0    1    1    0   
 $EndComp
-Text Label 4000 5100 0    60   ~ 0
+Text Label 4000 5200 0    60   ~ 0
 ~OR
 Text Label 8250 3650 0    60   ~ 0
 ~OE
@@ -394,7 +394,7 @@ F 3 "" H 7500 1300 50  0000 L CNN
 	1    7500 1300
 	1    0    0    -1  
 $EndComp
-Text Label 4000 5200 0    60   ~ 0
+Text Label 4000 5100 0    60   ~ 0
 ~OE
 Text Label 8250 3750 0    60   ~ 0
 ~OR
