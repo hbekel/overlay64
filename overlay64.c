@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
   }
   else if(Config_parse(config, stdin)) {
     Config_write(config, stdout);
-    fprintf(stderr, "EEPROM:\t%4d of  512 bytes used (%4d bytes free)\n",
-            written, 512-written);
+    fprintf(stderr, "EEPROM:\t%4d of  4096 bytes used (%4d bytes free)\n",
+            written, 4096-written);
   }
   else {  
     return EXIT_FAILURE;
@@ -32,8 +32,8 @@ int main(int argc, char **argv) {
 
   uint16_t footprint = Config_get_footprint(config);
   
-  fprintf(stderr, "SRAM:\t%4d of 2048 bytes used (%4d bytes free)\n",
-          footprint, 2048-footprint);
+  fprintf(stderr, "SRAM:\t%4d of 16384 bytes used (%4d bytes free)\n",
+          footprint, 16384-footprint);
   
   Config_free(config);  
   return EXIT_SUCCESS;
