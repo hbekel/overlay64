@@ -5,10 +5,12 @@
 
 void Config_apply(volatile Config* self) {
 
-  CommandList_execute(self->immediateCommands);
-
-  for(uint8_t i=0; i<self->num_samples; i++) {
-    Sample_apply(self->samples[i]);
+  if(self->sample == self->num_samples) {
+    CommandList_execute(self->immediateCommands);
+    self->sample = 0;
+  }
+  else {
+    Sample_apply(self->samples[self->sample++]);
   }
 }
 

@@ -5,48 +5,51 @@
 
 uint8_t CONFIG_MAGIC[2] = { 'O', 'V' };
 
-static uint8_t C = 0;
-static uint8_t D = 1;
-static uint8_t B = 2;
+static uint8_t A = 0;
+static uint8_t C = 1;
 
 //------------------------------------------------------------------------------
 
 volatile Config* Config_new(void) {
-  return Config_new_with_ports(NULL, NULL, NULL);
+  return Config_new_with_ports(NULL, NULL);
 }
 
 //------------------------------------------------------------------------------
 
 volatile Config* Config_new_with_ports(uint8_t volatile *port0,
-                      uint8_t volatile *port1,
-                      uint8_t volatile *port2) {
+                      uint8_t volatile *port1) {
 
   volatile Config* self = (Config*) calloc(1, sizeof(Config));
 
   self->ports[0] = port0;
   self->ports[1] = port1;
-  self->ports[2] = port2;
 
   self->timeout = 2*50; 
 
   self->immediateCommands = CommandList_new();
   self->commands = CommandList_new();
   self->samples = (Sample**) calloc(1, sizeof(Sample**));
-
+  self->sample = 0;
+  
   uint8_t i = 0;
+  self->pins[i++] = Pin_new(self, A, 0);
+  self->pins[i++] = Pin_new(self, A, 1);
+  self->pins[i++] = Pin_new(self, A, 2);
+  self->pins[i++] = Pin_new(self, A, 3);
+  self->pins[i++] = Pin_new(self, A, 4);
+  self->pins[i++] = Pin_new(self, A, 5);
+  self->pins[i++] = Pin_new(self, A, 6);
+  self->pins[i++] = Pin_new(self, A, 7);
+
   self->pins[i++] = Pin_new(self, C, 0);
   self->pins[i++] = Pin_new(self, C, 1);
   self->pins[i++] = Pin_new(self, C, 2);
   self->pins[i++] = Pin_new(self, C, 3);
   self->pins[i++] = Pin_new(self, C, 4);
   self->pins[i++] = Pin_new(self, C, 5);
-  self->pins[i++] = Pin_new(self, D, 0);
-  self->pins[i++] = Pin_new(self, D, 1);
-  self->pins[i++] = Pin_new(self, D, 4);
-  self->pins[i++] = Pin_new(self, D, 5);
-  self->pins[i++] = Pin_new(self, B, 0);
-  self->pins[i++] = Pin_new(self, B, 1);
-
+  self->pins[i++] = Pin_new(self, C, 6);
+  self->pins[i++] = Pin_new(self, C, 7);
+  
   self->strings = (char**) NULL;
   self->num_strings = 0;
 

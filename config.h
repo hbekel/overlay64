@@ -14,7 +14,7 @@
 #define SCREEN_TOP    40
 #define SCREEN_BOTTOM SCREEN_TOP + CHAR_HEIGHT * SCREEN_ROWS
 
-#define INPUT_PINS 12
+#define INPUT_PINS 16
 
 #define ACTION_NONE  0x00
 #define ACTION_WRITE 0x01
@@ -49,11 +49,12 @@ typedef struct {
 } Sample;
 
 typedef struct {
-  uint8_t volatile *ports[3]; // the actual ports to use
+  uint8_t volatile *ports[2]; // the actual ports to use
   Pin *pins[INPUT_PINS];      // the available pins
 
   uint8_t timeout;
-  
+
+  uint8_t sample;
   Sample **samples;
   uint8_t num_samples;
 
@@ -70,10 +71,7 @@ typedef struct {
 volatile Config* config;
 
 volatile Config *Config_new(void);
-volatile Config* Config_new_with_ports(uint8_t volatile *port0,
-                              uint8_t volatile *port1,
-                              uint8_t volatile *port2);
-
+volatile Config* Config_new_with_ports(uint8_t volatile *port0, uint8_t volatile *port1);
 Sample* Config_add_sample(volatile Config *self, Sample* sample);
 bool Config_has_string(volatile Config *self, char* string, uint8_t *index);
 char *Config_add_string(volatile Config *self, char* string);

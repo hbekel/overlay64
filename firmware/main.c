@@ -15,8 +15,8 @@
 
 #define OE   (1<<PD6)  // Output Enable (act. low)
 #define OR   (1<<PD7)  // Output Request (act. low) (output for timeout/50 sec)
-#define MOSI (1<<PB3)  // SPI output pin (where the actual bitmap data is send)
-#define SS   (1<<PB2)  // SPI slave select (must be pulled up in master mode)
+#define MOSI (1<<PB5)  // SPI output pin (where the actual bitmap data is send)
+#define SS   (1<<PB4)  // SPI slave select (must be pulled up in master mode)
 
 #define ENABLE_SPI  DDRB |= MOSI  // Enable the SPI output pin
 #define DISABLE_SPI DDRB &= ~MOSI // Disable (tristate) the SPI output pin
@@ -35,7 +35,7 @@ volatile Config* config;    // Configuration is read from eeprom
 static void setup() {
 
   // Create config and assign ports
-  config = Config_new_with_ports(&PINC, &PIND, &PINB);
+  config = Config_new_with_ports(&PINA, &PINC);
 
   // Read config from eeprom
   Config_read(config, &eeprom);
@@ -44,6 +44,13 @@ static void setup() {
   TCCR1B = (1<<CS10);              // Run at system clock 
   TIMSK1 = 0;                      // Disable all timer interrupts
 
+  // Setup int1, int2 pins
+  DDRB &= ~(1<<PB2);
+  PORTB |= (1<<PB2);
+
+  DDRD &= ~(1<<PD3);
+  PORTD |= (1<<PD3); 
+  
   // Setup Interrupts
   EICRA = (1<<ISC11) | (1<<ISC21); // Set interrupt on falling edge
   EIMSK = (1<<INT1) | (1<<INT2);   // Enable interrupts for int1 (vsync) and int2 (hsync)
@@ -51,6 +58,8 @@ static void setup() {
   // Turn off ADC  
   ADCSRA &= ~(1<<ADEN); 
 
+  MCUCR |= (1<<JTD);
+  
   // Setup SPI 
   DDRB = SS | MOSI;                // /SS and MOSI as outputs
   SPCR =
@@ -62,17 +71,12 @@ static void setup() {
   DDRD  &= ~OE; PORTD |= OE;
   DDRD  &= ~OR; PORTD |= OR;
 
-  /*
-  // Setup Inputs with pullups
-  DDRB  &= ~((1<<PB0) | (1<<PB1));
-  PORTB |=  ((1<<PB0) | (1<<PB1));
+  // Setup Input ports
+  DDRC = 0x00;
+  PORTC = 0xff;
 
-  DDRC  &= ~((1<<PC0) | (1<<PC1) | (1<<PC2) | (1<<PC3) | (1<<PC4) | (1<<PC5));
-  PORTC |=  ((1<<PC0) | (1<<PC1) | (1<<PC2) | (1<<PC3) | (1<<PC4) | (1<<PC5));
-
-  DDRD  &= ~((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
-  PORTD |=  ((1<<PD0) | (1<<PD1) | (1<<PD4) | (1<<PD5) | (1<<PD6));
-  */
+  DDRA = 0x00;
+  PORTA = 0xff;
   
   // Enable Interrputs
   sei();
