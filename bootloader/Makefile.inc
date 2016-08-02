@@ -6,7 +6,7 @@
 # License: GNU GPL v2 (see License.txt)
 
 F_CPU = 20000000
-DEVICE = atmega1284p
+DEVICE = atmega1284
 
 # where the updating firmware should be located (starting address)
 FLASHADDRESS = 0x0000

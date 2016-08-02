@@ -5,13 +5,11 @@
 
 void Config_apply(volatile Config* self) {
 
-  if(self->sample == self->num_samples) {
-    CommandList_execute(self->immediateCommands);
-    self->sample = 0;
-  }
-  else {
-    Sample_apply(self->samples[self->sample++]);
-  }
+ CommandList_execute(self->immediateCommands);
+
+ for(uint8_t i=0; i<self->num_samples; i++) {
+   Sample_apply(self->samples[i]);
+ }  
 }
 
 //------------------------------------------------------------------------------
@@ -19,10 +17,10 @@ void Config_apply(volatile Config* self) {
 void Sample_apply(Sample* self) {
   uint8_t value = 0;
 
-  for(uint8_t i=0; i<self->num_pins; i++) {
+  for(uint8_t i=0; i<self->num_pins; i++) {    
     value |= (Pin_read(self->pins[i]) << i);
   }
-  CommandList_execute(self->commands[value]);
+  CommandList_execute(self->commands[value & 0xff]);
 }
 
 //------------------------------------------------------------------------------

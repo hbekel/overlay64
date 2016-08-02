@@ -8,10 +8,10 @@
 #define CHAR_WIDTH    8
 #define CHAR_HEIGHT   8
 
-#define SCREEN_COLUMNS 53
+#define SCREEN_COLUMNS 52
 #define SCREEN_ROWS    30
 
-#define SCREEN_TOP    40
+#define SCREEN_TOP    46
 #define SCREEN_BOTTOM SCREEN_TOP + CHAR_HEIGHT * SCREEN_ROWS
 
 #define INPUT_PINS 16

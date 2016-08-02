@@ -16,8 +16,7 @@ volatile Config* Config_new(void) {
 
 //------------------------------------------------------------------------------
 
-volatile Config* Config_new_with_ports(uint8_t volatile *port0,
-                      uint8_t volatile *port1) {
+volatile Config* Config_new_with_ports(uint8_t volatile *port0, uint8_t volatile *port1) {
 
   volatile Config* self = (Config*) calloc(1, sizeof(Config));
 
@@ -41,14 +40,14 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0,
   self->pins[i++] = Pin_new(self, A, 6);
   self->pins[i++] = Pin_new(self, A, 7);
 
-  self->pins[i++] = Pin_new(self, C, 0);
-  self->pins[i++] = Pin_new(self, C, 1);
-  self->pins[i++] = Pin_new(self, C, 2);
-  self->pins[i++] = Pin_new(self, C, 3);
-  self->pins[i++] = Pin_new(self, C, 4);
-  self->pins[i++] = Pin_new(self, C, 5);
-  self->pins[i++] = Pin_new(self, C, 6);
   self->pins[i++] = Pin_new(self, C, 7);
+  self->pins[i++] = Pin_new(self, C, 6);
+  self->pins[i++] = Pin_new(self, C, 5);
+  self->pins[i++] = Pin_new(self, C, 4);
+  self->pins[i++] = Pin_new(self, C, 3);
+  self->pins[i++] = Pin_new(self, C, 2);
+  self->pins[i++] = Pin_new(self, C, 1);
+  self->pins[i++] = Pin_new(self, C, 0);
   
   self->strings = (char**) NULL;
   self->num_strings = 0;

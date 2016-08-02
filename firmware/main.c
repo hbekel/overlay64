@@ -1,12 +1,12 @@
 //------------------------------------------------------------------------------
-// Overlay64 -- Video Overlay Driver -- Atmega1284p @ 20MHz
+// Overlay64 -- Video Overlay Driver -- Atmega1284 @ 20MHz
 //------------------------------------------------------------------------------
 
 #define F_CPU 20000000UL
 
 #include <avr/io.h>
-#include <avr/sleep.h>
 #include <avr/interrupt.h>
+#include <string.h>
 
 #include "main.h"
 #include "font.h"
@@ -40,24 +40,28 @@ static void setup() {
   // Read config from eeprom
   Config_read(config, &eeprom);
   
-  // Setup Timer1
-  TCCR1B = (1<<CS10);              // Run at system clock 
-  TIMSK1 = 0;                      // Disable all timer interrupts
-
-  // Setup int1, int2 pins
+  // Setup INT1, INT2 and PCINT8 pins
   DDRB &= ~(1<<PB2);
   PORTB |= (1<<PB2);
 
   DDRD &= ~(1<<PD3);
   PORTD |= (1<<PD3); 
+
+  DDRB &= ~(1<<PB0);
+  PORTB |= (1<<PB0);
   
   // Setup Interrupts
   EICRA = (1<<ISC11) | (1<<ISC21); // Set interrupt on falling edge
-  EIMSK = (1<<INT1) | (1<<INT2);   // Enable interrupts for int1 (vsync) and int2 (hsync)
+  EIMSK = (1<<INT1);   // Enable interrupt for int1 (vsync)
+
+  // Setupt Pin Change Interrupt PCINT8 (hsync)
+  PCICR = (1<<PCIE1);
+  PCMSK1 = (1<<PCINT8);
 
   // Turn off ADC  
   ADCSRA &= ~(1<<ADEN); 
 
+  // Turn off JTAG
   MCUCR |= (1<<JTD);
   
   // Setup SPI 
@@ -72,52 +76,82 @@ static void setup() {
   DDRD  &= ~OR; PORTD |= OR;
 
   // Setup Input ports
-  DDRC = 0x00;
-  PORTC = 0xff;
-
   DDRA = 0x00;
   PORTA = 0xff;
+
+  DDRC = 0x00;
+  PORTC = 0xff;
   
-  // Enable Interrputs
-  sei();
-    
-  // Setup sleep mode
-  set_sleep_mode(SLEEP_MODE_IDLE);
-  sleep_enable();
+  // Enable Interrupts
+  sei();   
 }
 
 //------------------------------------------------------------------------------
 
 ISR(INT1_vect) { // VSYNC (each frame)...
 
-  // Vertical blanking period starts...
-  TCNT1 = 0;
-
   // Decrease timeout counter
   if(timeout > 0) timeout--;
-  
-  // Get input and update screen according to config
-  // This must happen within 180us = 3600 cycles @ 20MHz
-  Config_apply(config);
-
-  // Wait for the remaining time until the end of the
-  // vertical blanking period (180us)
-  while(TCNT1<US(180));
-
-  // We're on the first scanline now
+   
+  // Reset scanline counter
   scanline = 0;
 }
 
 //------------------------------------------------------------------------------
 
-ISR(INT2_vect) { // HSYNC (each line)...
+ISR(PCINT1_vect) { // HSYNC (each line)...
 
+  // Return immediately if pin has changed to high
+  if(PINB & (1<<PB0)) return;
+
+  // Pin has changed to low => at start of HSYNC
+  
+  // When we enter here, there's a jitter of 1-3 cycles due to the
+  // code executed in the mainloop. Therefore we'll use the BLACK
+  // PORCH signal from the LM1881 immediately after HSYNC to trigger
+  // another interrupt while we only execute NOPS. This way the next
+  // interrupt gets triggered after a fixed number of cycles, and the
+  // display is stable. 
+  
+  // Disable PCINT1 (HSYNC), enable INT2 (BLACK PORCH)
+  PCICR = 0;
+  EIMSK |= (1<<INT2);
+  
+  // Enable interrupt handling
+  sei();
+
+  // Nopping... entering INT2_vect somewhere along the way
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();  
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();  
+
+  // We're back from INT2_vect, at the end of the line
+  
+  // Disable interrupt handling again
+  cli();
+  
+  // Disable INT2 (BLACK PORCH), enable PCINT1 again (HSYNC)
+  EIMSK &= ~(1<<INT2);
+  PCICR = (1<<PCIE1);
+}
+
+//------------------------------------------------------------------------------
+
+ISR(INT2_vect) { // BLACK PORCH (directly after HSYNC)
+  
   uint8_t* row;   // Character data for the current row
   uint8_t line;   // Logical line of the visible screen
   uint8_t column; // Current character column in the current row 
   uint8_t byte;   // Current byte offset into the character bitmap
   
-  TCNT1=0;  
   scanline++;
 
   if(enabled && (scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM)) {
@@ -136,14 +170,18 @@ ISR(INT2_vect) { // HSYNC (each line)...
     // ...not an empty row, so we'll enable the SPI Output pin...
     ENABLE_SPI;
     
-    // ...and wait for the remaining time until visible area is reached
-    while(TCNT1<US(9)); NOPS(10);
+    // ...and wait until the visible area is reached    
+    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+    _NOP(); _NOP();
 
     // Bitbang font data for each column via SPI
     for(column=0; column<SCREEN_COLUMNS; column++) {
       SPDR = font[row[column]*CHAR_HEIGHT+byte];
-      NOPS(2);
-    }   
+      _NOP(); _NOP();
+    }
   }  
   else {
     // The display is not enabled or we're outside of the logical screen
@@ -152,6 +190,19 @@ ISR(INT2_vect) { // HSYNC (each line)...
   skip:
     // We'll tristate the SPI pin again
     DISABLE_SPI;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+int main(void) {
+
+  setup();
+
+  while(1) {
+    
+    // Sample input lines and update screen according to config
+    Config_apply(config);
 
     // Get the current state of the control lines and also remember the
     // previous states so that we can detect rising or falling edges    
@@ -159,7 +210,7 @@ ISR(INT2_vect) { // HSYNC (each line)...
     READ(output_enable, PIND, OE);
     READ(output_request, PIND, OR);
 
-    // When OE is low the output is always enabled
+    // When OE is low, the output is always enabled
     if(LOW(output_enable)) {
       enabled = true;
     }
@@ -179,15 +230,7 @@ ISR(INT2_vect) { // HSYNC (each line)...
     else if(HIGH(output_request) && !timeout) {
       enabled = false;
     }
-  }
-}
-
-//------------------------------------------------------------------------------
-
-int main(void) {
-
-  setup();
-  while(1) sleep_mode();
+  }  
   return 0;    
 }
 
