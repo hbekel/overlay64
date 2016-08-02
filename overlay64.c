@@ -13,7 +13,7 @@ extern uint16_t written;
 int main(int argc, char **argv) {
 
   config = Config_new();
-
+  
 #ifdef _WIN32
   setmode(fileno(stdout), O_BINARY);
 #endif
@@ -23,16 +23,16 @@ int main(int argc, char **argv) {
   }
   else if(Config_parse(config, stdin)) {
     Config_write(config, stdout);
-    fprintf(stderr, "EEPROM:\t%4d of  4096 bytes used (%4d bytes free)\n",
+    fprintf(stderr, "EEPROM:\t%5d of  4096 bytes used (%5d bytes free)\n",
             written, 4096-written);
   }
   else {  
     return EXIT_FAILURE;
   }
-
+  
   uint16_t footprint = Config_get_footprint(config);
   
-  fprintf(stderr, "SRAM:\t%4d of 16384 bytes used (%4d bytes free)\n",
+  fprintf(stderr, "SRAM:\t%5d of 16384 bytes used (%5d bytes free)\n",
           footprint, 16384-footprint);
   
   Config_free(config);  
