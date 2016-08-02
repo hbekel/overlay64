@@ -51,8 +51,8 @@ static void setup() {
   PORTB |= (1<<PB0);
   
   // Setup Interrupts
-  EICRA = (1<<ISC11) | (1<<ISC21); // Set interrupt on falling edge
-  EIMSK = (1<<INT1);   // Enable interrupt for int1 (vsync)
+  EICRA = (1<<ISC11) | (1<<ISC21); // Sense INT1 and INT2 on falling edge
+  EIMSK = (1<<INT1);               // Enable interrupt for INT1 (vsync)
 
   // Setupt Pin Change Interrupt PCINT8 (hsync)
   PCICR = (1<<PCIE1);
@@ -101,51 +101,39 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 
 ISR(PCINT1_vect) { // HSYNC (each line)...
 
-  // Return immediately if pin has changed to high
+  // Return immediately unless pin has changed to low
   if(PINB & (1<<PB0)) return;
 
-  // Pin has changed to low => at start of HSYNC
+  // When we enter here, there's a jitter of 1-3 cycles due to code
+  // executed in the mainloop. Therefore we'll use the BACK PORCH
+  // signal from the LM1881, which is triggered 8us after HSYNC, to
+  // trigger another interrupt while only executing NOPS. This way the
+  // next interrupt gets triggered after a fixed number of cycles, and
+  // the display is stable.
   
-  // When we enter here, there's a jitter of 1-3 cycles due to the
-  // code executed in the mainloop. Therefore we'll use the BLACK
-  // PORCH signal from the LM1881 immediately after HSYNC to trigger
-  // another interrupt while we only execute NOPS. This way the next
-  // interrupt gets triggered after a fixed number of cycles, and the
-  // display is stable. 
-  
-  // Disable PCINT1 (HSYNC), enable INT2 (BLACK PORCH)
+  // Disable PCINT1 (HSYNC), enable INT2 (BACK PORCH)
   PCICR = 0;
   EIMSK |= (1<<INT2);
   
   // Enable interrupt handling
   sei();
 
-  // Nopping... entering INT2_vect somewhere along the way
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();  
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-  _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();  
+  // Enter INT2_vect somewhere along these nops...
+  ONEHUNDRED_AND_TEN_NOPS();
 
   // We're back from INT2_vect, at the end of the line
   
   // Disable interrupt handling again
   cli();
   
-  // Disable INT2 (BLACK PORCH), enable PCINT1 again (HSYNC)
+  // Disable INT2 (BACK PORCH), enable PCINT1 again (HSYNC)
   EIMSK &= ~(1<<INT2);
   PCICR = (1<<PCIE1);
 }
 
 //------------------------------------------------------------------------------
 
-ISR(INT2_vect) { // BLACK PORCH (directly after HSYNC)
+ISR(INT2_vect) { // BACK PORCH (8us after HSYNC)
   
   uint8_t* row;   // Character data for the current row
   uint8_t line;   // Logical line of the visible screen
@@ -170,17 +158,13 @@ ISR(INT2_vect) { // BLACK PORCH (directly after HSYNC)
     // ...not an empty row, so we'll enable the SPI Output pin...
     ENABLE_SPI;
     
-    // ...and wait until the visible area is reached    
-    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-    _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-    _NOP(); _NOP();
+    // ...and wait until the visible area is reached
+    FORTYTWO_NOPS();
 
     // Bitbang font data for each column via SPI
     for(column=0; column<SCREEN_COLUMNS; column++) {
       SPDR = font[row[column]*CHAR_HEIGHT+byte];
-      _NOP(); _NOP();
+      TWO_NOPS();
     }
   }  
   else {
@@ -201,7 +185,7 @@ int main(void) {
 
   while(1) {
     
-    // Sample input lines and update screen according to config
+    // Sample input lines and update screen according to user config
     Config_apply(config);
 
     // Get the current state of the control lines and also remember the
@@ -230,7 +214,8 @@ int main(void) {
     else if(HIGH(output_request) && !timeout) {
       enabled = false;
     }
-  }  
+  }
+  
   return 0;    
 }
 
