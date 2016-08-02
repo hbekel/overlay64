@@ -215,7 +215,7 @@ void Config_print(volatile Config* self, FILE* out) {
 //------------------------------------------------------------------------------
 
 uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
-  for(int i=0; i<14; i++) {
+  for(int i=0; i<INPUT_PINS; i++) {
     if(self->pins[i] == pin) {
       return i;
     }
