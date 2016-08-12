@@ -11,7 +11,7 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 1117)
+    (start_pass_no 1578)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
@@ -41,6 +41,9 @@
     (attach off)
   )
   (via 
+    "Via[0-1]_1000:400_um-USB" "Via[0-1]_1000:400_um" USB
+  )
+  (via 
     "Via[0-1]_1000:400_um" "Via[0-1]_1000:400_um" default
   )
   (via 
@@ -48,6 +51,9 @@
   )
   (via 
     "Via[0-1]_1000:400_um-Power" "Via[0-1]_1000:400_um" Power
+  )
+  (via_rule
+    USB "Via[0-1]_1000:400_um-USB"
   )
   (via_rule
     default "Via[0-1]_1000:400_um"
@@ -69,10 +75,12 @@
     )
   )
   (class "kicad_default"
-    "Net-(C1-Pad2)" "Net-(C2-Pad2)" /LUMA "Net-(C5-Pad2)" "Net-(C6-Pad1)" /~RESET /IN8 /IN9
-    "Net-(IC1-Pad4)" "Net-(IC1-Pad5)" /IN10 /IN11 /~OE /IN0 /IN1 "Net-(IC1-Pad16)"
-    /MOSI /MISO /SCK "Net-(IC1-Pad21)" /IN2 /IN3 /IN4 /IN5
-    /IN6 /IN7 "Net-(JP1-Pad2)" "Net-(RV1-Pad3)" "Net-(U1-Pad5)" "Net-(U1-Pad7)" "Net-(Q1-Pad2)" /~OR
+    "Net-(C2-Pad2)" "Net-(C3-Pad2)" /LUMA "Net-(C4-Pad2)" "Net-(C5-Pad1)" "/D-" /D+ /~HSYNC
+    /C0 /~BURST /C1 "Net-(IC1-Pad5)" /MOSI /C2 /C3 /~RESET
+    /BOOT "Net-(IC1-Pad15)" "Net-(IC1-Pad16)" /~VSYNC /C4 /C5 /~OE /~OR
+    /IN8 /IN9 /IN10 /IN11 /IN12 /IN13 /IN14 /IN15
+    "Net-(IC1-Pad32)" /IN7 /IN6 /IN5 /IN4 /IN3 /IN2 /IN1
+    /IN0 "Net-(JP1-Pad2)" "Net-(P1-Pad4)" "Net-(P1-Pad1)" "Net-(Q1-Pad2)" "Net-(RV1-Pad1)" "Net-(U1-Pad7)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
@@ -83,11 +91,21 @@
     )
   )
   (class Power
-    GND VCC
+    VCC GND
     (clearance_class Power)
     (via_rule Power)
     (rule
       (width 500.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class USB
+    (clearance_class USB)
+    (via_rule USB)
+    (rule
+      (width 200.0)
     )
     (circuit 
       (use_layer F.Cu B.Cu)
