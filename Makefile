@@ -1,4 +1,4 @@
-VERSION=0.1
+VERSION=atmega1284-alpha
 
 CC=gcc
 MINGW32?=i686-w64-mingw32
