@@ -11,7 +11,7 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 1578)
+    (start_pass_no 1560)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
@@ -22,7 +22,7 @@
       (active on)
       (preferred_direction horizontal)
       (preferred_direction_trace_costs 1.0)
-      (against_preferred_direction_trace_costs 1.7)
+      (against_preferred_direction_trace_costs 1.8)
     )
   )
   (rule
@@ -30,6 +30,7 @@
     (clear 200.2)
     (clear 125.0 (type smd_to_turn_gap))
     (clear 50.0 (type smd_smd))
+    (clear 127.2 (type USB_USB))
   )
   (padstack "Via[0-1]_1000:400_um"
     (shape
@@ -41,9 +42,6 @@
     (attach off)
   )
   (via 
-    "Via[0-1]_1000:400_um-USB" "Via[0-1]_1000:400_um" USB
-  )
-  (via 
     "Via[0-1]_1000:400_um" "Via[0-1]_1000:400_um" default
   )
   (via 
@@ -52,8 +50,8 @@
   (via 
     "Via[0-1]_1000:400_um-Power" "Via[0-1]_1000:400_um" Power
   )
-  (via_rule
-    USB "Via[0-1]_1000:400_um-USB"
+  (via 
+    "Via[0-1]_1000:400_um-USB" "Via[0-1]_1000:400_um" USB
   )
   (via_rule
     default "Via[0-1]_1000:400_um"
@@ -63,6 +61,9 @@
   )
   (via_rule
     Power "Via[0-1]_1000:400_um-Power"
+  )
+  (via_rule
+    USB "Via[0-1]_1000:400_um-USB"
   )
   (class default
     (clearance_class default)
@@ -75,12 +76,12 @@
     )
   )
   (class "kicad_default"
-    "Net-(C2-Pad2)" "Net-(C3-Pad2)" /LUMA "Net-(C4-Pad2)" "Net-(C5-Pad1)" "/D-" /D+ /~HSYNC
-    /C0 /~BURST /C1 "Net-(IC1-Pad5)" /MOSI /C2 /C3 /~RESET
-    /BOOT "Net-(IC1-Pad15)" "Net-(IC1-Pad16)" /~VSYNC /C4 /C5 /~OE /~OR
-    /IN8 /IN9 /IN10 /IN11 /IN12 /IN13 /IN14 /IN15
-    "Net-(IC1-Pad32)" /IN7 /IN6 /IN5 /IN4 /IN3 /IN2 /IN1
-    /IN0 "Net-(JP1-Pad2)" "Net-(P1-Pad4)" "Net-(P1-Pad1)" "Net-(Q1-Pad2)" "Net-(RV1-Pad1)" "Net-(U1-Pad7)"
+    "Net-(C2-Pad2)" "Net-(C3-Pad2)" /LUMA "Net-(C4-Pad2)" "Net-(C5-Pad1)" /~HSYNC /C0 /~BURST
+    /C1 "Net-(IC1-Pad5)" /MOSI /C2 /C3 /~RESET /BOOT "Net-(IC1-Pad15)"
+    "Net-(IC1-Pad16)" /~VSYNC /C4 /C5 /~OE /~OR /IN8 /IN9
+    /IN10 /IN11 /IN12 /IN13 /IN14 /IN15 "Net-(IC1-Pad32)" /IN7
+    /IN6 /IN5 /IN4 /IN3 /IN2 /IN1 /IN0 "Net-(JP1-Pad2)"
+    "Net-(P1-Pad4)" "Net-(P1-Pad1)" "Net-(Q1-Pad2)" "Net-(RV1-Pad1)" "Net-(U1-Pad7)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
@@ -102,6 +103,7 @@
     )
   )
   (class USB
+    "/D-" /D+
     (clearance_class USB)
     (via_rule USB)
     (rule
