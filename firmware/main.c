@@ -2,16 +2,26 @@
 // Overlay64 -- Video Overlay Driver -- Atmega1284 @ 20MHz
 //------------------------------------------------------------------------------
 
-#define F_CPU 20000000UL
-
 #include <avr/io.h>
+#include <avr/wdt.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 #include <string.h>
 
 #include "main.h"
 #include "font.h"
 #include "eeprom.h"
 #include "config.h"
+#include "usbdrv/usbdrv.h"
+#include "../protocol.h"
+
+#define ATTR_NO_INIT __attribute__ ((section(".noinit")))
+#define ATTR_INIT_SECTION_3 __attribute__ ((used, naked, section(".init3")))
+
+#define MAGIC 0xDEADBEEF
+#define BOOTLOADER (0x20000 - 0x1000)
+uint32_t BootKey ATTR_NO_INIT;
+void CheckBootloader(void) ATTR_INIT_SECTION_3;
 
 #define OE   (1<<PD6)  // Output Enable (act. low)
 #define OR   (1<<PD7)  // Output Request (act. low) (output for timeout/50 sec)
@@ -34,12 +44,14 @@ volatile Config* config;    // Configuration is read from eeprom
 
 static void setup() {
 
+  wdt_disable();
+  
   // Create config and assign ports
   config = Config_new_with_ports(&PINA, &PINC);
 
   // Read config from eeprom
   Config_read(config, &eeprom);
-  
+
   // Setup INT1, INT2 and PCINT8 pins
   DDRB &= ~(1<<PB2);
   PORTB |= (1<<PB2);
@@ -81,6 +93,15 @@ static void setup() {
 
   DDRC = 0x00;
   PORTC = 0xff;
+
+  // Setup USB
+  usbInit();
+
+  usbDeviceDisconnect();
+  
+  _delay_ms(500);
+
+  usbDeviceConnect();
   
   // Enable Interrupts
   sei();   
@@ -179,11 +200,49 @@ ISR(INT2_vect) { // BACK PORCH (8us after HSYNC)
 
 //------------------------------------------------------------------------------
 
+void CheckBootloader(void) {
+  if((MCUSR & (1 << WDRF)) && (BootKey == MAGIC)) {
+    BootKey = 0;
+    ((void (*)(void))BOOTLOADER)();
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void EnterBootloader(void) {
+  cli();
+  BootKey = MAGIC;
+  wdt_enable(WDTO_250MS);
+  for(;;);
+}
+
+//------------------------------------------------------------------------------
+
+USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
+
+  usbRequest_t *request = (void*) data;
+
+  switch(request->bRequest) {
+    
+  case OVERLAY64_BOOT:
+    EnterBootloader();
+    break;
+    
+  default:
+    break;
+  }
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+
 int main(void) {
 
   setup();
 
   while(1) {
+
+    usbPoll();
     
     // Sample input lines and update screen according to user config
     Config_apply(config);

@@ -1,0 +1,21 @@
+   1               		.file	"oddebug.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 oddebug.c
+     /tmp/ccVSdDMg.s:2      *ABS*:0000003e __SP_H__
+     /tmp/ccVSdDMg.s:3      *ABS*:0000003d __SP_L__
+     /tmp/ccVSdDMg.s:4      *ABS*:0000003f __SREG__
+     /tmp/ccVSdDMg.s:5      *ABS*:0000003b __RAMPZ__
+     /tmp/ccVSdDMg.s:6      *ABS*:00000000 __tmp_reg__
+     /tmp/ccVSdDMg.s:7      *ABS*:00000001 __zero_reg__
+
+NO UNDEFINED SYMBOLS

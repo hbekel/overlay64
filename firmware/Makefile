@@ -1,4 +1,6 @@
 MCU=atmega1284
+F_CPU = 20000000
+ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp -DF_CPU=$(F_CPU) -Wa,-adhlns=$(<:%.S=./%.lst),-gstabs,--listing-cont-lines=100
 GCC=avr-gcc
 CFLAGS=-std=c99 $(DEBUG) -O3 -Wall -Wno-unused 
 OBJCOPY=avr-objcopy
@@ -12,17 +14,24 @@ SOURCES=main.c \
 	font.c \
 	eeprom.c \
 	config.c \
-	../config.c
+	../config.c \
+	usbdrv/usbdrv.c \
+	usbdrv/oddebug.c \
+	usbdrv/usbdrvasm.S
 
 HEADERS=main.h \
 	font.h \
 	config.h \
-	../config.h
+	../config.h \
+	../protocol.h
 
 all: main.hex
 
+%.o : %.S
+	$(GCC) -c $(ASFLAGS) $< -o $@
+
 main.elf: $(SOURCES) $(HEADERS)
-	$(GCC) $(CFLAGS) -mmcu=$(MCU) -o main.elf $(SOURCES) 
+	$(GCC) $(CFLAGS) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -o main.elf $(SOURCES) 
 
 main.hex: main.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock -R .signature main.elf main.hex

@@ -608,7 +608,7 @@ static inline void  bootLoaderExit(void)
 #if (BOOTLOADER_IGNOREPROGBUTTON)
 #	define bootLoaderConditionSimple()	(false)
 #else
-#	define bootLoaderConditionSimple()	((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0)
+#	define bootLoaderConditionSimple()	(((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0) || (MCUSR & (1 << WDRF)))
 #endif
 
 #if (HAVE_BOOTLOADERENTRY_FROMSOFTWARE)

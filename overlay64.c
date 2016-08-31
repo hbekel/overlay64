@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef _WIN32  
   #include <io.h>
@@ -7,11 +8,16 @@
 #endif
 
 #include "parser.h"
+#include "boot.h"
 
 extern uint16_t written;
 
 int main(int argc, char **argv) {
 
+  if(argc == 2 && (strncmp(argv[1], "boot", 4) == 0)) {
+    exit(boot());    
+  }
+  
   config = Config_new();
   
 #ifdef _WIN32
