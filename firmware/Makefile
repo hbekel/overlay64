@@ -54,4 +54,5 @@ fuse:
 	$(AVRDUDE) $(DFLAGS) -U lfuse:w:0xf7:m -U hfuse:w:0xd0:m -U efuse:w:0xfd:m 
 
 clean:
-	rm -f *.elf *.hex font font.c test
+	rm -f *.elf *.hex *.o usbdrv/*.o font font.c test
+
