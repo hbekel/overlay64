@@ -18,6 +18,12 @@ win32: $(SOURCES) $(HEADERS)
 overlay64.bin: overlay64.conf
 	./overlay64 < overlay64.conf > overlay64.bin
 
+boot: overlay64
+	./overlay64 boot || true
+
+touch:
+	avrdude -p m1284 -c usbasp
+
 flash: overlay64.bin
 	avrdude -p m1284 -c usbasp -U eeprom:w:overlay64.bin:r	
 

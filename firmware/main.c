@@ -102,6 +102,8 @@ static void setup() {
   _delay_ms(500);
 
   usbDeviceConnect();
+
+  _delay_ms(1000);
   
   // Enable Interrupts
   sei();   
@@ -127,14 +129,15 @@ ISR(PCINT1_vect) { // HSYNC (each line)...
 
   // When we enter here, there's a jitter of 1-3 cycles due to code
   // executed in the mainloop. Therefore we'll use the BACK PORCH
-  // signal from the LM1881, which is triggered 8us after HSYNC, to
-  // trigger another interrupt while only executing NOPS. This way the
-  // next interrupt gets triggered after a fixed number of cycles, and
-  // the display is stable.
+  // signal from the LM1881, which is triggered about 8us after HSYNC,
+  // to trigger another interrupt while only executing NOPS. This way
+  // the next interrupt gets triggered after a fixed number of cycles,
+  // and the display is stable.
   
-  // Disable PCINT1 (HSYNC), enable INT2 (BACK PORCH)
+  // Disable PCINT1 (HSYNC), disable INT0 (USB), enable INT2 (BACK PORCH)
   PCICR = 0;
   EIMSK |= (1<<INT2);
+  EIMSK &= ~(1<<INT0);
   
   // Enable interrupt handling
   sei();
@@ -142,13 +145,14 @@ ISR(PCINT1_vect) { // HSYNC (each line)...
   // Enter INT2_vect somewhere along these nops...
   ONEHUNDRED_AND_TEN_NOPS();
 
-  // We're back from INT2_vect, at the end of the line
+  // Now we're back from INT2_vect, at the end of the line
   
   // Disable interrupt handling again
   cli();
   
-  // Disable INT2 (BACK PORCH), enable PCINT1 again (HSYNC)
+  // Disable INT2 (BACK PORCH), enable PCINT1 (HSYNC) and INT0 (USB) again
   EIMSK &= ~(1<<INT2);
+  EIMSK |= (1<<INT0);
   PCICR = (1<<PCIE1);
 }
 
@@ -242,6 +246,7 @@ int main(void) {
 
   while(1) {
 
+    // Poll for USB messages
     usbPoll();
     
     // Sample input lines and update screen according to user config
