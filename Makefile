@@ -2,7 +2,8 @@ VERSION=atmega1284-alpha
 
 CC=gcc
 MINGW32?=i686-w64-mingw32
-CFLAGS=-std=c99 -g -O2 -Wall -lusb-1.0
+CFLAGS=-std=c99 -g -O2 -Wall
+LIBS=-lusb-1.0
 
 SOURCES=strings.c config.c parser.c usb.c boot.c overlay64.c
 HEADERS=strings.h config.h parser.h usb.h boot.h 
@@ -10,10 +11,10 @@ HEADERS=strings.h config.h parser.h usb.h boot.h
 all: overlay64
 
 overlay64: $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -o overlay64 $(SOURCES)
+	$(CC) $(CFLAGS) -o overlay64 $(SOURCES) $(LIBS)
 
 win32: $(SOURCES) $(HEADERS)
-	$(MINGW32)-gcc $(CFLAGS) -o overlay64 $(SOURCES) 
+	$(MINGW32)-gcc $(CFLAGS) -o overlay64 $(SOURCES) $(LIBS) 
 
 overlay64.bin: overlay64.conf
 	./overlay64 < overlay64.conf > overlay64.bin

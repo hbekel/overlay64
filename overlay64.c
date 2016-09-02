@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef _WIN32  
+#include "target.h"
+
+#if windows  
   #include <io.h>
   #include <fcntl.h>
 #endif
@@ -20,8 +22,8 @@ int main(int argc, char **argv) {
   
   config = Config_new();
   
-#ifdef _WIN32
-  setmode(fileno(stdout), O_BINARY);
+#if windows
+  setmode(_fileno(stdout), O_BINARY);
 #endif
   
   if(Config_read(config, stdin)) {
