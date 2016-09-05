@@ -14,6 +14,9 @@
 #define SCREEN_TOP    46
 #define SCREEN_BOTTOM SCREEN_TOP + CHAR_HEIGHT * SCREEN_ROWS
 
+#define MODE_MANUAL 0
+#define MODE_NOTIFY 1
+
 #define INPUT_PINS 16
 
 #define ACTION_NONE  0x00
@@ -49,15 +52,30 @@ typedef struct {
 } Sample;
 
 typedef struct {
-  uint8_t volatile *ports[2]; // the actual ports to use
-  Pin *pins[INPUT_PINS];      // the available pins
+  char *name;
+  uint8_t mode;
+  
+  bool enabled;
+  uint8_t timeout;
 
+  uint8_t sample;  
+  Sample **samples;
+  uint8_t num_samples;
+
+} Screen;
+
+typedef struct {
+  uint8_t volatile *ports[2]; // the actual ports to use
+  Pin *pins[INPUT_PINS];      // the available input pins
   uint8_t timeout;
 
   uint8_t sample;
   Sample **samples;
   uint8_t num_samples;
 
+  Screen **screens;
+  uint8_t num_screens;
+  
   CommandList* immediateCommands;
   CommandList* commands;
   

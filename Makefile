@@ -8,6 +8,8 @@ LIBS=-lusb-1.0
 SOURCES=strings.c config.c parser.c usb.c boot.c overlay64.c
 HEADERS=strings.h config.h parser.h usb.h boot.h 
 
+.PHONY: firmware clean firmware-clean
+
 all: overlay64
 
 overlay64: $(SOURCES) $(HEADERS)
@@ -18,6 +20,12 @@ win32: $(SOURCES) $(HEADERS)
 
 overlay64.bin: overlay64.conf
 	./overlay64 < overlay64.conf > overlay64.bin
+
+firmware: 
+	make -C firmware
+
+firmware-clean:
+	make -C firmware clean
 
 boot: overlay64
 	./overlay64 boot || true
