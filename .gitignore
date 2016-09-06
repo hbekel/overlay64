@@ -4,6 +4,7 @@
 *.elf
 *.exe
 *.stackdump
+*.rpt
 overlay64
 *.bin
 firmware/font

@@ -47,7 +47,7 @@ static void setup() {
   wdt_disable();
   
   // Create config and assign ports
-  config = Config_new_with_ports(&PINA, &PINC);
+  config = Config_new_with_ports(&PINA, &PINB, &PINC, &PIND);
 
   // Read config from eeprom
   Config_read(config, &eeprom);
@@ -249,6 +249,37 @@ int main(void) {
     // Poll for USB messages
     usbPoll();
     
+    /*
+
+    config->enabled = false
+
+    foreach control
+      sample control -> result = enabled || disabled
+
+    foreach screen
+
+      foreach sample
+        read pin
+        if sample changed && screen is auto
+          timeout = timeout
+
+      foreach control
+        check control, but only once per control?
+          
+         notify control: if pin rising edge -> screen->timeout = timeout
+         timeout control: if screen->timeout > 0 then enabled, else disabled
+         manual control: if pin low -> enabled, else no change
+         
+         // screen->enabled = true implies config->enabled
+
+
+    foreach disabled screen
+      screen->clear
+
+    foreach enabled screen
+      screen->write
+       
+    */
     // Sample input lines and update screen according to user config
     Config_apply(config);
 

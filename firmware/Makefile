@@ -1,4 +1,4 @@
-MCU=atmega1284
+MCU=atmega1284p
 F_CPU = 20000000
 ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp -DF_CPU=$(F_CPU) -Wa,-adhlns=$(<:%.S=./%.lst),-gstabs,--listing-cont-lines=100
 GCC=avr-gcc

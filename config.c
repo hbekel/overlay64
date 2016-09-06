@@ -6,22 +6,31 @@
 uint8_t CONFIG_MAGIC[2] = { 'O', 'V' };
 
 static uint8_t A = 0;
-static uint8_t C = 1;
+static uint8_t B = 1;
+static uint8_t C = 2;
+static uint8_t D = 3;
 
 //------------------------------------------------------------------------------
 
 volatile Config* Config_new(void) {
-  return Config_new_with_ports(NULL, NULL);
+  return Config_new_with_ports(NULL, NULL, NULL, NULL);
 }
 
 //------------------------------------------------------------------------------
 
-volatile Config* Config_new_with_ports(uint8_t volatile *port0, uint8_t volatile *port1) {
+volatile Config* Config_new_with_ports(uint8_t volatile *a,
+                                       uint8_t volatile *b,
+                                       uint8_t volatile *c,
+                                       uint8_t volatile *d) {
 
-  volatile Config* self = (Config*) calloc(1, sizeof(Config));
-
-  self->ports[0] = port0;
-  self->ports[1] = port1;
+  uint8_t i = 0;
+  
+  volatile Config* self = (Config*) calloc(1, sizeof(Config));  
+  
+  self->ports[0] = a;
+  self->ports[1] = b;
+  self->ports[2] = c;
+  self->ports[3] = d;
 
   self->timeout = 2*50; 
 
@@ -30,24 +39,34 @@ volatile Config* Config_new_with_ports(uint8_t volatile *port0, uint8_t volatile
   self->samples = (Sample**) calloc(1, sizeof(Sample**));
   self->sample = 0;
   
-  uint8_t i = 0;
-  self->pins[i++] = Pin_new(self, A, 0);
-  self->pins[i++] = Pin_new(self, A, 1);
-  self->pins[i++] = Pin_new(self, A, 2);
-  self->pins[i++] = Pin_new(self, A, 3);
-  self->pins[i++] = Pin_new(self, A, 4);
-  self->pins[i++] = Pin_new(self, A, 5);
-  self->pins[i++] = Pin_new(self, A, 6);
-  self->pins[i++] = Pin_new(self, A, 7);
+  i = 0;
+  self->input[i++] = Pin_new(self, A, 0);
+  self->input[i++] = Pin_new(self, A, 1);
+  self->input[i++] = Pin_new(self, A, 2);
+  self->input[i++] = Pin_new(self, A, 3);
+  self->input[i++] = Pin_new(self, A, 4);
+  self->input[i++] = Pin_new(self, A, 5);
+  self->input[i++] = Pin_new(self, A, 6);
+  self->input[i++] = Pin_new(self, A, 7);
 
-  self->pins[i++] = Pin_new(self, C, 7);
-  self->pins[i++] = Pin_new(self, C, 6);
-  self->pins[i++] = Pin_new(self, C, 5);
-  self->pins[i++] = Pin_new(self, C, 4);
-  self->pins[i++] = Pin_new(self, C, 3);
-  self->pins[i++] = Pin_new(self, C, 2);
-  self->pins[i++] = Pin_new(self, C, 1);
-  self->pins[i++] = Pin_new(self, C, 0);
+  self->input[i++] = Pin_new(self, C, 7);
+  self->input[i++] = Pin_new(self, C, 6);
+  self->input[i++] = Pin_new(self, C, 5);
+  self->input[i++] = Pin_new(self, C, 4);
+  self->input[i++] = Pin_new(self, C, 3);
+  self->input[i++] = Pin_new(self, C, 2);
+  self->input[i++] = Pin_new(self, C, 1);
+  self->input[i++] = Pin_new(self, C, 0);
+
+  i = 0;
+  self->control[i++] = Pin_new(self, D, 6);
+  self->control[i++] = Pin_new(self, D, 7);
+  self->control[i++] = Pin_new(self, B, 1);
+  self->control[i++] = Pin_new(self, B, 3);
+  self->control[i++] = Pin_new(self, B, 6);
+  self->control[i++] = Pin_new(self, B, 7);
+  self->control[i++] = Pin_new(self, D, 4);
+  self->control[i++] = Pin_new(self, D, 5);  
   
   self->strings = (char**) NULL;
   self->num_strings = 0;
@@ -66,8 +85,8 @@ void Config_free(volatile Config* self) {
   }
   free(self->samples);
   
-  for(uint8_t i=0; i<sizeof(self->pins)/sizeof(Pin*); i++) {
-    Pin_free(self->pins[i]);
+  for(uint8_t i=0; i<sizeof(self->input)/sizeof(Pin*); i++) {
+    Pin_free(self->input[i]);
   }
   CommandList_free(self->immediateCommands);
   CommandList_free(self->commands);
@@ -409,7 +428,7 @@ void Sample_read(Sample* self, FILE* in) {
   CommandList* commands;
   
   for(uint8_t i=0; i<num_pins; i++) {
-    Sample_add_pin(self, config->pins[fgetc(in)]);
+    Sample_add_pin(self, config->input[fgetc(in)]);
   }
 
   uint8_t num_command_lists = 1<<(self->num_pins);

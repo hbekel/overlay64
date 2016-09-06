@@ -111,7 +111,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
   uint8_t pin;  
   
   while(parseInt(StringList_get(words, *i), 0, &pin)) {
-    Sample_add_pin(self, config->pins[pin]);
+    Sample_add_pin(self, config->input[pin]);
     (*i)++;
   }
 
@@ -214,13 +214,34 @@ void Config_print(volatile Config* self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
+uint8_t Config_index_of_input(volatile Config* self, Pin* pin) {
   for(int i=0; i<INPUT_PINS; i++) {
-    if(self->pins[i] == pin) {
+    if(self->input[i] == pin) {
       return i;
     }
   }
   return 0xff;
+}
+
+//------------------------------------------------------------------------------
+
+uint8_t Config_index_of_control(volatile Config* self, Pin* pin) {
+  for(int i=0; i<CONTROL_PINS; i++) {
+    if(self->control[i] == pin) {
+      return i;
+    }
+  }
+  return 0xff;
+}
+
+//------------------------------------------------------------------------------
+
+uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
+  uint8_t index  = Config_index_of_input(self, pin);
+  if(index != 0xff) {
+    return index;
+  }
+  return Config_index_of_control(self, pin);
 }
 
 //------------------------------------------------------------------------------

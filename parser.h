@@ -12,6 +12,8 @@ void Config_print(volatile Config* self, FILE* out);
 void Config_write(volatile Config* self, FILE* out);
 uint16_t Config_get_footprint(volatile Config* self);
 
+uint8_t Config_index_of_input(volatile Config* self, Pin* pin);
+uint8_t Config_index_of_control(volatile Config* self, Pin* pin);
 uint8_t Config_index_of_pin(volatile Config* self, Pin* pin);
 uint8_t Config_index_of_string(volatile Config* self, char* string);
 uint8_t Config_index_of_command(volatile Config* self, Command* command);
