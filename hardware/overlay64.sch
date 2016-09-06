@@ -1,4 +1,5 @@
 EESchema Schematic File Version 2
+LIBS:overlay64-rescue
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -219,7 +220,7 @@ F 3 "" H 6350 1050 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L POT RV1
+L POT-RESCUE-overlay64 RV1
 U 1 1 56A8F98B
 P 6350 1800
 F 0 "RV1" H 6350 1700 50  0000 C CNN
@@ -348,9 +349,9 @@ F 3 "" H 5900 1250 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 Text Label 4000 5200 0    60   ~ 0
-~OR
+C1
 Text Label 5400 6800 2    60   ~ 0
-~OE
+C0
 Text Label 6700 2000 0    60   ~ 0
 LUMA
 $Comp
@@ -383,9 +384,9 @@ F 3 "" H 6250 1250 50  0000 L CNN
 	1    0    0    -1  
 $EndComp
 Text Label 4000 5100 0    60   ~ 0
-~OE
+C0
 Text Label 5400 6700 2    60   ~ 0
-~OR
+C1
 $Comp
 L CONN_01X01 P5
 U 1 1 57445960
@@ -744,17 +745,17 @@ IN14
 Text Label 4000 3600 0    60   ~ 0
 IN15
 Text Label 4000 2800 0    60   ~ 0
-C0
-Text Label 4000 3000 0    60   ~ 0
-C1
-Text Label 4000 3300 0    60   ~ 0
 C2
-Text Label 4000 3400 0    60   ~ 0
+Text Label 4000 3000 0    60   ~ 0
 C3
-Text Label 4000 4900 0    60   ~ 0
+Text Label 4000 3300 0    60   ~ 0
 C4
-Text Label 4000 5000 0    60   ~ 0
+Text Label 4000 3400 0    60   ~ 0
 C5
+Text Label 4000 4900 0    60   ~ 0
+C6
+Text Label 4000 5000 0    60   ~ 0
+C7
 $Comp
 L CONN_01X08 P3
 U 1 1 57A0F745
@@ -767,17 +768,17 @@ F 3 "" H 5600 6450 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Text Label 5400 6600 2    60   ~ 0
-C0
-Text Label 5400 6500 2    60   ~ 0
-C1
-Text Label 5400 6400 2    60   ~ 0
 C2
-Text Label 5400 6300 2    60   ~ 0
+Text Label 5400 6500 2    60   ~ 0
 C3
-Text Label 5400 6200 2    60   ~ 0
+Text Label 5400 6400 2    60   ~ 0
 C4
-Text Label 5400 6100 2    60   ~ 0
+Text Label 5400 6300 2    60   ~ 0
 C5
+Text Label 5400 6200 2    60   ~ 0
+C6
+Text Label 5400 6100 2    60   ~ 0
+C7
 $Comp
 L GND #PWR024
 U 1 1 57A1101A
