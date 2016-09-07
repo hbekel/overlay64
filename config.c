@@ -188,7 +188,7 @@ void Config_each_command(volatile Config* self,
 //------------------------------------------------------------------------------
 
 void Config_allocate_row_for_command(volatile Config *self, Command *command) {  
-  if(self->rows[command->row] != NULL) {
+  if(self->rows[command->row] == NULL) {
     self->rows[command->row] = (uint8_t*) calloc(SCREEN_COLUMNS, sizeof(uint8_t));
   }
 }

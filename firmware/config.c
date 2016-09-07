@@ -3,6 +3,8 @@
 #include "config.h"
 #include "string.h"
 
+static bool enabled;
+
 //------------------------------------------------------------------------------
 
 void Config_setup(volatile Config* self) {
@@ -35,21 +37,29 @@ void Config_tick(volatile Config* self) {
 //------------------------------------------------------------------------------
 
 void Config_apply(volatile Config* self) {
-  
-  self->enabled = false;
 
+  enabled = false;
+
+  for(uint8_t i=0; i<CONTROL_PINS; i++) {
+    Pin_sample(self->control[i]);
+  }
+  
+  for(uint8_t i=0; i<INPUT_PINS; i++) {
+    Pin_sample(self->input[i]);
+  }
+  
   for(uint8_t i=0; i<self->num_controls; i++) {
     Control* control = self->controls[i];    
     Control_sample(control);
   }
-
+  
   for(uint8_t i=0; i<self->num_screens; i++) {    
     Screen* screen = self->screens[i];    
     Screen_sample(screen);
     
-    self->enabled = self->enabled || screen->enabled;
+    enabled = enabled || screen->enabled;
   }
-
+  
   for(uint8_t i=0; i<self->num_screens; i++) {
     Screen* screen = self->screens[i];
     if(!screen->enabled) {
@@ -63,13 +73,12 @@ void Config_apply(volatile Config* self) {
       Screen_write(screen);
     }
   }
+  self->enabled = enabled;
 }
 
 //------------------------------------------------------------------------------
 
 void Control_sample(Control* self) {
-  Pin_sample(self->pin);
-
   self->asserted =
     (self->mode == MODE_MANUAL && Pin_is_low(self->pin)) ||
     (self->mode == MODE_NOTIFY && Pin_is_rising(self->pin));
@@ -96,8 +105,8 @@ void Screen_sample(Screen* self) {
         self->enabled = self->enabled || control->asserted;
       }
     }
-    self->enabled = self->enabled || self->timeout > 0;
   }
+  self->enabled = self->enabled || self->timeout > 0;
 }
 
 //------------------------------------------------------------------------------
@@ -115,7 +124,8 @@ void Screen_write(Screen* self) {
 
   for(uint8_t i=0; i<self->num_samples; i++) {
     Sample* sample = self->samples[i];
-    CommandList_execute(sample->command_lists[sample->value]);
+    CommandList *commands = sample->command_lists[sample->value];
+    CommandList_execute(commands);
   }
 }
 
@@ -138,10 +148,12 @@ void Screen_clear(Screen* self) {
 
 void Sample_sample(Sample* self, Screen* screen) {
   Pin *pin;
+  self->value = 0;
+  
   for(uint8_t i=0; i<self->num_pins; i++) {
     pin = self->pins[i];
-    
-    self->value |= Pin_sample(pin) << pin->pos;
+
+    self->value |= (Pin_state(pin) << i);
     
     if(Pin_has_changed(pin)) {
       Screen_notify(screen);
@@ -190,7 +202,7 @@ bool Pin_is_falling(Pin* self) {
 //------------------------------------------------------------------------------
 
 bool Pin_has_changed(Pin* self) {
-  return self->edge[0] != self->edge[0];
+  return self->edge[0] != self->edge[1];
 }
 
 //------------------------------------------------------------------------------
@@ -249,7 +261,9 @@ void Row_write(uint8_t* row, uint8_t col, char *str) {
 
 void Row_clear(uint8_t* row, uint8_t col, uint8_t len) {
   uint8_t* dst = row+col;
-  memset(dst, 0, len);
+  for(uint8_t i=0; i<len; i++) {
+    dst[i] = (uint8_t) 0x00;
+  }
 }
 
 //------------------------------------------------------------------------------

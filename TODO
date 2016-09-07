@@ -1,0 +1,18 @@
+Firmware:
+
+- Each screen gets its own set of rows and these will get referenced
+  from the main row array. Otherwise empty but allocated rows will
+  always show the backdrop, and two screens using the same lines will
+  cause flicker...
+
+- Each screen may only NULL a main row if the current row pointer is
+  its own. So screens will get Screen_enable() and Screen_disable().
+
+- Automatic notification only make sense when a line actually changes
+  each time the user presses switches, counters, toggles etc. Does not
+  make sense when a key sets a specific bit pattern, since then the
+  notification is only triggered when the values change, not if that
+  key is pressed repeatetly. So a control line is needed anyways if a
+  screen also has such lines.
+
+
