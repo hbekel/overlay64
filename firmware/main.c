@@ -251,27 +251,26 @@ int main(void) {
     
     /*
 
-    config->enabled = false
+    config->enabled = false;
 
-    foreach control
-      sample control -> result = enabled || disabled
+    foreach config->control (explicit controls)
+      control->enabled = false;
+      sample control
+         notify control: control->enabled = control->enabled || pin rising edge 
+         manual control: control->enabled = control->enabled || low
 
     foreach screen
 
       foreach sample
         read pin
-        if sample changed && screen is auto
+        if sample changed && screen->mode == notify
           timeout = timeout
 
-      foreach control
-        check control, but only once per control?
-          
-         notify control: if pin rising edge -> screen->timeout = timeout
-         timeout control: if screen->timeout > 0 then enabled, else disabled
-         manual control: if pin low -> enabled, else no change
+      foreach screen->control
+        screen->enabled = screen->enabled || control->enabled        
+        if screen->enabled = screen->enabled || timeout > 0        
          
-         // screen->enabled = true implies config->enabled
-
+      config->enabled = config->enabled || screen->enabled
 
     foreach disabled screen
       screen->clear
