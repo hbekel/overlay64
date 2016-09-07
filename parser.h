@@ -17,6 +17,15 @@ uint8_t Config_index_of_control(volatile Config* self, Pin* pin);
 uint8_t Config_index_of_pin(volatile Config* self, Pin* pin);
 uint8_t Config_index_of_string(volatile Config* self, char* string);
 uint8_t Config_index_of_command(volatile Config* self, Command* command);
+uint8_t Config_index_of_screen(volatile Config* self, Screen* screen);
+  
+bool Control_parse(Control* self, StringList* words, int *i);
+void Control_print(Control* self, FILE* out);
+void Control_write(Control* self, FILE* out);
+
+bool Screen_parse(Screen* self, StringList* words, int *i);
+void Screen_print(Screen* self, FILE* out);
+void Screen_write(Screen* self, FILE* out);
 
 bool Sample_parse(Sample* self, StringList* words, int *i);
 void Sample_print(Sample* self, FILE* out);
@@ -27,7 +36,6 @@ void Pin_print(Pin* self, FILE* out);
 void Pin_write(Pin* self, FILE* out);
 
 void CommandList_print(CommandList *self, FILE* out);
-void CommandList_write_indexed(CommandList *self, FILE* out);
 void CommandList_write(CommandList *self, FILE* out);
 uint16_t CommandList_get_sparse_footprint(CommandList* self);
 uint16_t CommandList_get_footprint(CommandList* self);

@@ -23,20 +23,13 @@
 uint32_t BootKey ATTR_NO_INIT;
 void CheckBootloader(void) ATTR_INIT_SECTION_3;
 
-#define OE   (1<<PD6)  // Output Enable (act. low)
-#define OR   (1<<PD7)  // Output Request (act. low) (output for timeout/50 sec)
 #define MOSI (1<<PB5)  // SPI output pin (where the actual bitmap data is send)
 #define SS   (1<<PB4)  // SPI slave select (must be pulled up in master mode)
 
 #define ENABLE_SPI  DDRB |= MOSI  // Enable the SPI output pin
 #define DISABLE_SPI DDRB &= ~MOSI // Disable (tristate) the SPI output pin
 
-volatile uint8_t output_enable[2]  = { true, true }; // state/edge for OE
-volatile uint8_t output_request[2] = { true, true }; // state/edge for OR
-
 volatile uint16_t scanline; // current scanline of the whole video frame
-volatile uint8_t enabled;   // whether or not the display is currently enabled
-volatile uint8_t timeout;   // timeout counter until disabling display 
 
 volatile Config* config;    // Configuration is read from eeprom
 
@@ -82,17 +75,9 @@ static void setup() {
     (1<<SPE) | (1<<MSTR) |         // Enable SPI as Master
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
   SPSR = (1<<SPI2X);               // Double speed
-  
-  // Setup OE (PD6) and OR (PD7) as inputs with pullups
-  DDRD  &= ~OE; PORTD |= OE;
-  DDRD  &= ~OR; PORTD |= OR;
 
-  // Setup Input ports
-  DDRA = 0x00;
-  PORTA = 0xff;
-
-  DDRC = 0x00;
-  PORTC = 0xff;
+  // Setup input and control lines
+  Config_setup(config);
 
   // Setup USB
   usbInit();
@@ -113,8 +98,8 @@ static void setup() {
 
 ISR(INT1_vect) { // VSYNC (each frame)...
 
-  // Decrease timeout counter
-  if(timeout > 0) timeout--;
+  // Decrease timeout counters for all screens
+  Config_tick(config);
    
   // Reset scanline counter
   scanline = 0;
@@ -167,7 +152,7 @@ ISR(INT2_vect) { // BACK PORCH (8us after HSYNC)
   
   scanline++;
 
-  if(enabled && (scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM)) {
+  if(config->enabled && (scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM)) {
 
     // The display is enabled and we're on a vertical line inside of
     // the logical screen area, but still outside of the visible horizonzal area.
@@ -249,65 +234,8 @@ int main(void) {
     // Poll for USB messages
     usbPoll();
     
-    /*
-
-    config->enabled = false;
-
-    foreach config->control (explicit controls)
-      control->enabled = false;
-      sample control
-         notify control: control->enabled = control->enabled || pin rising edge 
-         manual control: control->enabled = control->enabled || low
-
-    foreach screen
-
-      foreach sample
-        read pin
-        if sample changed && screen->mode == notify
-          timeout = timeout
-
-      foreach screen->control
-        screen->enabled = screen->enabled || control->enabled        
-        if screen->enabled = screen->enabled || timeout > 0        
-         
-      config->enabled = config->enabled || screen->enabled
-
-    foreach disabled screen
-      screen->clear
-
-    foreach enabled screen
-      screen->write
-       
-    */
-    // Sample input lines and update screen according to user config
+    // Sample input and control lines and update screen according to user config
     Config_apply(config);
-
-    // Get the current state of the control lines and also remember the
-    // previous states so that we can detect rising or falling edges    
-
-    READ(output_enable, PIND, OE);
-    READ(output_request, PIND, OR);
-
-    // When OE is low, the output is always enabled
-    if(LOW(output_enable)) {
-      enabled = true;
-    }
-
-    // When OE goes high again, output is disabled immediately
-    else if(RISING(output_enable)) {
-      enabled = false;
-    }    
-
-    // When OR is low, output is enabled and timeout starts
-    else if(LOW(output_request)) {
-      enabled = true;
-      timeout = config->timeout;
-    }
-
-    // When OR is high and timeout is reached, output is disabled
-    else if(HIGH(output_request) && !timeout) {
-      enabled = false;
-    }
   }
   
   return 0;    

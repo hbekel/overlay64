@@ -15,17 +15,17 @@
 extern uint16_t written;
 
 int main(int argc, char **argv) {
-
+  
   if(argc == 2 && (strncmp(argv[1], "boot", 4) == 0)) {
     exit(boot());    
   }
-  
   config = Config_new();
   
 #if windows
-  setmode(_fileno(stdout), O_BINARY);
+  setmode(_fileno(stdin), O_BINARY);
+  setmode(_fileno(stdout), O_BINARY);  
 #endif
-  
+
   if(Config_read(config, stdin)) {
     Config_print(config, stdout);
   }

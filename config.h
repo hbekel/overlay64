@@ -14,8 +14,8 @@
 #define SCREEN_TOP    46
 #define SCREEN_BOTTOM SCREEN_TOP + CHAR_HEIGHT * SCREEN_ROWS
 
-#define MODE_MANUAL 0
-#define MODE_NOTIFY 1
+#define MODE_MANUAL 1
+#define MODE_NOTIFY 2
 
 #define INPUT_PINS 16
 #define CONTROL_PINS 8
@@ -28,8 +28,20 @@ extern uint8_t CONFIG_MAGIC[2];
 
 typedef struct {
   uint8_t volatile *port; // pointer into Config->ports
-  uint8_t pos; 
+  uint8_t pos;  
+  uint8_t edge[2];
 } Pin;
+
+typedef struct {
+  Pin* pin;
+
+  uint8_t mode;
+  bool asserted;
+  
+  uint8_t *screens; // index into config->screens
+  uint8_t num_screens;
+
+} Control;
 
 typedef struct {
   uint8_t action;
@@ -47,43 +59,44 @@ typedef struct {
 typedef struct {
   Pin **pins; // pointers into Config->pins
   uint8_t num_pins;
+  uint8_t value;
   
-  CommandList **commands; // one command list for each state
-  uint8_t num_commands;
+  CommandList **command_lists; // one command list for each state
+  uint8_t num_command_lists;
 } Sample;
 
 typedef struct {
-  char *name;
   uint8_t mode;
-  
   bool enabled;
   uint8_t timeout;
 
-  uint8_t sample;  
   Sample **samples;
   uint8_t num_samples;
 
+  Control **controls;
+  uint8_t num_controls;  
+  
+  CommandList* commands;
+  
 } Screen;
 
 typedef struct {
   uint8_t volatile *ports[4]; // the actual ports to use
   Pin *input[INPUT_PINS];     // the available input pins
   Pin *control[CONTROL_PINS]; // the available control pins
+
+  bool enabled;
   uint8_t timeout;
 
-  uint8_t sample;
-  Sample **samples;
-  uint8_t num_samples;
+  char **strings;
+  uint8_t num_strings;
+  
+  Control **controls;
+  uint8_t num_controls;
 
   Screen **screens;
   uint8_t num_screens;
   
-  CommandList* immediateCommands;
-  CommandList* commands;
-  
-  char **strings;
-  uint8_t num_strings;
-
   uint8_t **rows;
   
 } Config;
@@ -96,14 +109,29 @@ volatile Config* Config_new_with_ports(uint8_t volatile *a,
                                        uint8_t volatile *c,
                                        uint8_t volatile *d);
 
-Sample* Config_add_sample(volatile Config *self, Sample* sample);
+Control* Config_add_control(volatile Config *self, Control* control);
+Screen* Config_add_screen(volatile Config *self, Screen* screen);
 bool Config_has_string(volatile Config *self, char* string, uint8_t *index);
 char *Config_add_string(volatile Config *self, char* string);
-bool Config_has_command(volatile Config *self, Command* command, uint8_t *index);
-Command* Config_add_command(volatile Config *self, Command* command);
 bool Config_read(volatile Config *self, FILE *in);
+void Config_each_command(volatile Config* self,
+                         void (*callback)(volatile Config *self, Command* command));
+void Config_allocate_row_for_command(volatile Config *self, Command *command);
 void Config_allocate_rows(volatile Config *self);
+void Config_assign_controls_to_screens(volatile Config* self);
+
 void Config_free(volatile Config* self);
+
+Control* Control_new(void);
+void Control_add_screen(Control* self, uint8_t index);
+void Control_read(Control* self, FILE* in);
+void Control_free(Control* self);
+
+Screen* Screen_new(void);
+Screen* Screen_add_control(Screen *self, Control* control);
+Sample* Screen_add_sample(Screen *self, Sample* sample);
+void Screen_read(Screen* self, FILE* in);
+void Screen_free(Screen* self);
 
 Sample* Sample_new(void);
 Pin* Sample_add_pin(Sample* self, Pin* pin);
@@ -119,9 +147,7 @@ void Command_free(Command* self);
 
 CommandList* CommandList_new(void);
 Command* CommandList_add_command(CommandList *self, Command* command);
-Command* CommandList_add_new_command(CommandList *self, Command* command);
 void CommandList_read(CommandList *self, FILE *in);
-void CommandList_read_indexed(CommandList *self, FILE* in);
 void CommandList_free(CommandList* self);
 
 Pin *Pin_new(volatile Config* config, uint8_t port, uint8_t pos);

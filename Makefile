@@ -2,7 +2,7 @@ VERSION=atmega1284-alpha
 
 CC=gcc
 MINGW32?=i686-w64-mingw32
-CFLAGS=-std=c99 -g -O2 -Wall
+CFLAGS=-std=gnu99 -g -O2 -Wall
 LIBS=-lusb-1.0
 
 SOURCES=strings.c config.c parser.c usb.c boot.c overlay64.c

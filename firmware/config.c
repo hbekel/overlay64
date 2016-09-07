@@ -1,32 +1,196 @@
+#include <avr/io.h>
+
 #include "config.h"
 #include "string.h"
 
 //------------------------------------------------------------------------------
 
-void Config_apply(volatile Config* self) {
+void Config_setup(volatile Config* self) {
+  // TODO: implement dynamically according to config
 
- CommandList_execute(self->immediateCommands);
+#define OE (1<<PD6)
+#define OR (1<<PD7)
+  
+  DDRD  &= ~OE; PORTD |= OE;
+  DDRD  &= ~OR; PORTD |= OR;
 
- for(uint8_t i=0; i<self->num_samples; i++) {
-   Sample_apply(self->samples[i]);
- }  
+  DDRA = 0x00;
+  PORTA = 0xff;
+
+  DDRC = 0x00;
+  PORTC = 0xff;
 }
 
 //------------------------------------------------------------------------------
 
-void Sample_apply(Sample* self) {
-  uint8_t value = 0;
-
-  for(uint8_t i=0; i<self->num_pins; i++) {    
-    value |= (Pin_read(self->pins[i]) << i);
+void Config_tick(volatile Config* self) {
+  for(uint8_t i=0; i<self->num_screens; i++) {
+    Screen *screen = self->screens[i];
+    if(screen->timeout > 0) {
+      screen->timeout--;
+    }
   }
-  CommandList_execute(self->commands[value & 0xff]);
 }
 
 //------------------------------------------------------------------------------
 
-uint8_t Pin_read(Pin* self) {
-  return ((*(self->port)) & (1<<self->pos)) ? 1 : 0;
+void Config_apply(volatile Config* self) {
+  
+  self->enabled = false;
+
+  for(uint8_t i=0; i<self->num_controls; i++) {
+    Control* control = self->controls[i];    
+    Control_sample(control);
+  }
+
+  for(uint8_t i=0; i<self->num_screens; i++) {    
+    Screen* screen = self->screens[i];    
+    Screen_sample(screen);
+    
+    self->enabled = self->enabled || screen->enabled;
+  }
+
+  for(uint8_t i=0; i<self->num_screens; i++) {
+    Screen* screen = self->screens[i];
+    if(!screen->enabled) {
+      Screen_clear(screen);
+    }
+  }
+
+  for(uint8_t i=0; i<self->num_screens; i++) {
+    Screen* screen = self->screens[i];
+    if(screen->enabled) {
+      Screen_write(screen);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Control_sample(Control* self) {
+  Pin_sample(self->pin);
+
+  self->asserted =
+    (self->mode == MODE_MANUAL && Pin_is_low(self->pin)) ||
+    (self->mode == MODE_NOTIFY && Pin_is_rising(self->pin));
+}
+
+//------------------------------------------------------------------------------
+
+void Screen_sample(Screen* self) {
+
+  self->enabled = false;
+
+  for(uint8_t i=0; i<self->num_samples; i++) {
+    Sample_sample(self->samples[i], self);
+  }
+
+  for(uint8_t i=0; i<self->num_controls; i++) {
+    Control *control = self->controls[i];
+    
+    if(control->asserted) {
+      if(control->mode == MODE_NOTIFY) {
+        self->timeout = config->timeout;
+      }
+      else {
+        self->enabled = self->enabled || control->asserted;
+      }
+    }
+    self->enabled = self->enabled || self->timeout > 0;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Screen_notify(Screen* self) {
+  if(self->mode == MODE_NOTIFY) {
+    self->timeout = config->timeout;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Screen_write(Screen* self) {
+  CommandList_execute(self->commands);
+
+  for(uint8_t i=0; i<self->num_samples; i++) {
+    Sample* sample = self->samples[i];
+    CommandList_execute(sample->command_lists[sample->value]);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Screen_clear(Screen* self) {
+  CommandList_execute_clear(self->commands);
+
+  for(uint8_t i=0; i<self->num_samples; i++) {
+    Sample* sample = self->samples[i];
+
+    for(uint8_t k=0; k<sample->num_command_lists; k++) {
+      CommandList* commands = sample->command_lists[k];
+      CommandList_execute_clear(commands);
+    }
+  }  
+}
+
+//------------------------------------------------------------------------------
+
+void Sample_sample(Sample* self, Screen* screen) {
+  Pin *pin;
+  for(uint8_t i=0; i<self->num_pins; i++) {
+    pin = self->pins[i];
+    
+    self->value |= Pin_sample(pin) << pin->pos;
+    
+    if(Pin_has_changed(pin)) {
+      Screen_notify(screen);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+
+uint8_t Pin_sample(Pin* self) {
+  self->edge[0] = self->edge[1];
+  self->edge[1] = ((*(self->port)) & (1<<self->pos)) ? 1 : 0;
+  return self->edge[1];
+}
+
+//------------------------------------------------------------------------------
+
+uint8_t Pin_state(Pin *self) {
+  return self->edge[1];
+}
+
+//------------------------------------------------------------------------------
+
+bool Pin_is_high(Pin* self) {
+  return self->edge[1];
+}
+
+//------------------------------------------------------------------------------
+
+bool Pin_is_low(Pin* self) {
+ return self->edge[1];
+}
+
+//------------------------------------------------------------------------------
+
+bool Pin_is_rising(Pin* self) {
+  return (self->edge[0] == 0) && (self->edge[1] == 1);
+}
+
+//------------------------------------------------------------------------------
+
+bool Pin_is_falling(Pin* self) {
+  return (self->edge[0] == 1) && (self->edge[0] == 1);
+}
+
+//------------------------------------------------------------------------------
+
+bool Pin_has_changed(Pin* self) {
+  return self->edge[0] != self->edge[0];
 }
 
 //------------------------------------------------------------------------------
@@ -34,6 +198,14 @@ uint8_t Pin_read(Pin* self) {
 void CommandList_execute(CommandList* self) {
   for(uint8_t i=0; i<self->num_commands; i++) {
     Command_execute(self->commands[i]);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void CommandList_execute_clear(CommandList* self) {
+  for(uint8_t i=0; i<self->num_commands; i++) {
+    Command_execute_clear(self->commands[i]);
   }
 }
 
@@ -47,6 +219,17 @@ void Command_execute(Command* self) {
     Row_write(row, self->col, self->string);
   }
   else if(self->action == ACTION_CLEAR) {
+    Row_clear(row, self->col, self->len);
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Command_execute_clear(Command* self) {
+
+  uint8_t* row = config->rows[self->row];
+  
+  if(self->action == ACTION_WRITE) {
     Row_clear(row, self->col, self->len);
   }
 }
