@@ -44,6 +44,7 @@ typedef struct {
 } Control;
 
 typedef struct {
+  void *screen;
   uint8_t action;
   uint8_t row;
   uint8_t col;
@@ -52,11 +53,13 @@ typedef struct {
 } Command;
 
 typedef struct {
+  void *screen;
   Command **commands;
   uint8_t num_commands;
 } CommandList;
 
 typedef struct {
+  void *screen; 
   Pin **pins; // pointers into Config->pins
   uint8_t num_pins;
   uint8_t value;
@@ -77,6 +80,8 @@ typedef struct {
   uint8_t num_controls;  
   
   CommandList* commands;
+
+  uint8_t **rows;
   
 } Screen;
 
@@ -115,8 +120,8 @@ bool Config_has_string(volatile Config *self, char* string, uint8_t *index);
 char *Config_add_string(volatile Config *self, char* string);
 bool Config_read(volatile Config *self, FILE *in);
 void Config_each_command(volatile Config* self,
-                         void (*callback)(volatile Config *self, Command* command));
-void Config_allocate_row_for_command(volatile Config *self, Command *command);
+                         void (*callback)(Screen* screen, Command* command));
+void Config_allocate_row_for_command(Screen* screen, Command *command);
 void Config_allocate_rows(volatile Config *self);
 void Config_assign_controls_to_screens(volatile Config* self);
 
@@ -133,19 +138,19 @@ Sample* Screen_add_sample(Screen *self, Sample* sample);
 void Screen_read(Screen* self, FILE* in);
 void Screen_free(Screen* self);
 
-Sample* Sample_new(void);
+Sample* Sample_new(Screen* screen);
 Pin* Sample_add_pin(Sample* self, Pin* pin);
 void Sample_read(Sample* self, FILE* in);
 CommandList* Sample_add_commands(Sample* self, CommandList* commands);
 void Sample_free(Sample* self);
 
-Command* Command_new(void);
+Command* Command_new(Screen *screen);
 void Command_set_string(Command* self, char *string);
 bool Command_equals(Command* self, Command* command);
 void Command_read(Command* self, FILE* in);
 void Command_free(Command* self);
 
-CommandList* CommandList_new(void);
+CommandList* CommandList_new(Screen* screen);
 Command* CommandList_add_command(CommandList *self, Command* command);
 void CommandList_read(CommandList *self, FILE *in);
 void CommandList_free(CommandList* self);

@@ -154,7 +154,8 @@ char* Config_add_string(volatile Config *self, char* string) {
 //------------------------------------------------------------------------------
 
 void Config_each_command(volatile Config* self,
-                         void (*callback)(volatile Config *self, Command* command)) {
+                         void (*callback)
+                         (Screen* screen, Command* command)) {
 
   Screen *screen;
   Sample *sample;
@@ -167,7 +168,7 @@ void Config_each_command(volatile Config* self,
 
     for(uint8_t k=0; k<commands->num_commands; k++) {
       command = commands->commands[k];
-      callback(self, command);
+      callback(screen, command);
     }
     
     for(uint8_t k=0; k<screen->num_samples; k++) {
@@ -178,7 +179,7 @@ void Config_each_command(volatile Config* self,
         
         for(uint8_t l=0; l<commands->num_commands; l++) {
           command = commands->commands[l];
-          callback(self, command);
+          callback(screen, command);
         }
       }
     }
@@ -187,9 +188,9 @@ void Config_each_command(volatile Config* self,
 
 //------------------------------------------------------------------------------
 
-void Config_allocate_row_for_command(volatile Config *self, Command *command) {  
-  if(self->rows[command->row] == NULL) {
-    self->rows[command->row] = (uint8_t*) calloc(SCREEN_COLUMNS, sizeof(uint8_t));
+void Config_allocate_row_for_command(Screen* screen, Command *command) {  
+  if(screen->rows[command->row] == NULL) {
+    screen->rows[command->row] = (uint8_t*) calloc(SCREEN_COLUMNS, sizeof(uint8_t));
   }
 }
 
@@ -256,7 +257,9 @@ Screen* Screen_new(void) {
   self->samples = (Sample**) calloc(1, sizeof(Sample**));
   self->num_samples = 0;
   
-  self->commands = CommandList_new();
+  self->commands = CommandList_new(self);
+
+  self->rows = (uint8_t**) calloc(SCREEN_ROWS, sizeof(uint8_t*));
   
   return self;
 }
@@ -298,8 +301,9 @@ void Screen_free(Screen* self) {
 
 //------------------------------------------------------------------------------
 
-Sample* Sample_new(void) {
+Sample* Sample_new(Screen *screen) {
   Sample* self = (Sample*) calloc(1, sizeof(Sample));
+  self->screen = screen;
   self->pins = (Pin**) calloc(1, sizeof(Pin**));
   self->num_pins = 0;
   self->value = 0;
@@ -342,8 +346,9 @@ void Sample_free(Sample* self) {
 
 //------------------------------------------------------------------------------
 
-Command* Command_new(void) {
+Command* Command_new(Screen* screen) {
   Command* self = (Command*) calloc(1, sizeof(Command));
+  self->screen = screen;
   self->action = ACTION_NONE;
   self->row = 0;
   self->col = 0;
@@ -378,8 +383,9 @@ void Command_free(Command* self) {
 
 //------------------------------------------------------------------------------
 
-CommandList* CommandList_new(void) {
+CommandList* CommandList_new(Screen* screen) {
   CommandList* self = (CommandList*) calloc(1, sizeof(CommandList));
+  self->screen = screen;
   self->commands = (Command**) calloc(1, sizeof(Command**));
   self->num_commands = 0;
   return self;
@@ -512,7 +518,7 @@ void Screen_read(Screen* self, FILE* in) {
 
   uint8_t num_samples = fgetc(in);
   for(uint8_t i=0; i<num_samples; i++) {
-    Sample_read(Screen_add_sample(self, Sample_new()), in);
+    Sample_read(Screen_add_sample(self, Sample_new(self)), in);
   }
 }
 
@@ -523,7 +529,7 @@ void CommandList_read(CommandList *self, FILE* in) {
   Command *command;
   
   for(uint8_t i=0; i<num_commands; i++) {
-    command = Command_new();
+    command = Command_new(self->screen);
     Command_read(command, in);
     CommandList_add_command(self, command);
   }
@@ -553,7 +559,7 @@ void Sample_read(Sample* self, FILE* in) {
 
   uint8_t num_command_lists = 1<<(self->num_pins);
   for(uint8_t i=0; i<num_command_lists; i++) {
-    commands = CommandList_new();
+    commands = CommandList_new(self->screen);
     CommandList_read(commands, in);
     Sample_add_commands(self, commands);
   }

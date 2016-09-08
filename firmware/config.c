@@ -63,7 +63,7 @@ void Config_apply(volatile Config* self) {
   for(uint8_t i=0; i<self->num_screens; i++) {
     Screen* screen = self->screens[i];
     if(!screen->enabled) {
-      Screen_clear(screen);
+      Screen_unlink(screen);
     }
   }
 
@@ -71,6 +71,7 @@ void Config_apply(volatile Config* self) {
     Screen* screen = self->screens[i];
     if(screen->enabled) {
       Screen_write(screen);
+      Screen_link(screen);
     }
   }
   self->enabled = enabled;
@@ -131,17 +132,22 @@ void Screen_write(Screen* self) {
 
 //------------------------------------------------------------------------------
 
-void Screen_clear(Screen* self) {
-  CommandList_execute_clear(self->commands);
-
-  for(uint8_t i=0; i<self->num_samples; i++) {
-    Sample* sample = self->samples[i];
-
-    for(uint8_t k=0; k<sample->num_command_lists; k++) {
-      CommandList* commands = sample->command_lists[k];
-      CommandList_execute_clear(commands);
+void Screen_link(Screen* self) {
+  for(uint8_t i=0; i<SCREEN_ROWS; i++) {
+    if(self->rows[i] != NULL) {
+      config->rows[i] = self->rows[i];
     }
-  }  
+  }
+}
+
+//------------------------------------------------------------------------------
+
+void Screen_unlink(Screen* self) {
+  for(uint8_t i=0; i<SCREEN_ROWS; i++) {
+    if(self->rows[i] == config->rows[i]) {
+      config->rows[i] = NULL;
+    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -215,33 +221,14 @@ void CommandList_execute(CommandList* self) {
 
 //------------------------------------------------------------------------------
 
-void CommandList_execute_clear(CommandList* self) {
-  for(uint8_t i=0; i<self->num_commands; i++) {
-    Command_execute_clear(self->commands[i]);
-  }
-}
-
-//------------------------------------------------------------------------------
-
 void Command_execute(Command* self) {
 
-  uint8_t* row = config->rows[self->row];
+  uint8_t* row = ((Screen *)self->screen)->rows[self->row];
   
   if(self->action == ACTION_WRITE) {
     Row_write(row, self->col, self->string);
   }
   else if(self->action == ACTION_CLEAR) {
-    Row_clear(row, self->col, self->len);
-  }
-}
-
-//------------------------------------------------------------------------------
-
-void Command_execute_clear(Command* self) {
-
-  uint8_t* row = config->rows[self->row];
-  
-  if(self->action == ACTION_WRITE) {
     Row_clear(row, self->col, self->len);
   }
 }

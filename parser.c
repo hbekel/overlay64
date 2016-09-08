@@ -113,7 +113,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
           fprintf(stderr, "error: sample specified before any screens\n");
           break;
         }
-        result = Sample_parse(Screen_add_sample(screen, Sample_new()), words, &i);
+        result = Sample_parse(Screen_add_sample(screen, Sample_new(screen)), words, &i);
         if(!result) break;
       }
       else if(keyword == WRITE || keyword == CLEAR) {
@@ -173,7 +173,7 @@ bool Screen_parse(Screen* self, StringList* words, int *i) {
   while((*i)<words->size && parseKeyword(StringList_get(words, *i), &keyword)) {
     if(keyword == WRITE || keyword == CLEAR) {
       (*i)++;
-      command = Command_new();
+      command = Command_new(self);
       Command_parse(command, keyword, words, i);     
       CommandList_add_command(self->commands, command);
     }
@@ -196,7 +196,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
   }
 
   for(int k=0; k<(1<<self->num_pins); k++) {
-    Sample_add_commands(self, CommandList_new());
+    Sample_add_commands(self, CommandList_new(self->screen));
   }
 
   int keyword;
@@ -223,7 +223,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
     }
     else if(keyword == WRITE || keyword == CLEAR) {
       (*i)++;
-      command = Command_new();
+      command = Command_new(self->screen);
       Command_parse(command, keyword, words, i);
       CommandList_add_command(commands, command);
     }
