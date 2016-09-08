@@ -21,6 +21,15 @@ void Config_setup(volatile Config* self) {
 
   DDRC = 0x00;
   PORTC = 0xff;
+
+  // NEED TO INITIALLY SAMPLE PINS ONCE...
+  for(uint8_t i=0; i<CONTROL_PINS; i++) {
+    Pin_sample(self->control[i]);
+  }
+  
+  for(uint8_t i=0; i<INPUT_PINS; i++) {
+    Pin_sample(self->input[i]);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -103,11 +112,12 @@ void Screen_sample(Screen* self) {
         self->timeout = config->timeout;
       }
       else {
-        self->enabled = self->enabled || control->asserted;
+        self->timeout = 0;
+        self->enabled = true;
       }
     }
   }
-  self->enabled = self->enabled || self->timeout > 0;
+  self->enabled = self->enabled || (self->timeout > 0);
 }
 
 //------------------------------------------------------------------------------
@@ -134,7 +144,7 @@ void Screen_write(Screen* self) {
 
 void Screen_link(Screen* self) {
   for(uint8_t i=0; i<SCREEN_ROWS; i++) {
-    if(self->rows[i] != NULL) {
+    if(self->rows[i] != NULL && config->rows[i] == NULL) {
       config->rows[i] = self->rows[i];
     }
   }
