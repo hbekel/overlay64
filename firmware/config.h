@@ -4,6 +4,8 @@
 #include "../config.h"
 
 void Config_setup(volatile Config* self);
+void Config_setup_pins(volatile Config* self);
+void Config_sample_pins(volatile Config* self);
 void Config_tick(volatile Config* self);
 void Config_apply(volatile Config* self);
 void Control_sample(Control* self);
@@ -13,6 +15,7 @@ void Screen_write(Screen* self);
 void Screen_link(Screen* self);
 void Screen_unlink(Screen* self);
 void Sample_sample(Sample* self, Screen* screen);
+void Pin_setup(Pin* self);
 uint8_t Pin_sample(Pin* self);
 uint8_t Pin_state(Pin *self);
 bool Pin_is_high(Pin* self);

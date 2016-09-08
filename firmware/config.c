@@ -8,28 +8,32 @@ static bool enabled;
 //------------------------------------------------------------------------------
 
 void Config_setup(volatile Config* self) {
-  // TODO: implement dynamically according to config
+  Config_setup_pins(self);
+  Config_sample_pins(self);
+}
 
-#define OE (1<<PD6)
-#define OR (1<<PD7)
+//------------------------------------------------------------------------------
+
+void Config_setup_pins(volatile Config* self) {
+  for(uint8_t i=0; i<CONTROL_PINS; i++) {
+    Pin_setup(self->control[i]);
+  }
   
-  DDRD  &= ~OE; PORTD |= OE;
-  DDRD  &= ~OR; PORTD |= OR;
+  for(uint8_t i=0; i<INPUT_PINS; i++) {
+    Pin_setup(self->input[i]);
+  }  
+}
 
-  DDRA = 0x00;
-  PORTA = 0xff;
+//------------------------------------------------------------------------------
 
-  DDRC = 0x00;
-  PORTC = 0xff;
-
-  // NEED TO INITIALLY SAMPLE PINS ONCE...
+void Config_sample_pins(volatile Config* self) {
   for(uint8_t i=0; i<CONTROL_PINS; i++) {
     Pin_sample(self->control[i]);
   }
   
   for(uint8_t i=0; i<INPUT_PINS; i++) {
     Pin_sample(self->input[i]);
-  }
+  }  
 }
 
 //------------------------------------------------------------------------------
@@ -49,26 +53,24 @@ void Config_apply(volatile Config* self) {
 
   enabled = false;
 
-  for(uint8_t i=0; i<CONTROL_PINS; i++) {
-    Pin_sample(self->control[i]);
-  }
-  
-  for(uint8_t i=0; i<INPUT_PINS; i++) {
-    Pin_sample(self->input[i]);
-  }
-  
+  // Read the state of input and control pins
+  Config_sample_pins(self);
+
+  // Check wether any controls are asserted
   for(uint8_t i=0; i<self->num_controls; i++) {
     Control* control = self->controls[i];    
     Control_sample(control);
   }
-  
+
+  // Determine state of samples and screen state
   for(uint8_t i=0; i<self->num_screens; i++) {    
     Screen* screen = self->screens[i];    
     Screen_sample(screen);
     
     enabled = enabled || screen->enabled;
   }
-  
+
+  // unlink disabled screens from main screen
   for(uint8_t i=0; i<self->num_screens; i++) {
     Screen* screen = self->screens[i];
     if(!screen->enabled) {
@@ -76,6 +78,7 @@ void Config_apply(volatile Config* self) {
     }
   }
 
+  // link enabled screens into main screen
   for(uint8_t i=0; i<self->num_screens; i++) {
     Screen* screen = self->screens[i];
     if(screen->enabled) {
@@ -83,6 +86,9 @@ void Config_apply(volatile Config* self) {
       Screen_link(screen);
     }
   }
+
+  // Apply global enabled value only after it has
+  // been fully determined
   self->enabled = enabled;
 }
 
@@ -179,6 +185,32 @@ void Sample_sample(Sample* self, Screen* screen) {
 
 //------------------------------------------------------------------------------
 
+void Pin_setup(Pin* self) {
+  uint8_t mask = (1<<(self->pos));
+  
+  if(self->port == &PINA) {
+    DDRA &= ~mask;
+    PORTA |= mask;
+  }
+
+  if(self->port == &PINB) {
+    DDRB &= ~mask;
+    PORTB |= mask;
+  }
+
+  if(self->port == &PINC) {
+    DDRC &= ~mask;
+    PORTC |= mask;
+  }
+
+  if(self->port == &PIND) {
+    DDRD &= ~mask;
+    PORTD |= mask;
+  }
+}
+
+//------------------------------------------------------------------------------
+
 uint8_t Pin_sample(Pin* self) {
   self->edge[0] = self->edge[1];
   self->edge[1] = ((*(self->port)) & (1<<self->pos)) ? 1 : 0;
@@ -194,13 +226,13 @@ uint8_t Pin_state(Pin *self) {
 //------------------------------------------------------------------------------
 
 bool Pin_is_high(Pin* self) {
-  return self->edge[1];
+  return self->edge[1] == 1;
 }
 
 //------------------------------------------------------------------------------
 
 bool Pin_is_low(Pin* self) {
- return self->edge[1];
+ return self->edge[1] == 0;
 }
 
 //------------------------------------------------------------------------------
