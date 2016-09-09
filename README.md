@@ -9,3 +9,5 @@ The user writes a simple configuration file that determines which texts are to b
 Possible uses include displaying the state of control lines for additional hardware installed in a homecomputer such as the Commodore 64, for example to display the currently selected kernal based on the state of the control lines for a multi-kernal adapter. 
 
 An early working prototype can be seen in [this video](https://www.youtube.com/watch?v=0exp2yM0WHM), where it displays the runtime configuration of the MixSID Stereo SID board.
+
+This repository includes the complete sourcecode of the client software, the firmware and all design files in KiCAD format. The project is licensed under the GPLv2.
