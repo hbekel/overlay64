@@ -7,7 +7,7 @@
 
 int boot() {
   printf("Entering bootloader...\n");  
-  usb_send("/dev/keyman64", OVERLAY64_BOOT, 0, (uint8_t*)NULL, 0);
+  usb_send("/dev/overlay64", OVERLAY64_BOOT, 0, (uint8_t*)NULL, 0);
   return true;
 }
 
