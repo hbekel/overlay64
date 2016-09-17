@@ -5,6 +5,9 @@ MINGW32?=i686-w64-mingw32
 CFLAGS=-std=gnu99 -g -O2 -Wall
 LIBS=-lusb-1.0
 
+PREFIX?=/usr/local
+DESTDIR=
+
 SOURCES=strings.c config.c parser.c usb.c boot.c overlay64.c
 HEADERS=strings.h config.h parser.h usb.h boot.h 
 
@@ -54,6 +57,10 @@ test-plot: clean
 		test.c config.c parser.c strings.c \
 		firmware/config.c firmware/font.c
 	./test-plot < test.conf | less -S
+
+install: overlay64
+	install -d $(DESTDIR)$(PREFIX)/bin
+	install -m755 overlay64 $(DESTDIR)$(PREFIX)/bin
 
 clean:
 	rm -f *.bin

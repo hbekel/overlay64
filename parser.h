@@ -22,10 +22,12 @@ uint8_t Config_index_of_screen(volatile Config* self, Screen* screen);
 bool Control_parse(Control* self, StringList* words, int *i);
 void Control_print(Control* self, FILE* out);
 void Control_write(Control* self, FILE* out);
+int Control_get_footprint(Control* self);
 
 bool Screen_parse(Screen* self, StringList* words, int *i);
 void Screen_print(Screen* self, FILE* out);
 void Screen_write(Screen* self, FILE* out);
+int Screen_get_footprint(Screen* self);
 
 bool Sample_parse(Sample* self, StringList* words, int *i);
 void Sample_print(Sample* self, FILE* out);

@@ -75,7 +75,7 @@ typedef struct {
 
   Sample **samples;
   uint8_t num_samples;
-
+ 
   Control **controls;
   uint8_t num_controls;  
   
