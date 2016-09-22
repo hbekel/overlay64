@@ -588,10 +588,15 @@ uint16_t Config_get_footprint(volatile Config* self) {
 
   fp += 2;                // the pointer to the config itself
   fp += 3*2;              // the pointers to the ports
-  fp += INPUT_PINS*2;     // the pointers to the pins
-  fp += INPUT_PINS*3;     // the actual pins
 
-  fp += 1;                // timeout 
+  fp += INPUT_PINS*2;               // the pointers to the pins
+  fp += INPUT_PINS*sizeof(Pin);     // the actual pins
+
+  fp += CONTROL_PINS*2;             // the pointers to the pins
+  fp += CONTROL_PINS*sizeof(Pin);   // the actual pins
+
+  fp += 1; // enabled
+  fp += 1; // timeout 
   
   fp += 1;                     // num_strings
   fp += self->num_strings * 2; // the pointers to the strings;
@@ -601,17 +606,61 @@ uint16_t Config_get_footprint(volatile Config* self) {
     fp += strlen(self->strings[i])+1;
   }
 
+  fp += 1; // num_controls
+  fp += self->num_controls*2; // control pointers
+  for(uint8_t i=0; i<self->num_controls; i++) {
+    fp += Control_get_footprint(self->controls[i]);
+  }
+
+  fp += 1; // num_screens;
+  fp += self->num_screens*2; // screen pointers
+  for(uint8_t i=0; i<self->num_screens; i++) {
+    fp += Screen_get_footprint(self->screens[i]);
+  }
+  
+  fp += SCREEN_ROWS * 2;  // the pointers to the rows
+
+  fp += 64*8;  // the font data
+  fp += 1+1+2; // global scanline
+
+  return fp;
+}
+
+//------------------------------------------------------------------------------
+
+int Control_get_footprint(Control* self) {
+  int fp = 2; // Pin pointer
+  fp += 1; // mode;
+  fp += 1; // asserted;
+  fp += 1; // num_screens;
+  fp += self->num_screens; // screen indices;
+  return fp;
+}
+
+//------------------------------------------------------------------------------
+
+int Screen_get_footprint(Screen* self) {
+  int fp = 1; // mode
+  fp += 1; // enabled
+  fp += 1; // timeout
+
+  fp += 1; // num_samples;
+  fp += self->num_samples*2; // sample pointers
+  for(uint8_t i=0; i<self->num_samples; i++) {
+    fp += Sample_get_footprint(self->samples[i]);
+  }
+
+  fp += 1; // num_controls
+  fp += self->num_controls*2; // control pointers
+
+  fp += CommandList_get_footprint(self->commands);
+  
   fp += SCREEN_ROWS * 2;  // the pointers to the rows
 
   // the allocated rows themselves
   for(uint8_t i=0; i<SCREEN_ROWS; i++) {
     fp += (self->rows[i] != NULL) ? SCREEN_COLUMNS : 0;
   }
-
-  fp += 64*8;  // the font data
-  fp += 1+1+2; // globals scanline, enabled, timeout
-  fp += 2*2;   // global pin state arrays output_enable, output_request 
-
   return fp;
 }
 
