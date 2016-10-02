@@ -15,24 +15,16 @@ void Config_setup(volatile Config* self) {
 //------------------------------------------------------------------------------
 
 void Config_setup_pins(volatile Config* self) {
-  for(uint8_t i=0; i<CONTROL_PINS; i++) {
-    Pin_setup(self->control[i]);
+  for(uint8_t i=0; i<NUM_PINS; i++) {
+    Pin_setup(self->pins[i]);
   }
-  
-  for(uint8_t i=0; i<INPUT_PINS; i++) {
-    Pin_setup(self->input[i]);
-  }  
 }
 
 //------------------------------------------------------------------------------
 
 void Config_sample_pins(volatile Config* self) {
-  for(uint8_t i=0; i<CONTROL_PINS; i++) {
-    Pin_sample(self->control[i]);
-  }
-  
-  for(uint8_t i=0; i<INPUT_PINS; i++) {
-    Pin_sample(self->input[i]);
+  for(uint8_t i=0; i<NUM_PINS; i++) {
+    Pin_sample(self->pins[i]);
   }  
 }
 

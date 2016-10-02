@@ -17,8 +17,7 @@
 #define MODE_MANUAL 1
 #define MODE_NOTIFY 2
 
-#define INPUT_PINS 16
-#define CONTROL_PINS 8
+#define NUM_PINS 24
 
 #define ACTION_NONE  0x00
 #define ACTION_WRITE 0x01
@@ -87,8 +86,7 @@ typedef struct {
 
 typedef struct {
   uint8_t volatile *ports[4]; // the actual ports to use
-  Pin *input[INPUT_PINS];     // the available input pins
-  Pin *control[CONTROL_PINS]; // the available control pins
+  Pin *pins[NUM_PINS];        // the available pins
 
   bool enabled;
   uint8_t timeout;

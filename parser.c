@@ -144,7 +144,7 @@ bool Control_parse(Control* self, StringList* words, int *i) {
     fprintf(stderr, "error: control: no control pin specified\n");
     return false;
   }
-  self->pin = config->control[pin];
+  self->pin = config->pins[pin];
   (*i)++;
 
   if(parseMode(StringList_get(words, *i), &mode)) {
@@ -191,7 +191,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
   uint8_t pin;  
   
   while(parseInt(StringList_get(words, *i), 0, &pin)) {
-    Sample_add_pin(self, config->input[pin]);
+    Sample_add_pin(self, config->pins[pin]);
     (*i)++;
   }
 
@@ -296,20 +296,9 @@ void Config_print(volatile Config* self, FILE* out) {
 
 //------------------------------------------------------------------------------
 
-uint8_t Config_index_of_input(volatile Config* self, Pin* pin) {
-  for(int i=0; i<INPUT_PINS; i++) {
-    if(self->input[i] == pin) {
-      return i;
-    }
-  }
-  return 0xff;
-}
-
-//------------------------------------------------------------------------------
-
-uint8_t Config_index_of_control(volatile Config* self, Pin* pin) {
-  for(int i=0; i<CONTROL_PINS; i++) {
-    if(self->control[i] == pin) {
+uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
+  for(int i=0; i<NUM_PINS; i++) {
+    if(self->pins[i] == pin) {
       return i;
     }
   }
@@ -325,16 +314,6 @@ uint8_t Config_index_of_screen(volatile Config* self, Screen* screen) {
     }
   }
   return 0xff;
-}
-
-//------------------------------------------------------------------------------
-
-uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
-  uint8_t index  = Config_index_of_input(self, pin);
-  if(index != 0xff) {
-    return index;
-  }
-  return Config_index_of_control(self, pin);
 }
 
 //------------------------------------------------------------------------------
@@ -589,11 +568,8 @@ uint16_t Config_get_footprint(volatile Config* self) {
   fp += 2;                // the pointer to the config itself
   fp += 3*2;              // the pointers to the ports
 
-  fp += INPUT_PINS*2;               // the pointers to the pins
-  fp += INPUT_PINS*sizeof(Pin);     // the actual pins
-
-  fp += CONTROL_PINS*2;             // the pointers to the pins
-  fp += CONTROL_PINS*sizeof(Pin);   // the actual pins
+  fp += NUM_PINS*2;               // the pointers to the pins
+  fp += NUM_PINS*sizeof(Pin);     // the actual pins
 
   fp += 1; // enabled
   fp += 1; // timeout 
