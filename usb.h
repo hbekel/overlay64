@@ -4,7 +4,7 @@
 #include <libusb-1.0/libusb.h>
 
 #define OVERLAY64_VID 0x1d50
-#define OVERLAY64_PID 0x60ea
+#define OVERLAY64_PID 0x6100
 
 typedef struct {
   unsigned int vid;
