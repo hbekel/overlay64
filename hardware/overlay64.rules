@@ -11,7 +11,7 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 1495)
+    (start_pass_no 2002)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
@@ -77,11 +77,11 @@
   )
   (class "kicad_default"
     "Net-(C2-Pad2)" "Net-(C3-Pad2)" /LUMA "Net-(C4-Pad2)" "Net-(C5-Pad1)" /~HSYNC /C0 /~BURST
-    /C1 "Net-(IC1-Pad5)" /MOSI /C2 /C3 /~RESET /BOOT "Net-(IC1-Pad15)"
-    "Net-(IC1-Pad16)" /~VSYNC /C4 /C5 /~OE /~OR /IN8 /IN9
-    /IN10 /IN11 /IN12 /IN13 /IN14 /IN15 "Net-(IC1-Pad32)" /IN7
-    /IN6 /IN5 /IN4 /IN3 /IN2 /IN1 /IN0 "Net-(JP1-Pad2)"
-    "Net-(P1-Pad4)" "Net-(P1-Pad1)" "Net-(Q1-Pad2)" "Net-(RV1-Pad1)" "Net-(U1-Pad7)"
+    /C1 "Net-(IC1-Pad5)" /MOSI /C2 /C3 /BOOT "Net-(IC1-Pad15)" "Net-(IC1-Pad16)"
+    /~VSYNC /C4 /C5 /IN8 /IN9 /IN10 /IN11 /IN12
+    /IN13 /IN14 /IN15 "Net-(IC1-Pad32)" /IN7 /IN6 /IN5 /IN4
+    /IN3 /IN2 /IN1 /IN0 "Net-(P1-Pad4)" "Net-(P1-Pad1)" "Net-(RV1-Pad1)" "Net-(U1-Pad7)"
+    /C6 /C7 "Net-(IC1-Pad9)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule

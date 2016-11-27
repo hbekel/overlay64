@@ -1,9 +1,9 @@
-(pcb C:\cygwin\home\hb\workspace\overlay64\hardware\overlay64.dsn
+(pcb /home/henning/workspace/overlay64/hardware/overlay64.dsn
   (parser
     (string_quote ")
     (space_in_quoted_tokens on)
     (host_cad "KiCad's Pcbnew")
-    (host_version "4.0.2-stable")
+    (host_version "4.0.3-stable")
   )
   (resolution um 10)
   (unit um)
@@ -21,8 +21,17 @@
       )
     )
     (boundary
-      (path pcb 0  115570 -60960  160020 -60960  160020 -119380  115570 -119380
-            115570 -60960  115570 -60960)
+      (path pcb 0  115570 -62865  115570 -117475  115599 -117806  115685 -118127
+            115825 -118428  116016 -118700  116250 -118934  116522 -119125
+            116823 -119265  117144 -119351  117475 -119380  158115 -119380
+            158446 -119351  158767 -119265  159068 -119125  159340 -118934
+            159574 -118700  159765 -118428  159905 -118127  159991 -117806
+            160020 -117475  160020 -62865  159991 -62534.2  159905 -62213.5
+            159765 -61912.5  159574 -61640.5  159340 -61405.7  159068 -61215.2
+            158767 -61074.9  158446 -60988.9  158115 -60960  117475 -60960
+            117144 -60988.9  116823 -61074.9  116522 -61215.2  116250 -61405.7
+            116016 -61640.5  115825 -61912.5  115685 -62213.5  115599 -62534.2
+            115570 -62865  115570 -62865)
     )
     (via "Via[0-1]_1000:400_um")
     (rule
@@ -40,12 +49,12 @@
       (place C1 133985 -85725 front 90 (PN 100nF))
       (place C2 129540 -91440 front 90 (PN 18pF))
       (place C3 129540 -93980 front 270 (PN 18pF))
-      (place C4 123190 -77470 front 0 (PN 100nF))
+      (place C4 125730 -77470 front 180 (PN 100nF))
       (place C5 128270 -77470 front 0 (PN 100nF))
       (place C6 133985 -66040 front 270 (PN 100nF))
     )
     (component "Housings_DIP:DIP-40_W15.24mm"
-      (place IC1 137160 -63500 front 0 (PN "ATMEGA1284-P"))
+      (place IC1 137160 -63500 front 0 (PN ATMEGA1284))
     )
     (component Pin_Headers:Pin_Header_Angled_1x16
       (place P2 119380 -106680 front 180 (PN INPUT))
@@ -63,11 +72,8 @@
       (place P7 156210 -111252 front 0 (PN HOLE))
       (place P8 119380 -111252 front 0 (PN HOLE))
     )
-    (component "TO_SOT_Packages_THT:TO-92_Inline_Narrow_Oval"
-      (place Q1 125730 -90170 front 180 (PN BC547B))
-    )
     (component Potentiometers:Potentiometer_Bourns_3339P_Angular_ScrewUp
-      (place RV1 125095 -83820 front 0 (PN 1k))
+      (place RV1 124460 -83185 front 0 (PN 1k))
     )
     (component "Housings_DIP:DIP-8_W7.62mm"
       (place U1 123190 -66040 front 0 (PN LM1881))
@@ -83,13 +89,10 @@
       (place R1 128397 -105918 front 90 (PN 68))
       (place R2 131191 -105918 front 90 (PN 68))
       (place R3 125603 -105918 front 90 (PN 1k5))
-      (place R4 121920 -83820 front 90 (PN 4k7))
       (place R5 133985 -74930 front 270 (PN 680k))
     )
-    (component custom:Pin_Header_Straight_1x02
-      (place JP1 123190 -94615 front 90 (PN BACKDROP))
-      (place JP2 123190 -97155 front 90 (PN BOOT))
-      (place JP3 123190 -99695 front 90 (PN RESET))
+    (component custom:Button
+      (place SW1 126492 -96012 front 90 (PN SW_BOOT))
     )
   )
   (library
@@ -504,16 +507,6 @@
       (keepout "" (circle F.Cu 4000))
       (keepout "" (circle B.Cu 4000))
     )
-    (image "TO_SOT_Packages_THT:TO-92_Inline_Narrow_Oval"
-      (outline (path signal 50  -1400 -1950  -1400 2650))
-      (outline (path signal 50  -1400 -1950  3950 -1950))
-      (outline (path signal 150  -430 -1700  2970 -1700))
-      (outline (path signal 50  -1400 2650  3950 2650))
-      (outline (path signal 50  3950 -1950  3950 2650))
-      (pin Oval[A]Pad_899.16x1501.14_um (rotate 180) 2 1270 0)
-      (pin Oval[A]Pad_899.16x1501.14_um (rotate 180) 3 2540 0)
-      (pin Oval[A]Pad_899.16x1501.14_um (rotate 180) 1 0 0)
-    )
     (image Potentiometers:Potentiometer_Bourns_3339P_Angular_ScrewUp
       (outline (path signal 150  5334 -2667  4953 -2286))
       (outline (path signal 150  5969 -1778  5588 -1524))
@@ -637,19 +630,20 @@
       (pin Round[A]Pad_1397_um 1 -3810 0)
       (pin Round[A]Pad_1397_um 2 3810 0)
     )
-    (image custom:Pin_Header_Straight_1x02
-      (outline (path signal 150  1270 -1270  1270 1270))
-      (outline (path signal 150  1270 1270  -1270 1270))
-      (outline (path signal 150  -1270 1270  -1270 -1270))
-      (outline (path signal 150  1270 -1270  1270 -3810))
-      (outline (path signal 50  -1750 1750  -1750 -4300))
-      (outline (path signal 50  1750 1750  1750 -4300))
-      (outline (path signal 50  -1750 1750  1750 1750))
-      (outline (path signal 50  -1750 -4300  1750 -4300))
-      (outline (path signal 150  -1270 -1270  -1270 -3810))
-      (outline (path signal 150  -1270 -3810  1270 -3810))
-      (pin Rect[A]Pad_1720x1720_um 1 0 0)
-      (pin Round[A]Pad_1720_um 2 0 -2540)
+    (image custom:Button
+      (outline (path signal 150  4664.21 2250  4595 1812.98  4394.12 1418.75  4081.25 1105.88
+            3687.02 905.003  3250 835.786  2812.98 905.003  2418.75 1105.88
+            2105.88 1418.75  1905 1812.98  1835.79 2250  1905 2687.02  2105.88 3081.25
+            2418.75 3394.12  2812.98 3595  3250 3664.21  3687.02 3595  4081.25 3394.12
+            4394.12 3081.25  4595 2687.02))
+      (outline (path signal 150  250 -750  250 5250))
+      (outline (path signal 150  250 5250  6250 5250))
+      (outline (path signal 150  6250 5250  6250 -750))
+      (outline (path signal 150  6250 -750  250 -750))
+      (pin Round[A]Pad_1524_um 2 6500 0)
+      (pin Round[A]Pad_1524_um 2@1 0 0)
+      (pin Round[A]Pad_1524_um 1 6500 4500)
+      (pin Round[A]Pad_1524_um 1@1 0 4500)
     )
     (padstack Round[A]Pad_1000_um
       (shape (circle F.Cu 1000))
@@ -676,11 +670,6 @@
       (shape (circle B.Cu 1524))
       (attach off)
     )
-    (padstack Round[A]Pad_1720_um
-      (shape (circle F.Cu 1720))
-      (shape (circle B.Cu 1720))
-      (attach off)
-    )
     (padstack Oval[A]Pad_1100x2300_um
       (shape (path F.Cu 1100  0 -600  0 600))
       (shape (path B.Cu 1100  0 -600  0 600))
@@ -696,11 +685,6 @@
       (shape (path B.Cu 1727.2  -152.4 0  152.4 0))
       (attach off)
     )
-    (padstack Oval[A]Pad_899.16x1501.14_um
-      (shape (path F.Cu 899.16  0 -300.99  0 300.99))
-      (shape (path B.Cu 899.16  0 -300.99  0 300.99))
-      (attach off)
-    )
     (padstack Rect[A]Pad_2032x1727.2_um
       (shape (rect F.Cu -1016 -863.6 1016 863.6))
       (shape (rect B.Cu -1016 -863.6 1016 863.6))
@@ -711,11 +695,6 @@
       (shape (rect B.Cu -650 -650 650 650))
       (attach off)
     )
-    (padstack Rect[A]Pad_1720x1720_um
-      (shape (rect F.Cu -860 -860 860 860))
-      (shape (rect B.Cu -860 -860 860 860))
-      (attach off)
-    )
     (padstack "Via[0-1]_1000:400_um"
       (shape (circle F.Cu 1000))
       (shape (circle B.Cu 1000))
@@ -724,11 +703,11 @@
   )
   (network
     (net VCC
-      (pins C1-1 C6-1 IC1-10 IC1-30 P4-1 Q1-1 U1-8 R3-2)
+      (pins C1-1 C6-1 IC1-10 IC1-30 P4-1 U1-8 R3-2)
     )
     (net GND
       (pins P1-5 P1-5@1 P1-5@2 C1-2 C2-1 C3-1 C5-2 C6-2 IC1-11 IC1-31 P4-3 U1-4 D1-2
-        D2-2 R5-2 JP2-1 JP3-1)
+        D2-2 R5-2 SW1-1 SW1-1@1)
     )
     (net "Net-(C2-Pad2)"
       (pins C2-2 IC1-12 Y1-1)
@@ -755,31 +734,28 @@
       (pins IC1-1 U1-1)
     )
     (net /C0
-      (pins IC1-2 P3-6)
+      (pins IC1-20 P3-8)
     )
     (net /~BURST
       (pins IC1-3 U1-5)
     )
     (net /C1
-      (pins IC1-4 P3-5)
+      (pins IC1-21 P3-7)
     )
     (net "Net-(IC1-Pad5)"
       (pins IC1-5)
     )
     (net /MOSI
-      (pins IC1-6 R4-2 JP1-1)
+      (pins IC1-6 RV1-2)
     )
     (net /C2
-      (pins IC1-7 P3-4)
+      (pins IC1-2 P3-6)
     )
     (net /C3
-      (pins IC1-8 P3-3)
-    )
-    (net /~RESET
-      (pins IC1-9 JP3-2)
+      (pins IC1-4 P3-5)
     )
     (net /BOOT
-      (pins IC1-14 JP2-2)
+      (pins IC1-14 SW1-2 SW1-2@1)
     )
     (net "Net-(IC1-Pad15)"
       (pins IC1-15 R1-2)
@@ -791,16 +767,10 @@
       (pins IC1-17 U1-3)
     )
     (net /C4
-      (pins IC1-18 P3-2)
+      (pins IC1-7 P3-4)
     )
     (net /C5
-      (pins IC1-19 P3-1)
-    )
-    (net /~OE
-      (pins IC1-20 P3-8)
-    )
-    (net /~OR
-      (pins IC1-21 P3-7)
+      (pins IC1-8 P3-3)
     )
     (net /IN8
       (pins IC1-29 P2-8 P9-9)
@@ -853,17 +823,11 @@
     (net /IN0
       (pins IC1-40 P2-16 P9-1)
     )
-    (net "Net-(JP1-Pad2)"
-      (pins Q1-3 RV1-2 JP1-2)
-    )
     (net "Net-(P1-Pad4)"
       (pins P1-4)
     )
     (net "Net-(P1-Pad1)"
       (pins P1-1)
-    )
-    (net "Net-(Q1-Pad2)"
-      (pins Q1-2 R4-1)
     )
     (net "Net-(RV1-Pad1)"
       (pins RV1-1)
@@ -871,12 +835,21 @@
     (net "Net-(U1-Pad7)"
       (pins U1-7)
     )
-    (class kicad_default "" /BOOT /C0 /C1 /C2 /C3 /C4 /C5 /IN0 /IN1 /IN10
-      /IN11 /IN12 /IN13 /IN14 /IN15 /IN2 /IN3 /IN4 /IN5 /IN6 /IN7 /IN8 /IN9
-      /LUMA /MOSI /~BURST /~HSYNC /~OE /~OR /~RESET /~VSYNC "Net-(C2-Pad2)"
-      "Net-(C3-Pad2)" "Net-(C4-Pad2)" "Net-(C5-Pad1)" "Net-(IC1-Pad15)" "Net-(IC1-Pad16)"
-      "Net-(IC1-Pad32)" "Net-(IC1-Pad5)" "Net-(JP1-Pad2)" "Net-(P1-Pad1)"
-      "Net-(P1-Pad4)" "Net-(Q1-Pad2)" "Net-(RV1-Pad1)" "Net-(U1-Pad7)"
+    (net /C6
+      (pins IC1-18 P3-2)
+    )
+    (net /C7
+      (pins IC1-19 P3-1)
+    )
+    (net "Net-(IC1-Pad9)"
+      (pins IC1-9)
+    )
+    (class kicad_default "" /BOOT /C0 /C1 /C2 /C3 /C4 /C5 /C6 /C7 /IN0 /IN1
+      /IN10 /IN11 /IN12 /IN13 /IN14 /IN15 /IN2 /IN3 /IN4 /IN5 /IN6 /IN7 /IN8
+      /IN9 /LUMA /MOSI /~BURST /~HSYNC /~VSYNC "Net-(C2-Pad2)" "Net-(C3-Pad2)"
+      "Net-(C4-Pad2)" "Net-(C5-Pad1)" "Net-(IC1-Pad15)" "Net-(IC1-Pad16)"
+      "Net-(IC1-Pad32)" "Net-(IC1-Pad5)" "Net-(IC1-Pad9)" "Net-(P1-Pad1)"
+      "Net-(P1-Pad4)" "Net-(RV1-Pad1)" "Net-(U1-Pad7)"
       (circuit
         (use_via Via[0-1]_1000:400_um)
       )
@@ -905,5 +878,18 @@
     )
   )
   (wiring
+    (wire (path B.Cu 250  129540 -88940  132021 -88940  133350 -90269.1)(net "Net-(C2-Pad2)")(type protect))
+    (wire (path B.Cu 250  137160 -91440  134521 -91440  133350 -90269.1)(net "Net-(C2-Pad2)")(type protect))
+    (wire (path B.Cu 250  129540 -96480  132021 -96480  133350 -95150.9)(net "Net-(C3-Pad2)")(type protect))
+    (wire (path B.Cu 250  137160 -93980  134521 -93980  133350 -95150.9)(net "Net-(C3-Pad2)")(type protect))
+    (wire (path F.Cu 200  129400 -112800  129400 -110731  128397 -109728)(net "/D-")(type protect))
+    (wire (path F.Cu 200  130200 -111600  130200 -110719  131191 -109728)(net /D+)(type protect))
+    (wire (path F.Cu 250  137160 -99060  136271 -99949)(net "Net-(IC1-Pad15)")(type protect))
+    (wire (path F.Cu 250  130556 -99949  128397 -102108)(net "Net-(IC1-Pad15)")(type protect))
+    (wire (path F.Cu 250  136271 -99949  130556 -99949)(net "Net-(IC1-Pad15)")(type protect))
+    (wire (path F.Cu 250  131191 -102108  132588 -100711)(net "Net-(IC1-Pad16)")(type protect))
+    (wire (path F.Cu 250  136271 -100711  137160 -101600)(net "Net-(IC1-Pad16)")(type protect))
+    (wire (path F.Cu 250  135001 -100711  136271 -100711)(net "Net-(IC1-Pad16)")(type protect))
+    (wire (path F.Cu 250  132588 -100711  135001 -100711)(net "Net-(IC1-Pad16)")(type protect))
   )
 )
