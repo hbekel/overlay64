@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 volatile Config* config;
 uint16_t written = 0;
+const char *ws = " \t";
 
 static int fputcc(int ch, FILE* fp) {
   fputc(ch, fp);
@@ -93,18 +94,71 @@ static bool parseMode(char* word, uint8_t *mode) {
 
 bool Config_parse(volatile Config* self, FILE* in) {  
   bool result = true;
-  char buf[0x10000];
+  char* buffer = (char*) calloc(4096, sizeof(char));
+  char *line;
   char *word;
+  char *comment;
+  char *name;
+  char *value;
+  char *equals;
   int keyword;
+  int trailing = 0; 
   uint8_t timeout;
   Screen* screen = NULL;
-  
-  fread(buf, sizeof(char), sizeof(buf), in);
-  
   StringList* words = StringList_new();
-  StringList_append_quoted(words, buf, "\n\t ");
-  int i = 0;
+  
+  fseek(in, 0, SEEK_SET);
 
+  int pos = 0;
+  while(fgets(buffer, 4095, in) != NULL) {
+    line = buffer;
+    pos++;
+
+    // skip leading whitespace
+    line += strspn(line, ws);
+
+    // skip empty lines and comments
+    if(line[0] == '\n' || line[0] == '\r' || line[0] == '#') continue;
+
+    // remove comment at the end of the line
+    if((comment = strstr(line, "#")) != NULL) {
+      comment[0] = '\0';
+    }
+
+    // discard newlines
+    if(line[strlen(line)-1] == '\n') {
+      line[strlen(line)-1] = '\0';
+    }
+
+    if(line[strlen(line)-1] == '\r') {
+      line[strlen(line)-1] = '\0';
+    }
+
+    // check if this command is a definition
+    if((equals = strstr(line, "=")) != NULL) {
+      name = line;
+      equals[0] = '\0';
+
+      if((trailing = strcspn(name, ws)) > 0) {
+        name[trailing] = '\0';
+      }
+
+      value = equals+1;
+      value = trim(value);
+      
+      if(StringList_has_definition(name)) {
+        fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
+        return false;
+      }
+      
+      StringList_add_definition(name, value);
+    }
+    else {
+      StringList_append_quoted(words, line, "\n\t ");
+    }
+  }
+
+  int i = 0;
   while(i<words->size) {
     word = StringList_get(words, i);
     

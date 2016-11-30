@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -209,4 +210,21 @@ void StringList_free(StringList *self) {
   }
   free(self->strings);
   free(self);
+}
+
+char* trim(char* s) 
+{
+  int len = strlen(s);
+  
+  while (len && isspace(s[0]))
+  {
+    s++; len--;
+  }
+
+  while (len && isspace(s[len - 1]))
+  {
+    s[len - 1] = 0; len--;
+  }
+
+  return s;
 }

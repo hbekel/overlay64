@@ -45,4 +45,6 @@ char* StringList_last(StringList *self);
 void StringList_remove_last(StringList *self);
 void StringList_free(StringList *self);
 
+char* trim(char* s);
+  
 #endif // STRINGS_H
