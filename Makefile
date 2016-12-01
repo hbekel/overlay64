@@ -1,15 +1,15 @@
-VERSION=atmega1284-alpha
+VERSION=1.0
 
 CC=gcc
 MINGW32?=i686-w64-mingw32
-CFLAGS=-std=gnu99 -g -O2 -Wall
+CFLAGS=-std=gnu99 -g -O2 -Wall -DVERSION=$(VERSION)
 LIBS=-lusb-1.0
 
 PREFIX?=/usr/local
 DESTDIR=
 
-SOURCES=strings.c config.c parser.c usb.c boot.c overlay64.c
-HEADERS=strings.h config.h parser.h usb.h boot.h 
+SOURCES=strings.c config.c parser.c usb.c overlay64.c
+HEADERS=strings.h config.h parser.h usb.h overlay64.h
 
 .PHONY: firmware clean firmware-clean
 
@@ -22,7 +22,7 @@ win32: $(SOURCES) $(HEADERS)
 	$(MINGW32)-gcc $(CFLAGS) -o overlay64 $(SOURCES) $(LIBS) 
 
 overlay64.bin: overlay64.conf
-	./overlay64 < overlay64.conf > overlay64.bin
+	./overlay64 convert overlay64.conf overlay64.bin
 
 firmware: 
 	make -C firmware
@@ -45,9 +45,9 @@ program:
 test: all overlay64.conf
 	rm -rf tmp
 	mkdir tmp
-	./overlay64 < overlay64.conf > tmp/overlay64.bin
-	./overlay64 < tmp/overlay64.bin > tmp/roundtrip.conf
-	./overlay64 < tmp/roundtrip.conf > tmp/roundtrip.bin
+	./overlay64 convert overlay64.conf tmp/overlay64.bin
+	./overlay64 convert tmp/overlay64.bin tmp/roundtrip.conf
+	./overlay64 convert tmp/roundtrip.conf tmp/roundtrip.bin
 	diff tmp/overlay64.bin tmp/roundtrip.bin
 	rm -rf tmp
 

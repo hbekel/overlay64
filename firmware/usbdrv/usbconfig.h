@@ -218,8 +218,6 @@ section at the end of this file).
 
 /* -------------------------- Device Description --------------------------- */
 
-// using keyman64 device for now...
-
 #define  USB_CFG_VENDOR_ID       0x50, 0x1d
 /* USB vendor ID for the device, low byte first. If you have registered your
  * own Vendor ID, define it here. Otherwise you may use one of obdev's free

@@ -16,31 +16,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef OVERLAY64_USB_H
-#define OVERLAY64_USB_H
+#ifndef OVERLAY64_H
+#define OVERLAY64_H
 
-#include <libusb-1.0/libusb.h>
+typedef enum { BINARY, CONFIG } Format;
 
-#define OVERLAY64_VID 0x1d50
-#define OVERLAY64_PID 0x6100
+#define USBASP_CONNECT     1
+#define USBASP_WRITEFLASH  6
+#define USBASP_READFLASH   4
+#define USBASP_WRITEEEPROM 8
+#define USBASP_DISCONNECT  2
 
-#define USBASP_VID 0x16c0
-#define USBASP_PID 0x05dc
+int convert(int argc, char** argv);
+int configure(int argc, char** argv);
+int update(int argc, char** argv);
+int program(int command, uint8_t* data, int size);
+int boot(void);
 
-bool usb_quiet;
+void prepare_devices(void);
 
-typedef struct {
-  char path[4096];
-  unsigned int vid;
-  unsigned int pid;
-  int bus;
-  int address;
-  char *serial;
-} DeviceInfo;
+void version(void);
+void usage(void);
 
-bool usb_ping(DeviceInfo *info);
-int usb_control(DeviceInfo *info, uint8_t message);
-int usb_send(DeviceInfo *info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size);
-int usb_receive(DeviceInfo* info, uint8_t message, uint16_t value, uint16_t index, uint8_t* buf, uint16_t size);
+void fmemupdate(FILE *fp, void *buf,  uint16_t size);
 
-#endif // OVERLAY64_USB_H
+#if defined(WIN32) && !defined(__CYGWIN__)
+  FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode);
+#endif
+  
+#endif // OVERLAY64_H

@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "target.h"
 
 #if windows
-static char *strtok_r(char *str, const char *delim, char **save)
+char *strtok_r(char *str, const char *delim, char **save)
 {
   char *res, *last;
 

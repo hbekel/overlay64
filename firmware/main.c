@@ -23,6 +23,7 @@
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <util/delay.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "main.h"
@@ -41,6 +42,8 @@
 volatile uint16_t scanline; // current scanline of the whole video frame
 
 volatile Config* config;    // Configuration is read from eeprom
+
+static volatile bool reset = false;
 
 //------------------------------------------------------------------------------
 
@@ -208,21 +211,21 @@ void Reset(void) {
 
 void EnterBootloader(void) {
   eeprom_write_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
-  Reset();
+  reset = true;
 }
 
 //------------------------------------------------------------------------------
 
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
-  usbRequest_t *request = (void*) data;
+  usbRequest_t *usbRequest = (void*) data;
 
-  switch(request->bRequest) {
+  switch(usbRequest->bRequest) {
     
   case OVERLAY64_BOOT:
-    EnterBootloader();
+    EnterBootloader();   
     break;
-    
+
   default:
     break;
   }
@@ -239,6 +242,12 @@ int main(void) {
 
     // Poll for USB messages
     usbPoll();
+
+    // If reset is requested, allow USB communication to finish, then reset
+    if(reset) {
+      _delay_ms(250);
+      Reset();
+    }
     
     // Sample input and control lines and update screen according to user config
     Config_apply(config);
