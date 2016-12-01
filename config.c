@@ -229,6 +229,54 @@ void Config_assign_controls_to_screens(volatile Config* self) {
 
 //------------------------------------------------------------------------------
 
+bool Config_install_fallback(volatile Config* self) {
+
+  Screen* screen = Screen_new();
+  screen->mode = MODE_ALWAYS;
+  
+  Command* command;
+  
+  Config_add_string(self, "***** OVERLAY64 VERSION 1.0 READY *****");
+  Config_add_string(self, "NO USER CONFIGURATION FOUND");
+  Config_add_string(self, "(C)2016 HENNING BEKEL");    
+  Config_add_string(self, "WWW.HENNING-BEKEL.DE/OVERLAY64");    
+
+  command = Command_new(screen);  
+  command->action = ACTION_WRITE;
+  command->row = 0;
+  command->col = 6;
+  command->string = self->strings[0];
+  CommandList_add_command(screen->commands, command);
+
+  command = Command_new(screen);  
+  command->action = ACTION_WRITE;
+  command->row = 1;
+  command->col = 12;
+  command->string = self->strings[1];
+  CommandList_add_command(screen->commands, command);
+
+  command = Command_new(screen);  
+  command->action = ACTION_WRITE;
+  command->row = 28;
+  command->col = 15;
+  command->string = self->strings[2];
+  CommandList_add_command(screen->commands, command);
+  
+  command = Command_new(screen);  
+  command->action = ACTION_WRITE;
+  command->row = 29;
+  command->col = 11;
+  command->string = self->strings[3];
+  CommandList_add_command(screen->commands, command);
+  
+  Config_add_screen(self, screen);
+  Config_allocate_rows(self);
+
+  return true;
+}
+
+//------------------------------------------------------------------------------
+
 Control* Control_new(void) {
   Control* self = (Control*) calloc(1, sizeof(Sample));
   self->pin = NULL;

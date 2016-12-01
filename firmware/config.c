@@ -116,6 +116,11 @@ void Screen_sample(Screen* self) {
 
   self->enabled = false;
 
+  if(self->mode == MODE_ALWAYS) {
+    self->enabled = true;
+    return;
+  }
+
   for(uint8_t i=0; i<self->num_samples; i++) {
     Sample_sample(self->samples[i], self);
   }

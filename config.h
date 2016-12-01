@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MODE_MANUAL 1
 #define MODE_NOTIFY 2
+#define MODE_ALWAYS 3
 
 #define NUM_PINS 24
 
@@ -140,7 +141,7 @@ void Config_each_command(volatile Config* self,
 void Config_allocate_row_for_command(Screen* screen, Command *command);
 void Config_allocate_rows(volatile Config *self);
 void Config_assign_controls_to_screens(volatile Config* self);
-
+bool Config_install_fallback(volatile Config* self);
 void Config_free(volatile Config* self);
 
 Control* Control_new(void);

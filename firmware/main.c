@@ -55,7 +55,7 @@ static void setup() {
   config = Config_new_with_ports(&PINA, &PINB, &PINC, &PIND);
 
   // Read config from eeprom
-  Config_read(config, &eeprom);
+  Config_read(config, &eeprom) || Config_install_fallback(config);
 
   // Setup INT1, INT2 and PCINT8 pins
   DDRB &= ~(1<<PB2);
