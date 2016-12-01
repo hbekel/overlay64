@@ -21,6 +21,7 @@
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 #include <string.h>
 
@@ -30,14 +31,6 @@
 #include "config.h"
 #include "usbdrv/usbdrv.h"
 #include "../protocol.h"
-
-#define ATTR_NO_INIT __attribute__ ((section(".noinit")))
-#define ATTR_INIT_SECTION_3 __attribute__ ((used, naked, section(".init3")))
-
-#define MAGIC 0xDEADBEEF
-#define BOOTLOADER (0x20000 - 0x1000)
-uint32_t BootKey ATTR_NO_INIT;
-void CheckBootloader(void) ATTR_INIT_SECTION_3;
 
 #define MOSI (1<<PB5)  // SPI output pin (where the actual bitmap data is send)
 #define SS   (1<<PB4)  // SPI slave select (must be pulled up in master mode)
@@ -205,20 +198,17 @@ ISR(INT2_vect) { // BACK PORCH (8us after HSYNC)
 
 //------------------------------------------------------------------------------
 
-void CheckBootloader(void) {
-  if((MCUSR & (1 << WDRF)) && (BootKey == MAGIC)) {
-    BootKey = 0;
-    ((void (*)(void))BOOTLOADER)();
-  }
+void Reset(void) {
+  cli();
+  wdt_enable(WDTO_250MS);
+  for(;;);
 }
 
 //------------------------------------------------------------------------------
 
 void EnterBootloader(void) {
-  cli();
-  BootKey = MAGIC;
-  wdt_enable(WDTO_250MS);
-  for(;;);
+  eeprom_write_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
+  Reset();
 }
 
 //------------------------------------------------------------------------------
