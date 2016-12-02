@@ -8,8 +8,8 @@ LIBS=-lusb-1.0
 PREFIX?=/usr/local
 DESTDIR=
 
-SOURCES=strings.c config.c parser.c usb.c overlay64.c
-HEADERS=strings.h config.h parser.h usb.h overlay64.h
+SOURCES=strings.c config.c parser.c usb.c intelhex.c overlay64.c
+HEADERS=strings.h config.h parser.h usb.h intelhex.h overlay64.h
 
 .PHONY: firmware clean firmware-clean
 

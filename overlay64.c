@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "parser.h"
 #include "usb.h"
 #include "protocol.h"
+#include "intelhex.h"
 #include "overlay64.h"
 
 //------------------------------------------------------------------------------
@@ -102,12 +103,15 @@ int main(int argc, char **argv) {
   prepare_devices();
 
   if(argc) {
-    
-    if(strncmp(argv[0], "convert", 7) == 0) {
-      result = convert(--argc, ++argv);
-    }
+
+    if(argc == 1 && file(argv[0])) {
+      result = configure(argc, argv);
+    }    
     else if(strncmp(argv[0], "configure", 9) == 0) {
       result = configure(--argc, ++argv);
+    }
+    else if(strncmp(argv[0], "convert", 7) == 0) {
+      result = convert(--argc, ++argv);
     }
     else if(strncmp(argv[0], "update", 6) == 0) {
       result = update(--argc, ++argv);
@@ -165,14 +169,14 @@ int convert(int argc, char **argv) {
   }
 
   if(in == stdin) {
-    fprintf(stderr, "reading from stdin...\n");
+    fprintf(stderr, "Reading from stdin...\n");
 #if windows
     setmode(_fileno(stdin), O_BINARY);
 #endif
   }
 
   if(out == stdout) {
-    fprintf(stderr, "writing to stdout...\n");
+    fprintf(stderr, "Writing to stdout...\n");
 #if windows
     setmode(_fileno(stdout), O_BINARY);
 #endif
@@ -222,13 +226,13 @@ int configure(int argc, char **argv) {
   }
 
   if(in == stdin) {
-    fprintf(stderr, "reading from stdin...\n");
+    fprintf(stderr, "Reading from stdin...\n");
 #if windows
     setmode(_fileno(stdin), O_BINARY);
 #endif    
   }
 
-  fprintf(stderr, "Converting %s...\n", argv[0]);
+  fprintf(stderr, "Reading %s...\n", argv[0]);
   
   if(Config_read(config, in) || Config_parse(config, in)) {
 
@@ -244,7 +248,7 @@ int configure(int argc, char **argv) {
     fmemupdate(out, data, size);  
     fclose(out);
 
-    fprintf(stderr, "Created binary configuration: %d bytes\n", size);
+    fprintf(stderr, "Binary configuration: %d bytes\n", size);
     
     result = program(USBASP_WRITEEEPROM, data, size);
   }
@@ -259,11 +263,13 @@ int configure(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+
 int update(int argc, char **argv) {
   int result = EXIT_FAILURE;
   FILE *in;
   uint8_t *data = NULL;
-  uint16_t size = 0;
+  int size = 0;
   
   struct stat st;
   
@@ -287,6 +293,14 @@ int update(int argc, char **argv) {
     goto error;
   }
   fclose(in);
+
+  if(strncasecmp(argv[0]+(strlen(argv[0])-4), ".hex", 4) == 0) {
+    fprintf(stderr, "Parsing Intel HEX format..."); fflush(stderr);
+
+    data = readhex(data, &size);
+
+    fprintf(stderr, "OK\n");
+  }
 
   result = program(USBASP_WRITEFLASH, data, size);
   
@@ -384,6 +398,7 @@ int reset(void) {
   }
   else {
     fprintf(stderr, "error: could not connect to device\n");
+    return false;
   }
   return wait(&overlay64, "Resetting device");
 }
@@ -418,6 +433,24 @@ void prepare_devices(void) {
 
 //------------------------------------------------------------------------------
 
+bool file(const char* path) {
+  FILE *in = NULL;
+  
+  if(strlen(path) == 1 && path[0] == '-') {
+    return true;
+  }
+
+  if((in = fopen(path, "rb")) != NULL) {
+    fclose(in);
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
@@ -448,7 +481,7 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
 //------------------------------------------------------------------------------
 
 void version(void) {
-  printf("Overlay64 v%.1f\n", VERSION);    
+  printf("overlay64 v%.1f\n", VERSION);    
   printf("Copyright (C) 2016 Henning Bekel.\n");
   printf("License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>.\n");
   printf("This is free software: you are free to change and redistribute it.\n");
@@ -462,10 +495,12 @@ void usage(void) {
   printf("\n");
   printf("Usage:\n");
   printf("      overlay64 <options>\n");
+  printf("      overlay64 <options> [configure] <infile|->\n");  
   printf("      overlay64 <options> convert [<infile>|-] [<outfile>|-]\n");
-  printf("      overlay64 <options> configure [<infile>]\n");
   printf("      overlay64 <options> update <firmware>\n");
-  printf("      overlay64 <options> identify\n");      
+  printf("      overlay64 <options> identify\n");
+  printf("      overlay64 <options> boot\n");
+  printf("      overlay64 <options> reset\n");          
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version  : print version information\n");
@@ -476,13 +511,22 @@ void usage(void) {
   printf("           -d, --device   : specify usb device (default: usb)\n");
 #endif
   printf("\n");
+  printf("  Commands:\n");
+  printf("           configure: read/parse configuration and flash to eeprom\n");
+  printf("           convert  : convert configuration to/from binary/text format\n");
+  printf("           update   : update firmware using Intel HEX or binary file\n");
+  printf("           identify : report firmware version and build date\n");
+  printf("           boot     : make device enter bootloader mode\n");
+  printf("           reset    : reset device (leave bootloader/restart application)\n"); 
+  printf("\n");
   printf("  Files:\n");
   printf("           <infile>   : input file, format is autodetected\n");
   printf("           <outfile>  : output file, format determined by extension\n");
-  printf("           <firmware> : binary firmware image\n");    
+  printf("           <firmware> : Intel HEX or binary firmware image\n");    
   printf("\n");
   printf("           *.conf : plain text config file format\n");
-  printf("           *.bin  : binary file format (default)\n");  
+  printf("           *.bin  : binary file format (default)\n");
+  printf("           *.hex  : Intel HEX file format\n");  
   printf("\n");
   printf("           Optional arguments default to stdin or stdout\n");
   printf("\n");

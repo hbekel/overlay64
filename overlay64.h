@@ -37,6 +37,7 @@ bool identify(void);
 
 bool wait(DeviceInfo *device, const char* message);
 void prepare_devices(void);
+bool file(const char* path);
 
 void version(void);
 void usage(void);
