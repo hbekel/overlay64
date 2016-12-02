@@ -115,6 +115,9 @@ int main(int argc, char **argv) {
     else if(strncmp(argv[0], "boot", 4) == 0) {
       result = boot() ? EXIT_SUCCESS : EXIT_FAILURE;
     }
+    else if(strncmp(argv[0], "reset", 5) == 0) {
+      result = reset();
+    }
     else if(strncmp(argv[0], "identify", 2) == 0) {
       result = identify();
     }
@@ -311,7 +314,7 @@ int program(int command, uint8_t *data, int size)  {
               command == USBASP_WRITEFLASH ? "application" : "configuration",
               (i<size) ? i : size , size);
     }
-    fprintf(stderr, "ok\n");
+    fprintf(stderr, "OK\n");
 
     usb_quiet = true;  
     usb_control(&usbasp, USBASP_DISCONNECT);
@@ -319,37 +322,70 @@ int program(int command, uint8_t *data, int size)  {
   else {
     fprintf(stderr, "error: could not connect to usbasp bootloader\n");
     return false;
-  }  
+  }
+  wait(&overlay64, "Resetting device");
   return true;
 }
 
 //------------------------------------------------------------------------------
 
 int boot(void) {
-  if(!usb_ping(&overlay64)) {
-    return false;
+  if(usb_ping(&usbasp)) {
+    fprintf(stderr, "Device already in bootloader mode\n");
+    return true;
   }
 
-  fprintf(stderr, "Entering bootloader"); fflush(stderr);
+  if(!usb_ping(&overlay64)) {
+    fprintf(stderr, "error: could not open usb device\n");
+    return false;
+  }    
+
   usb_control(&overlay64, OVERLAY64_BOOT);
+  return wait(&usbasp, "Entering bootloader");
+}
+
+//------------------------------------------------------------------------------
+
+bool wait(DeviceInfo *device, const char* message) {
+
+  fprintf(stderr, message); fflush(stderr);
   
   uint8_t tries = 10;
   usb_quiet = true;
-  while(!usb_ping(&usbasp)) {
-    fprintf(stderr, "."); fflush(stderr);
-    
+  
+  do {     
 #if windows 
     Sleep(1000);
 #else
     sleep(1);
 #endif
+    fprintf(stderr, "."); fflush(stderr);
     
     if(!--tries) {
       return false;
     }
-  }
+  } while(!usb_ping(device));
+  
   fprintf(stderr, "OK\n");
   return true;
+}
+
+//------------------------------------------------------------------------------
+
+int reset(void) {
+  
+  if(usb_ping(&overlay64)) {
+    usb_control(&overlay64, OVERLAY64_RESET);    
+  }
+  else if(usb_ping(&usbasp)) {
+    usb_quiet = true;
+    usb_control(&usbasp, USBASP_CONNECT);
+    usb_control(&usbasp, USBASP_DISCONNECT);
+  }
+  else {
+    fprintf(stderr, "error: could not connect to device\n");
+  }
+  return wait(&overlay64, "Resetting device");
 }
 
 //------------------------------------------------------------------------------

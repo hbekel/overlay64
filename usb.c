@@ -227,32 +227,29 @@ static int usb_message(DeviceInfo *info, int direction, uint8_t message, uint16_
 // USB utility functions
 //------------------------------------------------------------------------------
 
-bool usb_ping(DeviceInfo *info) { 
-
+bool usb_ping(DeviceInfo *info) {   
+  
   libusb_device_handle *handle = NULL;
   bool result = false;
+  bool quiet = usb_quiet;
+  usb_quiet = true;
   
   if(libusb_init(NULL) < 0) {
-    if(!usb_quiet) {
-      fprintf(stderr, "error: could not initialize libusb-1.0: %s\n",
-              libusb_strerror(result));
-    }
+    fprintf(stderr, "error: could not initialize libusb-1.0: %s\n",
+            libusb_strerror(result));
     goto done;
   }
   usb_lookup(info);
   handle = usb_open(NULL, info);
   result = handle != NULL;
-
-  if(!result && !usb_quiet) {
-    fprintf(stderr, "error: could not open usb device \"%s\"\n", info->path);
-  }
   
  done:
   if(handle != NULL) {
     libusb_close(handle);
   }
   libusb_exit(NULL);
-  
+
+  usb_quiet = quiet;
   return result;
 }
 

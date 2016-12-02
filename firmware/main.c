@@ -247,6 +247,10 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     EnterBootloader();   
     break;
 
+  case OVERLAY64_RESET:
+    reset = true;
+    break;
+    
   case OVERLAY64_IDENTIFY:
     usbMsgPtr = (uchar *) version;
     return strlen((const char*)version)+1;

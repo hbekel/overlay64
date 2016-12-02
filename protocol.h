@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PROTOCOL_H
 
 #define OVERLAY64_BOOT     0x01
-#define OVERLAY64_IDENTIFY 0x02
+#define OVERLAY64_RESET    0x02
+#define OVERLAY64_IDENTIFY 0x03
 
 #endif // PROTOTCOL_H
