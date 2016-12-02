@@ -115,6 +115,9 @@ int main(int argc, char **argv) {
     else if(strncmp(argv[0], "boot", 4) == 0) {
       result = boot() ? EXIT_SUCCESS : EXIT_FAILURE;
     }
+    else if(strncmp(argv[0], "identify", 2) == 0) {
+      result = identify();
+    }
   }
   else {
     usage();
@@ -351,6 +354,18 @@ int boot(void) {
 
 //------------------------------------------------------------------------------
 
+bool identify(void) {
+  char id[64];
+  
+  if(usb_receive(&overlay64, OVERLAY64_IDENTIFY, 0, 0, (uint8_t*) id, 64) > 0) {
+    printf("%s\n", id);
+    return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------------
+
 void prepare_devices(void) {
   strncpy(overlay64.path, device, 4096);
   overlay64.vid = OVERLAY64_VID;
@@ -413,7 +428,8 @@ void usage(void) {
   printf("      overlay64 <options>\n");
   printf("      overlay64 <options> convert [<infile>|-] [<outfile>|-]\n");
   printf("      overlay64 <options> configure [<infile>]\n");
-  printf("      overlay64 <options> update <firmware>\n");    
+  printf("      overlay64 <options> update <firmware>\n");
+  printf("      overlay64 <options> identify\n");      
   printf("\n");
   printf("  Options:\n");
   printf("           -v, --version  : print version information\n");

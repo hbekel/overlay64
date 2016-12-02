@@ -1,4 +1,4 @@
-VERSION=1.0
+include version.inc
 
 CC=gcc
 MINGW32?=i686-w64-mingw32

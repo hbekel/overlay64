@@ -32,7 +32,8 @@ int configure(int argc, char** argv);
 int update(int argc, char** argv);
 int program(int command, uint8_t* data, int size);
 int boot(void);
-
+bool identify(void);
+  
 void prepare_devices(void);
 
 void version(void);

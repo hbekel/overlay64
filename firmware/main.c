@@ -25,6 +25,7 @@
 #include <util/delay.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "main.h"
 #include "font.h"
@@ -43,13 +44,15 @@ volatile uint16_t scanline; // current scanline of the whole video frame
 
 volatile Config* config;    // Configuration is read from eeprom
 
-static volatile bool reset = false;
+static volatile bool reset = false; // Requests a reset from USB
+static volatile char version[64];   // Version string
 
 //------------------------------------------------------------------------------
 
 static void setup() {
 
   wdt_disable();
+  SetupVersionString();  
   
   // Create config and assign ports
   config = Config_new_with_ports(&PINA, &PINB, &PINC, &PIND);
@@ -216,6 +219,24 @@ void EnterBootloader(void) {
 
 //------------------------------------------------------------------------------
 
+void SetupVersionString(void) {
+
+  char *v = "overlay64 firmware " xstr(VERSION) " " __DATE__ " " __TIME__;
+  int len = strlen(v);
+
+  for(uint8_t i=0; i<64; i++) {
+    version[i] = '\0';
+  }
+  uint8_t o=0;
+  
+  for(uint8_t i=0; i<strlen(v); i++) {
+    if(i>1 && v[i-1] == ' ' && v[i] == ' ') continue;
+    version[o++] = v[i];
+  }
+}
+
+//------------------------------------------------------------------------------
+
 USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
 
   usbRequest_t *usbRequest = (void*) data;
@@ -226,6 +247,11 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     EnterBootloader();   
     break;
 
+  case OVERLAY64_IDENTIFY:
+    usbMsgPtr = (uchar *) version;
+    return strlen((const char*)version)+1;
+    break;
+    
   default:
     break;
   }

@@ -19,6 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef MAIN_H
 #define MAIN_H
 
+#define xstr(s) mstr(s)
+#define mstr(s) #s
+
 #include <avr/cpufunc.h>
 
 #define TICKS_PER_USEC F_CPU/1000000UL
@@ -29,5 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define ONEHUNDRED_NOPS() TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS()
 #define FORTYTWO_NOPS() TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TWO_NOPS()
 #define ONEHUNDRED_AND_TEN_NOPS() ONEHUNDRED_NOPS(); TEN_NOPS()
+
+void SetupVersionString(void);
 
 #endif // MAIN_H

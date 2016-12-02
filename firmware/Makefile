@@ -1,8 +1,10 @@
+include ../version.inc
+
 MCU=atmega1284p
 F_CPU = 20000000
 ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp -DF_CPU=$(F_CPU) -Wa,-adhlns=$(<:%.S=./%.lst),-gstabs,--listing-cont-lines=100
 GCC=avr-gcc
-CFLAGS=-std=c99 $(DEBUG) -O3 -Wall -Wno-unused 
+CFLAGS=-std=c99 $(DEBUG) -O3 -Wall -Wno-unused -DVERSION=$(VERSION)
 OBJCOPY=avr-objcopy
 OBJDUMP=avr-objdump
 FORMAT=ihex

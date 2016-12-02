@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#define OVERLAY64_BOOT 0x01
+#define OVERLAY64_BOOT     0x01
+#define OVERLAY64_IDENTIFY 0x02
 
 #endif // PROTOTCOL_H
