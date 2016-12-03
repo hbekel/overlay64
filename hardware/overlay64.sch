@@ -36,12 +36,12 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "Simple Video Overlay Driver"
+Title "Overlay64 -- Video Overlay Module"
 Date "2016-02-02"
 Rev "1"
 Comp "Henning Bekel"
-Comment1 "http://www.henning-bekel.de"
-Comment2 ""
+Comment1 "http://www.henning-bekel.de/overlay64"
+Comment2 "Licensed under CERN OHL v.1.2"
 Comment3 ""
 Comment4 ""
 $EndDescr
@@ -787,15 +787,15 @@ IN15
 $Comp
 L GND #PWR024
 U 1 1 57B5BBC8
-P 2750 6350
-F 0 "#PWR024" H 2750 6100 50  0001 C CNN
-F 1 "GND" H 2750 6200 50  0000 C CNN
-F 2 "" H 2750 6350 50  0000 C CNN
-F 3 "" H 2750 6350 50  0000 C CNN
-	1    2750 6350
+P 1100 4200
+F 0 "#PWR024" H 1100 3950 50  0001 C CNN
+F 1 "GND" H 1100 4050 50  0000 C CNN
+F 2 "" H 1100 4200 50  0000 C CNN
+F 3 "" H 1100 4200 50  0000 C CNN
+	1    1100 4200
 	1    0    0    -1  
 $EndComp
-Text Label 3050 6350 0    60   ~ 0
+Text Label 1400 4200 0    60   ~ 0
 BOOT
 NoConn ~ 2000 1800
 Wire Wire Line
@@ -803,12 +803,14 @@ Wire Wire Line
 $Comp
 L SW_PUSH_SMALL_H SW1
 U 1 1 5832A426
-P 2900 6350
-F 0 "SW1" H 2980 6460 50  0000 C CNN
-F 1 "SW_BOOT" H 3260 6290 50  0000 C CNN
-F 2 "custom:Button" H 2900 6550 50  0001 C CNN
-F 3 "" H 2900 6550 50  0000 C CNN
-	1    2900 6350
+P 1250 4200
+F 0 "SW1" H 1330 4310 50  0000 C CNN
+F 1 "SW_BOOT" H 1610 4140 50  0000 C CNN
+F 2 "custom:Button" H 1250 4400 50  0001 C CNN
+F 3 "" H 1250 4400 50  0000 C CNN
+	1    1250 4200
 	1    0    0    -1  
 $EndComp
+Text Notes 600  7700 0    60   ~ 0
+Overlay64 video overlay module\nCopyright 2016 Henning Bekel\n\nThis documentation describes Open Hardware and is \nlicensed under the CERN OHL v. 1.2.\n\nYou may redistribute and modify this documentation\nunder the terms of the CERN OHL v.1.2. (http://ohwr.org/cernohl).\nThis documentation is distributed WITHOUT ANY EXPRESS OR \nIMPLIED WARRANTY, INCLUDING OF MERCHANTABILITY, \nSATISFACTORY QUALITY AND FITNESS FOR A PARTICULAR \nPURPOSE. Please see the CERN OHL v.1.2 for applicable conditions
 $EndSCHEMATC

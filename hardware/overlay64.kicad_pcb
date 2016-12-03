@@ -1,11 +1,11 @@
-(kicad_pcb (version 4) (host pcbnew 4.0.4-stable)
+(kicad_pcb (version 4) (host pcbnew 4.0.3-stable)
 
   (general
     (links 88)
     (no_connects 0)
     (area 115.494999 60.884999 160.095001 119.455001)
     (thickness 1.6)
-    (drawings 14)
+    (drawings 15)
     (tracks 375)
     (zones 0)
     (modules 26)
@@ -13,6 +13,15 @@
   )
 
   (page A4)
+  (title_block
+    (title "Overlay64 -- Video overlay module")
+    (date 2016-12-03)
+    (rev 1)
+    (company "Henning Bekel")
+    (comment 1 http://www.henning-bekel.de/overlay64)
+    (comment 2 "Licensed under CERN OHL v.1.2")
+  )
+
   (layers
     (0 F.Cu signal)
     (31 B.Cu signal)
@@ -1551,6 +1560,9 @@
     )
   )
 
+  (gr_text "Overlay64 video overlay module\nCopyright 2016 Henning Bekel\n\nThis documentation describes Open Hardware and is \nlicensed under the CERN OHL v. 1.2.\n\nYou may redistribute and modify this documentation\nunder the terms of the CERN OHL v.1.2. (http://ohwr.org/cernohl).\nThis documentation is distributed WITHOUT ANY EXPRESS OR \nIMPLIED WARRANTY, INCLUDING OF MERCHANTABILITY, \nSATISFACTORY QUALITY AND FITNESS FOR A PARTICULAR \nPURPOSE. Please see the CERN OHL v.1.2 for applicable conditions" (at 13.97 180.34) (layer Dwgs.User)
+    (effects (font (size 1.5 1.5) (thickness 0.3)) (justify left))
+  )
   (gr_text BOOT (at 124.206 97.79) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.15)))
   )
@@ -1562,7 +1574,7 @@
   (gr_arc (start 117.475 62.865) (end 115.57 62.865) (angle 90) (layer Edge.Cuts) (width 0.15))
   (gr_arc (start 117.475 117.475) (end 117.475 119.38) (angle 90) (layer Edge.Cuts) (width 0.15))
   (gr_arc (start 158.115 117.475) (end 160.02 117.475) (angle 90) (layer Edge.Cuts) (width 0.15))
-  (gr_text "overlay64 3rd prototype by henning" (at 154.432 87.63 270) (layer F.SilkS)
+  (gr_text "Overlay64 Rev.1 ©2016 Henning Bekel CERN OHL v.1.2" (at 154.178 87.63 270) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
   (gr_line (start 138.557 100.33) (end 126.619 100.33) (angle 90) (layer Dwgs.User) (width 0.2))
