@@ -107,19 +107,19 @@ int main(int argc, char **argv) {
     if(argc == 1 && file(argv[0])) {
       result = configure(argc, argv);
     }    
-    else if(strncmp(argv[0], "configure", 9) == 0) {
+    else if(strncmp(argv[0], "configure", 4) == 0) {
       result = configure(--argc, ++argv);
     }
-    else if(strncmp(argv[0], "convert", 7) == 0) {
+    else if(strncmp(argv[0], "convert", 4) == 0) {
       result = convert(--argc, ++argv);
     }
     else if(strncmp(argv[0], "update", 6) == 0) {
       result = update(--argc, ++argv);
     }
-    else if(strncmp(argv[0], "boot", 4) == 0) {
+    else if(strncmp(argv[0], "boot", 1) == 0) {
       result = boot() ? EXIT_SUCCESS : EXIT_FAILURE;
     }
-    else if(strncmp(argv[0], "reset", 5) == 0) {
+    else if(strncmp(argv[0], "reset", 1) == 0) {
       result = reset();
     }
     else if(strncmp(argv[0], "identify", 2) == 0) {
@@ -407,11 +407,17 @@ int reset(void) {
 
 bool identify(void) {
   char id[64];
-  
-  if(usb_receive(&overlay64, OVERLAY64_IDENTIFY, 0, 0, (uint8_t*) id, 64) > 0) {
-    printf("%s\n", id);
-    return true;
+
+  if(usb_ping(&overlay64)) {  
+    if(usb_receive(&overlay64, OVERLAY64_IDENTIFY, 0, 0, (uint8_t*) id, 64) > 0) {
+      printf("%s\n", id);
+      return true;
+    }
   }
+  else if(usb_ping(&usbasp)) {
+    fprintf(stderr, "USBaspLoader (C)2008 by OBJECTIVE DEVELOPMENT Software GmbH\n");
+    return true;
+  } 
   return false;
 }
 
