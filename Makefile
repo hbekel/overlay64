@@ -28,7 +28,7 @@ FIRMWARE=firmware/main.c firmware/main.h \
 	firmware/eeprom.c firmware/eeprom.h \
 	firmware/font.h firmware/font.rom
 
-.PHONY: all linux windows firmware clean firmware-clean intelhex
+.PHONY: all linux windows firmware release clean firmware-clean intelhex
 
 all: linux
 
@@ -139,11 +139,14 @@ hex: overlay64-application-$(VERSION).hex  overlay64-bootloader-$(VERSION).hex o
 
 bin: overlay64-application-$(VERSION).bin  overlay64-bootloader-$(VERSION).bin overlay64-application-and-bootloader-$(VERSION).bin
 
-release: clean
-	git archive --prefix=overlay64-$(VERSION)/ -o ../overlay64-$(VERSION).tar.gz HEAD
-	$(MD5SUM) ../overlay64-$(VERSION).tar.gz > ../overlay64-$(VERSION).tar.gz.md5
+release: clean overlay64 bin hex
+	mkdir release
+	cp *.{hex,bin} release/
+	git archive --prefix=overlay64-$(VERSION)/ -o release/overlay64-$(VERSION).tar.gz HEAD
+	for f in release/*.{hex,bin,gz}; do $(MD5SUM) "$$f" > "$$f".md5; done
 
 clean: bootloader-clean firmware-clean intelhex-clean
-	rm -f *.{bin,hex}
+	rm -rf release
+	rm -f *.{bin,hex}	
 	rm -f overlay64{,.exe{,.stackdump}}
 	rm -f test-plot{,.exe{,.stackdump}}
