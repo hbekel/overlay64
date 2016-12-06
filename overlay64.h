@@ -41,6 +41,7 @@ bool file(const char* path);
 
 void version(void);
 void usage(void);
+void failed(DeviceInfo *device);
 
 void fmemupdate(FILE *fp, void *buf,  uint16_t size);
 

@@ -334,7 +334,7 @@ int program(int command, uint8_t *data, int size)  {
     usb_control(&usbasp, USBASP_DISCONNECT);
   }
   else {
-    fprintf(stderr, "error: could not connect to usbasp bootloader\n");
+    failed(&usbasp);
     return false;
   }
   wait(&overlay64, "Resetting device");
@@ -350,7 +350,7 @@ int boot(void) {
   }
 
   if(!usb_ping(&overlay64)) {
-    fprintf(stderr, "error: could not open usb device\n");
+    failed(&overlay64);
     return false;
   }    
 
@@ -397,7 +397,8 @@ int reset(void) {
     usb_control(&usbasp, USBASP_DISCONNECT);
   }
   else {
-    fprintf(stderr, "error: could not connect to device\n");
+    failed(&overlay64);
+    failed(&usbasp);
     return false;
   }
   return wait(&overlay64, "Resetting device");
@@ -418,6 +419,10 @@ bool identify(void) {
     fprintf(stderr, "USBaspLoader (C)2008 by OBJECTIVE DEVELOPMENT Software GmbH\n");
     return true;
   } 
+  else {
+    failed(&overlay64);
+    failed(&usbasp);
+  }
   return false;
 }
 
@@ -536,6 +541,13 @@ void usage(void) {
   printf("\n");
   printf("           Optional arguments default to stdin or stdout\n");
   printf("\n");
+}
+
+//------------------------------------------------------------------------------
+
+void failed(DeviceInfo *device) {
+  fprintf(stderr, "error: could not connect to usb device \"%s\" (%04X:%04X)\n",
+          device->path, device->vid, device->pid);
 }
 
 //------------------------------------------------------------------------------
