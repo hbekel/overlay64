@@ -31,6 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #include <fcntl.h>
 #endif
 
+#if cygwin
+  int _fileno(FILE*);
+#endif
+
 #include "parser.h"
 #include "usb.h"
 #include "protocol.h"
@@ -128,6 +132,7 @@ int main(int argc, char **argv) {
   }
   else {
     usage();
+    complain();
     result = EXIT_FAILURE;
   }
   
@@ -263,8 +268,6 @@ int configure(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-
 int update(int argc, char **argv) {
   int result = EXIT_FAILURE;
   FILE *in;
@@ -348,7 +351,7 @@ int boot(void) {
     fprintf(stderr, "Device already in bootloader mode\n");
     return true;
   }
-
+  
   if(!usb_ping(&overlay64)) {
     failed(&overlay64);
     return false;
@@ -430,14 +433,16 @@ bool identify(void) {
 
 void prepare_devices(void) {
   strncpy(overlay64.path, device, 4096);
+  strncpy(overlay64.role, "Overlay64", 64);
   overlay64.vid = OVERLAY64_VID;
   overlay64.pid = OVERLAY64_PID;
 
 #if linux
   strncpy(usbasp.path, "/dev/usbasp", 4096);
 #else
-  strncpy(usbasp.path, "usbasp", 4096);
+  strncpy(usbasp.path, "usb", 4096);
 #endif
+  strncpy(usbasp.role, "Bootloader", 64);
   usbasp.vid = USBASP_VID;
   usbasp.pid = USBASP_PID;
 }
@@ -457,8 +462,6 @@ bool file(const char* path) {
   }
   return false;
 }
-
-//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 
@@ -545,9 +548,21 @@ void usage(void) {
 
 //------------------------------------------------------------------------------
 
+void complain(void) {
+#if windows
+  if(!(!GetConsoleTitle(NULL, 0) && GetLastError() == ERROR_SUCCESS)) {
+    printf("\n!THIS IS A COMMANDLINE APPLICTION, PLEASE RUN "
+           "IT FROM A COMMAND PROMPT INSTEAD!\n\n");
+    system("pause");    
+  }
+#endif  
+}
+
+//------------------------------------------------------------------------------
+
 void failed(DeviceInfo *device) {
-  fprintf(stderr, "error: could not connect to usb device \"%s\" (%04X:%04X)\n",
-          device->path, device->vid, device->pid);
+  fprintf(stderr, "error: failed to open %s device \"%s\" (%04X:%04X)\n",
+          device->role, device->path, device->vid, device->pid);
 }
 
 //------------------------------------------------------------------------------

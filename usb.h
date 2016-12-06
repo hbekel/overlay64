@@ -31,6 +31,7 @@ bool usb_quiet;
 
 typedef struct {
   char path[4096];
+  char role[64];
   unsigned int vid;
   unsigned int pid;
   int bus;

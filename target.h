@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define linux !defined(__CYGWIN__)
 #endif
 
+#define cygwin defined(__CYGWIN__)
+
 #define windows defined(WIN32) || defined(__CYGWIN__)
 
 #define mac defined(__APPLE__)

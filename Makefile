@@ -28,14 +28,17 @@ FIRMWARE=firmware/main.c firmware/main.h \
 	firmware/eeprom.c firmware/eeprom.h \
 	firmware/font.h firmware/font.rom
 
-.PHONY: firmware clean firmware-clean
+.PHONY: all linux windows firmware clean firmware-clean
 
-all: overlay64
+all: linux
+
+linux:   overlay64 binaries
+win32: overlay64.exe binaries
 
 overlay64: $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) -o overlay64 $(SOURCES) $(LIBS)
 
-win32: $(SOURCES) $(HEADERS)
+overlay64.exe: $(SOURCES) $(HEADERS)
 	$(MINGW32)-gcc $(CFLAGS) -o overlay64 $(SOURCES) $(LIBS) 
 
 overlay64.bin: overlay64.conf
