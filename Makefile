@@ -8,6 +8,18 @@ LIBS=-lusb-1.0
 PREFIX?=/usr/local
 DESTDIR=
 
+UNAME=$(shell uname)
+
+MD5SUM=md5sum
+ifeq ($(UNAME), Darwin)
+  MD5SUM=md5 -r
+endif
+
+UDEV=0
+ifeq ($(UNAME), Linux)
+  UDEV=1
+endif
+
 SOURCES=strings.c config.c parser.c usb.c intelhex.c overlay64.c
 HEADERS=strings.h config.h parser.h usb.h intelhex.h overlay64.h
 
@@ -62,10 +74,14 @@ install: overlay64
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m755 overlay64 $(DESTDIR)$(PREFIX)/bin
 
+intelhex/ihex2bin:
+	make -C intelhex
+
+release: clean
+	git archive --prefix=overlay64-$(VERSION)/ -o ../overlay64-$(VERSION).tar.gz HEAD
+	$(MD5SUM) ../overlay64-$(VERSION).tar.gz > ../overlay64-$(VERSION).tar.gz.md5
+
 clean:
 	rm -f *.bin
 	rm -f overlay64{,.exe{,.stackdump}}
 	rm -f test-plot{,.exe{,.stackdump}}
-
-release: clean
-	git archive --prefix=overlay64-$(VERSION)/ -o ../overlay64-$(VERSION).tar.gz HEAD
