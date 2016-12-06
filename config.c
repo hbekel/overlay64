@@ -105,7 +105,7 @@ void Config_free(volatile Config* self) {
     Screen_free(self->screens[i]);
   }
   free(self->screens);
-  
+
   for(uint8_t i=0; i<sizeof(self->pins)/sizeof(Pin*); i++) {
     Pin_free(self->pins[i]);
   }
@@ -290,7 +290,6 @@ Control* Control_new(void) {
 //------------------------------------------------------------------------------
 
 void Control_free(Control* self) {
-  Pin_free(self->pin);
   free(self->screens);
   free(self);
 }
