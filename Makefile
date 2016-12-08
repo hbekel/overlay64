@@ -142,8 +142,10 @@ bin: overlay64-application-$(VERSION).bin  overlay64-bootloader-$(VERSION).bin o
 release: clean overlay64 bin hex
 	mkdir release
 	cp *.{hex,bin} release/
+	make -C hardware/gerber
+	cp hardware/gerber/*.zip release/
 	git archive --prefix=overlay64-$(VERSION)/ -o release/overlay64-$(VERSION).tar.gz HEAD
-	for f in release/*.{hex,bin,gz}; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in release/*.{hex,bin,gz,zip}; do $(MD5SUM) "$$f" > "$$f".md5; done
 
 clean: bootloader-clean firmware-clean intelhex-clean
 	rm -rf release

@@ -1,5 +1,8 @@
 PROJECT=overlay64
-all: $(PROJECT).zip
+REVISION=1
+ZIPFILE=$(PROJECT)-gerber-r$(REVISION).zip
+
+all: $(ZIPFILE)
 
 FILES=$(PROJECT).drl\
 	$(PROJECT).gbl\
@@ -18,14 +21,14 @@ rename:
 	$(shell [[ -f $(PROJECT)-Edge.Cuts.gm1 ]] && mv $(PROJECT)-Edge.Cuts.gm1 $(PROJECT).gml)
 	$(shell chmod -x $(PROJECT)*)
 
-$(PROJECT).zip:
-	zip $(PROJECT).zip $(FILES)
-	chmod -x $(PROJECT).zip
+$(ZIPFILE):
+	zip $@ $(FILES)
+	chmod -x $@
 
 dirty: rename
 	mv $(PROJECT).drl $(PROJECT).txt
-	zip $(PROJECT).zip $(FILES) $(PROJECT).txt
+	zip $(ZIPFILE) $(FILES) $(PROJECT).txt
 	mv $(PROJECT).txt $(PROJECT).drl
 
 clean:
-	rm -f $(PROJECT).zip
+	rm -f $(ZIPFILE)
