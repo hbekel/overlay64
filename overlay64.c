@@ -106,19 +106,10 @@ int main(int argc, char **argv) {
 
   prepare_devices();
 
-  if(argc) {
+  if(argc == 1) {
 
-    if(argc == 1 && file(argv[0])) {
+    if(file(argv[0])) {
       result = configure(argc, argv);
-    }    
-    else if(strncmp(argv[0], "configure", 4) == 0) {
-      result = configure(--argc, ++argv);
-    }
-    else if(strncmp(argv[0], "convert", 4) == 0) {
-      result = convert(--argc, ++argv);
-    }
-    else if(strncmp(argv[0], "update", 6) == 0) {
-      result = update(--argc, ++argv);
     }
     else if(strncmp(argv[0], "boot", 1) == 0) {
       result = boot() ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -129,8 +120,28 @@ int main(int argc, char **argv) {
     else if(strncmp(argv[0], "identify", 2) == 0) {
       result = identify();
     }
+    else goto usage;
+  }
+
+  else if(argc == 2) {
+    
+    if(strncmp(argv[0], "configure", 4) == 0) {
+      result = configure(--argc, ++argv);
+    }
+    else if(strncmp(argv[0], "update", 6) == 0) {
+      result = update(--argc, ++argv);
+    }
+    else goto usage;
+  }
+
+  else if(argc == 3) {
+    if(strncmp(argv[0], "convert", 4) == 0) {
+      result = convert(--argc, ++argv);
+    }
+    else goto usage;
   }
   else {
+  usage:
     usage();
     complain();
     result = EXIT_FAILURE;
@@ -150,7 +161,6 @@ int convert(int argc, char **argv) {
   FILE *in  = stdin;
   FILE *out = stdout;
   Format output_format = BINARY;
-  uint16_t footprint;
 
   config = Config_new();
   
@@ -193,13 +203,7 @@ int convert(int argc, char **argv) {
       Config_write(config, out) :
       Config_print(config, out);
 
-    footprint = Config_get_footprint(config);
-    
-    fprintf(stderr, "EEPROM:\t%5d of  4096 bytes used (%5d bytes free)\n",
-            written, 4096-written);    
-  
-    fprintf(stderr, "SRAM:\t%5d of 16384 bytes used (%5d bytes free)\n",
-            footprint, 16384-footprint);
+    footprint(config);
     
     result = EXIT_SUCCESS;
   }
@@ -253,7 +257,7 @@ int configure(int argc, char **argv) {
     fmemupdate(out, data, size);  
     fclose(out);
 
-    fprintf(stderr, "Binary configuration: %d bytes\n", size);
+    footprint(config);
     
     result = program(USBASP_WRITEEEPROM, data, size);
   }
@@ -490,6 +494,19 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
   fseek(fp, 0, SEEK_SET);
   fread(buf, sizeof(uint8_t), size, fp);
 #endif
+}
+
+//------------------------------------------------------------------------------
+
+void footprint(volatile Config* config) {
+
+  uint16_t footprint = Config_get_footprint(config);
+
+  fprintf(stderr, "SRAM:\t%5d of 16384 bytes used (%5d bytes free)\n",
+          footprint, 16384-footprint);
+  
+  fprintf(stderr, "EEPROM:\t%5d of  4096 bytes used (%5d bytes free)\n",
+          written, 4096-written);    
 }
 
 //------------------------------------------------------------------------------

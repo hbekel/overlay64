@@ -43,6 +43,7 @@ void version(void);
 void usage(void);
 void failed(DeviceInfo *device);
 void complain(void);
+void footprint(volatile Config* config);
 
 void fmemupdate(FILE *fp, void *buf,  uint16_t size);
 
