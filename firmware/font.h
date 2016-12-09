@@ -21,6 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define FONT_SECTION __attribute__ ((section (".font")))
 
-extern const uint8_t font[96*8] FONT_SECTION;
+extern const uint8_t font[96*8];
 
 #endif // FONT_H

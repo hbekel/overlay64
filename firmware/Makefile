@@ -5,7 +5,6 @@ F_CPU = 20000000
 ASFLAGS = -mmcu=$(MCU) -I. -x assembler-with-cpp -DF_CPU=$(F_CPU) -Wa,-adhlns=$(<:%.S=./%.lst),-gstabs,--listing-cont-lines=100
 GCC=avr-gcc
 CFLAGS=-std=c99 $(DEBUG) -O3 -Wall -Wno-unused -DVERSION=$(VERSION)
-LDFLAGS+=-Wl,--section-start=.font=0x5000
 OBJCOPY=avr-objcopy
 OBJDUMP=avr-objdump
 FORMAT=ihex
@@ -34,14 +33,14 @@ all: main.hex
 	$(GCC) -c $(ASFLAGS) $< -o $@
 
 main.elf: $(SOURCES) $(HEADERS)
-	$(GCC) $(CFLAGS) $(LDFLAGS) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -o main.elf $(SOURCES)
+	$(GCC) $(CFLAGS) -mmcu=$(MCU) -DF_CPU=$(F_CPU) -o main.elf $(SOURCES)
 
 main.hex: main.elf
 	$(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock -R .signature main.elf main.hex
 
 font.c: font
 	(echo -e "#include <stdint.h>\n#include \"font.h\""; xxd -c 8 -i font) > font.c
-	sed -i -r 's/unsigned char/const uint8_t/;/^unsigned int/d;s/=/FONT_SECTION =/' font.c
+	sed -i -r 's/unsigned char/const uint8_t/;/^unsigned int/d;' font.c
 
 font: font.rom
 	dd if=font.rom of=font bs=8 count=96
