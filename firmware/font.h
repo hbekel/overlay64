@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef FONT_H
 #define FONT_H
 
-const uint8_t font[64*8];
+#define FONT_SECTION __attribute__ ((section (".font")))
+
+extern const uint8_t font[96*8] FONT_SECTION;
 
 #endif // FONT_H
