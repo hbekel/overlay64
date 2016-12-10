@@ -41,7 +41,8 @@ main.hex: main.elf
 
 font.c: font
 	(echo -e "#include <stdint.h>\n#include \"font.h\""; xxd -c 8 -i font) > font.c
-	sed -i -r 's/ font/ _font/;s/unsigned char/const uint8_t/;/^unsigned int/d;s/ =/ FONT_SECTION =/' font.c
+	sed -i -r 's/ font/ _font/;s/unsigned char/const uint8_t/' font.c
+	set -i -r ';/^unsigned int/d;s/ =/ FONT_SECTION =/' font.c
 
 font: font.rom
 	dd if=font.rom of=font bs=8 count=96

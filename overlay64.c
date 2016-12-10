@@ -128,8 +128,11 @@ int main(int argc, char **argv) {
     if(strncmp(argv[0], "configure", 4) == 0) {
       result = configure(--argc, ++argv);
     }
-    else if(strncmp(argv[0], "update", 6) == 0) {
+    else if(strcmp(argv[0], "update") == 0) {
       result = update(--argc, ++argv);
+    }
+    else if(strcmp(argv[0], "font") == 0) {
+      result = font(argv[1]);
     }
     else goto usage;
   }
@@ -317,7 +320,7 @@ int update(int argc, char **argv) {
   result = program(USBASP_WRITEFLASH, data, size, address);
   
  done:
-  if(data != NULL) free(data);
+  if(data) free(data);
   return result;
 
  error:
@@ -327,17 +330,57 @@ int update(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
+int font(char* filename) {
+  int result = EXIT_FAILURE;
+  FILE *in = NULL;
+  uint8_t *data = NULL;
+  int size = 0;
+  
+  struct stat st;
+  
+  if((in = fopen(filename, "rb")) == NULL) {
+    goto error;
+  }
+
+  if(fstat(fileno(in), &st) == -1) {
+    goto error;
+  }
+
+  size = st.st_size;
+  data = (uint8_t *) calloc(size, sizeof(uint8_t));
+
+  if(fread(data, sizeof(uint8_t), size, in) != size) {
+    goto error;
+  }
+  fclose(in);
+
+  result = program(USBASP_WRITEFLASH, data, 96*8, OFFSET);
+  
+ done:
+  if(data) free(data);
+  return result;
+
+ error:
+  fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+  goto done;    
+}
+
+//------------------------------------------------------------------------------
+
 int program(int command, uint8_t *data, int size, unsigned int address)  {
 
-  char *type = (command == USBASP_WRITEEEPROM) ? "configuration" : "application";
+  const char *type = (command == USBASP_WRITEEEPROM) ?
+    "configuration" :
+    (address == OFFSET) ? "font" : "application";
 
   if(boot()) {
     usb_control(&usbasp, USBASP_CONNECT);
     
-    for(uint32_t i=address; i<address+size+64; i+=64) {
+    for(uint32_t i=0; i<size+64; i+=64) {
       usb_send(&usbasp, command,
-               (uint16_t) (i & 0xffff), (uint16_t) (i>>16),
+               (uint16_t) (address & 0xffff), (uint16_t) (address>>16),
                data+i, 64);
+      address+=64;
       fprintf(stderr, "\rUpdating %s: %d of %d bytes transferred...",
               type, (i<size) ? i : size , size);
     }
@@ -393,7 +436,8 @@ bool wait(DeviceInfo *device, const char* message) {
     }
   } while(!usb_ping(device));
   
-  fprintf(stderr, "OK\n");
+  fprintf(stderr, "\n");
+  identify();
   return true;
 }
 
@@ -535,6 +579,7 @@ void usage(void) {
   printf("      overlay64 <options> [configure] <infile|->\n");  
   printf("      overlay64 <options> convert [<infile>|-] [<outfile>|-]\n");
   printf("      overlay64 <options> update <firmware>\n");
+  printf("      overlay64 <options> font <infile>\n");
   printf("      overlay64 <options> identify\n");
   printf("      overlay64 <options> boot\n");
   printf("      overlay64 <options> reset\n");          
@@ -552,6 +597,7 @@ void usage(void) {
   printf("           configure: read/parse configuration and flash to eeprom\n");
   printf("           convert  : convert configuration to/from binary/text format\n");
   printf("           update   : update firmware from Intel HEX file\n");
+  printf("           fon      : install font from binary font image\n");  
   printf("           identify : report firmware version and build date\n");
   printf("           boot     : make device enter bootloader mode\n");
   printf("           reset    : reset device (leave bootloader/restart application)\n"); 
