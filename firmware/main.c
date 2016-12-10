@@ -52,7 +52,9 @@ static volatile char version[64];   // Version string
 static void setup() {
 
   wdt_disable();
+
   SetupVersionString();  
+  SetupFont();
   
   // Create config and assign ports
   config = Config_new_with_ports(&PINA, &PINB, &PINC, &PIND);
@@ -133,7 +135,7 @@ ISR(PCINT1_vect) { // HSYNC (each line)...
   // to trigger another interrupt while only executing NOPS. This way
   // the next interrupt gets triggered after a fixed number of cycles,
   // and the display is stable.
-  
+
   // Disable PCINT1 (HSYNC), disable INT0 (USB), enable INT2 (BACK PORCH)
   PCICR = 0;
   EIMSK |= (1<<INT2);
@@ -260,6 +262,14 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     break;
   }
   return 0;
+}
+
+//------------------------------------------------------------------------------
+
+void SetupFont(void) {
+  for(uint16_t i=0; i<96*8; i++) {
+    font[i] = pgm_read_byte(&(_font[i]));
+  }
 }
 
 //------------------------------------------------------------------------------

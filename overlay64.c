@@ -140,6 +140,7 @@ int main(int argc, char **argv) {
     }
     else goto usage;
   }
+
   else {
   usage:
     usage();
@@ -259,7 +260,7 @@ int configure(int argc, char **argv) {
 
     footprint(config);
     
-    result = program(USBASP_WRITEEEPROM, data, size);
+    result = program(USBASP_WRITEEEPROM, data, size, 0);
   }
 
  done:  
@@ -277,6 +278,7 @@ int update(int argc, char **argv) {
   FILE *in;
   uint8_t *data = NULL;
   int size = 0;
+  unsigned int address = 0;
   
   struct stat st;
   
@@ -301,15 +303,18 @@ int update(int argc, char **argv) {
   }
   fclose(in);
 
-  if(strncasecmp(argv[0]+(strlen(argv[0])-4), ".hex", 4) == 0) {
-    fprintf(stderr, "Parsing Intel HEX format..."); fflush(stderr);
+  fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
 
-    data = readhex(data, &size);
+  data = readhex(data, &size, &address);
 
-    fprintf(stderr, "OK\n");
+  if(!data) {
+    fprintf(stderr, "FAILED!\n");
+    errno = EINVAL;
+    goto error;
   }
+  fprintf(stderr, "OK\nParsed %d bytes starting at 0x%02X\n", size, address);
 
-  result = program(USBASP_WRITEFLASH, data, size);
+  result = program(USBASP_WRITEFLASH, data, size, address);
   
  done:
   if(data != NULL) free(data);
@@ -322,18 +327,19 @@ int update(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
-int program(int command, uint8_t *data, int size)  {
-  
+int program(int command, uint8_t *data, int size, unsigned int address)  {
+
+  char *type = (command == USBASP_WRITEEEPROM) ? "configuration" : "application";
+
   if(boot()) {
     usb_control(&usbasp, USBASP_CONNECT);
-  
-    for(uint32_t i=0; i<size+64; i+=64) {
+    
+    for(uint32_t i=address; i<address+size+64; i+=64) {
       usb_send(&usbasp, command,
                (uint16_t) (i & 0xffff), (uint16_t) (i>>16),
                data+i, 64);
       fprintf(stderr, "\rUpdating %s: %d of %d bytes transferred...",
-              command == USBASP_WRITEFLASH ? "application" : "configuration",
-              (i<size) ? i : size , size);
+              type, (i<size) ? i : size , size);
     }
     fprintf(stderr, "OK\n");
 
@@ -545,7 +551,7 @@ void usage(void) {
   printf("  Commands:\n");
   printf("           configure: read/parse configuration and flash to eeprom\n");
   printf("           convert  : convert configuration to/from binary/text format\n");
-  printf("           update   : update firmware using Intel HEX or binary file\n");
+  printf("           update   : update firmware from Intel HEX file\n");
   printf("           identify : report firmware version and build date\n");
   printf("           boot     : make device enter bootloader mode\n");
   printf("           reset    : reset device (leave bootloader/restart application)\n"); 
@@ -553,7 +559,7 @@ void usage(void) {
   printf("  Files:\n");
   printf("           <infile>   : input file, format is autodetected\n");
   printf("           <outfile>  : output file, format determined by extension\n");
-  printf("           <firmware> : Intel HEX or binary firmware image\n");    
+  printf("           <firmware> : firmware in Intel HEX format\n");    
   printf("\n");
   printf("           *.conf : plain text config file format\n");
   printf("           *.bin  : binary file format (default)\n");

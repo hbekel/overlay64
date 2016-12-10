@@ -19,8 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef FONT_H
 #define FONT_H
 
-#define FONT_SECTION __attribute__ ((section (".font")))
+#include <avr/pgmspace.h>
 
-extern const uint8_t font[96*8];
+#define FONT_SECTION __attribute__ ((section(".font")))
+
+extern const uint8_t FONT_SECTION _font[96*8];
+uint8_t font[96*8];
 
 #endif // FONT_H

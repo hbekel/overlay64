@@ -30,7 +30,7 @@ typedef enum { BINARY, CONFIG } Format;
 int convert(int argc, char** argv);
 int configure(int argc, char** argv);
 int update(int argc, char** argv);
-int program(int command, uint8_t* data, int size);
+int program(int command, uint8_t* data, int size, unsigned int address);
 int boot(void);
 int reset(void);
 bool identify(void);

@@ -1,8 +1,8 @@
-include version.inc
+include Makefile.inc
 
 CC=gcc
 MINGW32?=i686-w64-mingw32
-CFLAGS=-std=gnu99 -g -O2 -Wall -DVERSION=$(VERSION)
+CFLAGS=-std=gnu99 -g -O2 -Wall -DVERSION=$(VERSION) -DOFFSET=$(OFFSET)
 LIBS=-lusb-1.0
 
 PREFIX?=/usr/local

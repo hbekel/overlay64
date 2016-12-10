@@ -10,4 +10,5 @@ overlay64
 firmware/font
 firmware/font.c
 intelhex/ihex2bin
+intelhex/*.o
 *.zip
