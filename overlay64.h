@@ -31,14 +31,17 @@ int convert(int argc, char** argv);
 int configure(int argc, char** argv);
 int update(int argc, char** argv);
 int program(int command, uint8_t* data, int size, unsigned int address);
-int font(char *filename);
+int font_convert(char *input, char *output);
+int font_update(char *filename);
 int boot(void);
 int reset(void);
 bool identify(void);
 
 bool wait(DeviceInfo *device, const char* message);
 void prepare_devices(void);
-bool file(const char* path);
+bool is_file(const char* path);
+bool read_file(char* filename, uint8_t **data, int *size);
+bool write_file(char* filename, uint8_t *data, int size);
 
 void version(void);
 void usage(void);

@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 
   if(argc == 1) {
 
-    if(file(argv[0])) {
+    if(is_file(argv[0])) {
       result = configure(argc, argv);
     }
     else if(strncmp(argv[0], "boot", 1) == 0) {
@@ -131,8 +131,8 @@ int main(int argc, char **argv) {
     else if(strcmp(argv[0], "update") == 0) {
       result = update(--argc, ++argv);
     }
-    else if(strcmp(argv[0], "font") == 0) {
-      result = font(argv[1]);
+    else if(strcmp(argv[0], "font-update") == 0) {
+      result = font_update(argv[1]);
     }
     else goto usage;
   }
@@ -140,6 +140,9 @@ int main(int argc, char **argv) {
   else if(argc == 3) {
     if(strncmp(argv[0], "convert", 4) == 0) {
       result = convert(--argc, ++argv);
+    }
+    if(strcmp(argv[0], "font-convert") == 0) {
+      result = font_convert(argv[1], argv[2]);
     }
     else goto usage;
   }
@@ -278,33 +281,19 @@ int configure(int argc, char **argv) {
 
 int update(int argc, char **argv) {
   int result = EXIT_FAILURE;
-  FILE *in;
-  uint8_t *data = NULL;
+
+  unsigned int address = 0;  
+  uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
-  unsigned int address = 0;
-  
-  struct stat st;
   
   if(!argc) {
     usage();
     goto done;
   }
   
-  if((in = fopen(argv[0], "rb")) == NULL) {
-    goto error;
+  if(!(result = read_file(argv[0], &data, &size))) {
+    goto done;
   }
-
-  if(fstat(fileno(in), &st) == -1) {
-    goto error;
-  }
-
-  size = st.st_size;
-  data = (uint8_t *) calloc(size, sizeof(uint8_t));
-
-  if(fread(data, sizeof(uint8_t), size, in) != size) {
-    goto error;
-  }
-  fclose(in);
 
   fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
 
@@ -320,7 +309,7 @@ int update(int argc, char **argv) {
   result = program(USBASP_WRITEFLASH, data, size, address);
   
  done:
-  if(data) free(data);
+  free(data);
   return result;
 
  error:
@@ -330,39 +319,48 @@ int update(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
-int font(char* filename) {
+int font_update(char* filename) {
   int result = EXIT_FAILURE;
-  FILE *in = NULL;
-  uint8_t *data = NULL;
+  
+  uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
+  int size = 0;
+
+  if((result = read_file(filename, &data, &size))) {  
+    result = program(USBASP_WRITEFLASH, data, 96*8, OFFSET);
+  }  
+
+  free(data);
+  return result;
+}
+
+//------------------------------------------------------------------------------
+
+int font_convert(char* infile, char* outfile) {
+  bool result = false;
   int size = 0;
   
-  struct stat st;
+  uint8_t *data_in = (uint8_t*) calloc(1, sizeof(uint8_t));
+  uint8_t *data_out = (uint8_t*) calloc(1, sizeof(uint8_t));
   
-  if((in = fopen(filename, "rb")) == NULL) {
-    goto error;
+  if((result = read_file(infile, &data_in, &size))) {
+    if(size < (256+32)*8) {
+      fprintf(stderr, "error: input file must be at least %d bytes\n", (256+32)*8);
+      goto done;
+    }
+    data_out = (uint8_t*) realloc(data_out, size);
+    memcpy(data_out, data_in, size);
+
+    memcpy(data_out, data_in + 32*8, 32*8);
+    memcpy(data_out + 32*8, data_in, 32*8);
+    memcpy(data_out + 64*8, data_in + 256*8, 32*8);
+    
+    result = write_file(outfile, data_out, size);
   }
-
-  if(fstat(fileno(in), &st) == -1) {
-    goto error;
-  }
-
-  size = st.st_size;
-  data = (uint8_t *) calloc(size, sizeof(uint8_t));
-
-  if(fread(data, sizeof(uint8_t), size, in) != size) {
-    goto error;
-  }
-  fclose(in);
-
-  result = program(USBASP_WRITEFLASH, data, 96*8, OFFSET);
   
  done:
-  if(data) free(data);
-  return result;
-
- error:
-  fprintf(stderr, "%s: %s\n", filename, strerror(errno));
-  goto done;    
+  free(data_in);
+  free(data_out);
+  return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 //------------------------------------------------------------------------------
@@ -503,7 +501,7 @@ void prepare_devices(void) {
 
 //------------------------------------------------------------------------------
 
-bool file(const char* path) {
+bool is_file(const char* path) {
   FILE *in = NULL;
   
   if(strlen(path) == 1 && path[0] == '-') {
@@ -515,6 +513,62 @@ bool file(const char* path) {
     return true;
   }
   return false;
+}
+
+//------------------------------------------------------------------------------
+
+bool read_file(char* filename, uint8_t **data, int *size) {
+
+  bool result = false;
+  FILE *in = NULL;
+  
+  struct stat st;
+  
+  if((in = fopen(filename, "rb")) == NULL) {
+    goto error;
+  }
+
+  if(fstat(fileno(in), &st) == -1) {
+    goto error;
+  }
+
+  (*size) = st.st_size;
+  (*data) = realloc((*data), (*size));
+
+  if(fread((*data), sizeof(uint8_t), (*size), in) != (*size)) {
+    goto error;
+  }
+  fclose(in);
+
+  result = true;
+  
+ done:
+  return result;
+
+ error:
+  fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+  goto done;    
+}
+
+//------------------------------------------------------------------------------
+
+bool write_file(char* filename, uint8_t *data, int size) {
+  bool result = false;
+  FILE* f = NULL;
+
+  if(!(f = fopen(filename, "wb"))) {
+    goto error;
+  }
+
+  result = fwrite(data, sizeof(uint8_t), size, f) == size;
+  
+ done:
+  if(f) fclose(f);
+  return result;
+
+ error:
+  fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+  goto done;    
 }
 
 //------------------------------------------------------------------------------
@@ -579,28 +633,30 @@ void usage(void) {
   printf("      overlay64 <options> [configure] <infile|->\n");  
   printf("      overlay64 <options> convert [<infile>|-] [<outfile>|-]\n");
   printf("      overlay64 <options> update <firmware>\n");
-  printf("      overlay64 <options> font <infile>\n");
+  printf("      overlay64 <options> font-convert <infile> <outfile>\n");
+  printf("      overlay64 <options> font-update <infile>\n");
   printf("      overlay64 <options> identify\n");
   printf("      overlay64 <options> boot\n");
   printf("      overlay64 <options> reset\n");          
   printf("\n");
   printf("  Options:\n");
-  printf("           -v, --version  : print version information\n");
-  printf("           -h, --help     : print this help text\n");
+  printf("           -v, --version : print version information\n");
+  printf("           -h, --help    : print this help text\n");
 #if linux
-  printf("           -d, --device   : specify usb device (default: /dev/overlay64)\n");
+  printf("           -d, --device  : specify usb device (default: /dev/overlay64)\n");
 #elif windows
-  printf("           -d, --device   : specify usb device (default: usb)\n");
+  printf("           -d, --device  : specify usb device (default: usb)\n");
 #endif
   printf("\n");
   printf("  Commands:\n");
-  printf("           configure: read/parse configuration and flash to eeprom\n");
-  printf("           convert  : convert configuration to/from binary/text format\n");
-  printf("           update   : update firmware from Intel HEX file\n");
-  printf("           fon      : install font from binary font image\n");  
-  printf("           identify : report firmware version and build date\n");
-  printf("           boot     : make device enter bootloader mode\n");
-  printf("           reset    : reset device (leave bootloader/restart application)\n"); 
+  printf("           configure    : read/parse configuration and flash to eeprom\n");
+  printf("           convert      : convert configuration to/from binary/text format\n");
+  printf("           update       : update firmware from Intel HEX file\n");
+  printf("           font-convert : convert C64 charset to overlay64 font file\n");
+  printf("           font-update  : install font from overlay64 font file\n");    
+  printf("           identify     : report firmware version and build date\n");
+  printf("           boot         : make device enter bootloader mode\n");
+  printf("           reset        : reset device (leave bootloader/restart application)\n"); 
   printf("\n");
   printf("  Files:\n");
   printf("           <infile>   : input file, format is autodetected\n");
