@@ -353,8 +353,18 @@ int font_convert(char* infile, char* outfile) {
     memcpy(data_out, data_in + 32*8, 32*8);
     memcpy(data_out + 32*8, data_in, 32*8);
     memcpy(data_out + 64*8, data_in + 256*8, 32*8);
+
+    memcpy(data_out + 60*8, backspace, 8);
+    memcpy(data_out + 62*8, circumflex, 8);
+    memcpy(data_out + 63*8, underscore, 8);
+    memcpy(data_out + 64*8, backtick, 8);
+    memcpy(data_out + 91*8, left_curly, 8);
+    memcpy(data_out + 92*8, pipe_symbol, 8);
+    memcpy(data_out + 93*8, right_curly, 8);
+    memcpy(data_out + 94*8, tilde, 8);
+    memcpy(data_out + 95*8, del, 8);
     
-    result = write_file(outfile, data_out, size);
+    result = write_file(outfile, data_out, 96*8);
   }
   
  done:
