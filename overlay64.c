@@ -650,34 +650,33 @@ void usage(void) {
   printf("      overlay64 <options> reset\n");          
   printf("\n");
   printf("  Options:\n");
-  printf("           -v, --version : print version information\n");
-  printf("           -h, --help    : print this help text\n");
+  printf("      -v, --version : print version information\n");
+  printf("      -h, --help    : print this help text\n");
 #if linux
-  printf("           -d, --device  : specify usb device (default: /dev/overlay64)\n");
+  printf("      -d, --device  : specify usb device (default: /dev/overlay64)\n");
 #elif windows
-  printf("           -d, --device  : specify usb device (default: usb)\n");
+  printf("      -d, --device  : specify usb device (default: usb)\n");
 #endif
   printf("\n");
   printf("  Commands:\n");
-  printf("           configure    : read/parse configuration and flash to eeprom\n");
-  printf("           convert      : convert configuration to/from binary/text format\n");
-  printf("           update       : update firmware from Intel HEX file\n");
-  printf("           font-convert : convert C64 charset to overlay64 font file\n");
-  printf("           font-update  : install font from overlay64 font file\n");    
-  printf("           identify     : report firmware version and build date\n");
-  printf("           boot         : make device enter bootloader mode\n");
-  printf("           reset        : reset device (leave bootloader/restart application)\n"); 
+  printf("      configure    : read/parse configuration and flash to eeprom\n");
+  printf("      convert      : convert configuration to/from binary/text format\n");
+  printf("      update       : update firmware from Intel HEX file\n");
+  printf("      font-convert : convert C64 charset to overlay64 font file\n");
+  printf("      font-update  : install font from overlay64 font file\n");    
+  printf("      identify     : report firmware version and build date\n");
+  printf("      boot         : make device enter bootloader mode\n");
+  printf("      reset        : reset device (leave bootloader/restart application)\n"); 
   printf("\n");
   printf("  Files:\n");
-  printf("           <infile>   : input file, format is autodetected\n");
-  printf("           <outfile>  : output file, format determined by extension\n");
-  printf("           <firmware> : firmware in Intel HEX format\n");    
+  printf("      <infile>   : input file, format is autodetected\n");
+  printf("      <outfile>  : output file, format determined by extension\n");
+  printf("      <firmware> : firmware in Intel HEX format\n");    
   printf("\n");
-  printf("           *.conf : plain text config file format\n");
-  printf("           *.bin  : binary file format (default)\n");
-  printf("           *.hex  : Intel HEX file format\n");  
-  printf("\n");
-  printf("           Optional arguments default to stdin or stdout\n");
+  printf("      *.conf : plain text config file format\n");
+  printf("      *.bin  : binary file format (default)\n");
+  printf("      *.hex  : Intel HEX file format\n");  
+  printf("      -      : standard input/output\n");
   printf("\n");
 }
 
