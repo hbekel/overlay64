@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
   argv += optind;
 
   prepare_devices();
-
+  
   if(argc == 1) {
 
     if(is_file(argv[0])) {
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
     if(strncmp(argv[0], "convert", 4) == 0) {
       result = convert(--argc, ++argv);
     }
-    if(strcmp(argv[0], "font-convert") == 0) {
+    else if(strcmp(argv[0], "font-convert") == 0) {
       result = font_convert(argv[1], argv[2]);
     }
     else goto usage;
