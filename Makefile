@@ -28,7 +28,7 @@ FIRMWARE=firmware/main.c firmware/main.h \
 	firmware/eeprom.c firmware/eeprom.h \
 	firmware/font.h firmware/font.rom
 
-.PHONY: all linux windows firmware release clean firmware-clean intelhex
+.PHONY: all linux windows firmware download clean firmware-clean intelhex
 
 all: linux
 
@@ -139,16 +139,18 @@ hex: overlay64-application-$(VERSION).hex  overlay64-bootloader-$(VERSION).hex o
 
 bin: overlay64-application-$(VERSION).bin  overlay64-bootloader-$(VERSION).bin overlay64-application-and-bootloader-$(VERSION).bin
 
-release: clean overlay64 bin hex
-	mkdir release
-	cp *.{hex,bin} release/
+download: clean overlay64 bin hex
+	mkdir download
+	cp *.{hex,bin} download/
 	make -C hardware/gerber
-	cp hardware/gerber/*.zip release/
-	git archive --prefix=overlay64-$(VERSION)/ -o release/overlay64-$(VERSION).tar.gz HEAD
-	for f in release/*.{hex,bin,gz,zip}; do $(MD5SUM) "$$f" > "$$f".md5; done
+	cp hardware/gerber/*.zip download/
+	git archive --prefix=overlay64-$(VERSION)/ -o download/overlay64-$(VERSION).tar.gz HEAD
+	for f in download/*.{hex,bin,gz,zip}; do $(MD5SUM) "$$f" > "$$f".md5; done
+	tar -v -c -z --transform 's/download/overlay64/' -f overlay64.tar.gz download/
 
 clean: bootloader-clean firmware-clean intelhex-clean
-	rm -rf release
+	rm -rf download
+	rm -f overlay64.tar.gz
 	rm -f *.{bin,hex}	
 	rm -f overlay64{,.exe{,.stackdump}}
 	rm -f test-plot{,.exe{,.stackdump}}
