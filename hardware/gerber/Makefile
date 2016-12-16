@@ -21,7 +21,7 @@ rename:
 	$(shell [[ -f $(PROJECT)-Edge.Cuts.gm1 ]] && mv $(PROJECT)-Edge.Cuts.gm1 $(PROJECT).gml)
 	$(shell chmod -x $(PROJECT)*)
 
-$(ZIPFILE):
+$(ZIPFILE): rename $(FILES)
 	zip $@ $(FILES)
 	chmod -x $@
 
