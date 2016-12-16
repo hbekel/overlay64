@@ -44,12 +44,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //------------------------------------------------------------------------------
 
 #if linux
-  const char* default_device = "/dev/overlay64";
+  char* device = "/dev/overlay64";
 #else
-  const char* default_device = "usb";
+  char* device = "usb";
 #endif
 
-char *device;
 DeviceInfo overlay64;
 DeviceInfo usbasp;
 
@@ -61,19 +60,15 @@ int main(int argc, char **argv) {
 
   int result = EXIT_SUCCESS;
   
-  device = (char*) calloc(strlen(default_device)+1, sizeof(char));
-  strcpy(device, default_device);
-
   struct option options[] = {
     { "help",     no_argument,       0, 'h' },
     { "version",  no_argument,       0, 'v' },
-    { "device",   required_argument, 0, 'd' },
     { 0, 0, 0, 0 },
   };
   int option, option_index;
   
   while(1) {
-    option = getopt_long(argc, argv, "hvd:i", options, &option_index);
+    option = getopt_long(argc, argv, "hv", options, &option_index);
 
     if(option == -1)
       break;
@@ -89,12 +84,7 @@ int main(int argc, char **argv) {
       version();
       goto done;
       break;
-      
-    case 'd':
-      device = (char*) realloc(device, strlen(optarg)+1);
-      strcpy(device, optarg);
-      break;
-      
+            
     case '?':
     case ':':
       goto done;
@@ -155,7 +145,6 @@ int main(int argc, char **argv) {
   }
   
  done:
-  free(device);
   return result;
 }
 
@@ -652,11 +641,6 @@ void usage(void) {
   printf("  Options:\n");
   printf("      -v, --version : print version information\n");
   printf("      -h, --help    : print this help text\n");
-#if linux
-  printf("      -d, --device  : specify usb device (default: /dev/overlay64)\n");
-#elif windows
-  printf("      -d, --device  : specify usb device (default: usb)\n");
-#endif
   printf("\n");
   printf("  Commands:\n");
   printf("      configure    : read/parse configuration and flash to eeprom\n");
