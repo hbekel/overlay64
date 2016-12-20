@@ -141,16 +141,19 @@ bin: overlay64-application-$(VERSION).bin  overlay64-bootloader-$(VERSION).bin o
 
 download: clean overlay64 bin hex
 	mkdir download
-	cp *.{hex,bin} download/
+	cp *.hex download/
+	cp *.bin download/
 	make -C hardware/gerber
 	cp hardware/gerber/*.zip download/
 	git archive --prefix=overlay64-$(VERSION)/ -o download/overlay64-$(VERSION).tar.gz HEAD
-	for f in download/*.{hex,bin,gz,zip}; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in download/*.hex; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in download/*.bin; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in download/*.gz; do $(MD5SUM) "$$f" > "$$f".md5; done
+	for f in download/*.zip; do $(MD5SUM) "$$f" > "$$f".md5; done
 	tar -v -c -z --transform 's/download/overlay64/' -f overlay64.tar.gz download/
 
 clean: bootloader-clean firmware-clean intelhex-clean
 	rm -rf download
 	rm -f overlay64.tar.gz
-	rm -f *.{bin,hex}	
-	rm -f overlay64{,.exe{,.stackdump}}
-	rm -f test-plot{,.exe{,.stackdump}}
+	rm -f *.bin *.hex *.exe *.exe.stackdump	
+	rm -f overlay64 test-plot
