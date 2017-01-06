@@ -296,7 +296,7 @@ void Row_write(uint8_t* row, uint8_t col, char *str) {
   uint8_t* dst = row+col;
   uint8_t len = strlen(str);
   
-  for(uint8_t i=0; i<len; i++) {
+  for(uint8_t i=0; i<len && col+i < SCREEN_COLUMNS; i++) {
     dst[i] = (uint8_t) str[i]-0x20;
   }
 }
@@ -305,7 +305,7 @@ void Row_write(uint8_t* row, uint8_t col, char *str) {
 
 void Row_clear(uint8_t* row, uint8_t col, uint8_t len) {
   uint8_t* dst = row+col;
-  for(uint8_t i=0; i<len; i++) {
+  for(uint8_t i=0; i<len && col+i < SCREEN_COLUMNS; i++) {
     dst[i] = (uint8_t) 0x00;
   }
 }
