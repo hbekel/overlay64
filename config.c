@@ -602,9 +602,10 @@ void Command_read(Command* self, FILE* in) {
   self->row = fgetc(in);
   self->col = fgetc(in);
   self->len = fgetc(in);
-
+  uint8_t index = fgetc(in);
+  
   if(self->action == ACTION_WRITE) {
-    Command_set_string(self, config->strings[fgetc(in)]);
+    Command_set_string(self, config->strings[index]);
   }
 }
 

@@ -332,6 +332,7 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
     self->col = value;
     (*i)++;
   }
+
   if(parseString(words, i, &string)) {    
     if(Config_has_string(config, string, &index)) {
       Command_set_string(self, config->strings[index]);
@@ -501,20 +502,20 @@ static void escape(char *input, char **output) {
 
 void Command_print(Command *self, FILE* out) {
 
+  if(self->action == ACTION_CLEAR) {
+    fprintf(out, "clear %d %d %d\n", self->row, self->col, self->len);
+  }
+  
   if(self->action == ACTION_WRITE) {
     fprintf(out, "write ");
+
+    char *escaped = (char*) calloc(strlen(self->string)*2+1, sizeof(char));
+    escape(self->string, &escaped);
+    
+    fprintf(out, "%d %d \"%s\"\n", self->row, self->col, escaped);
+    
+    free(escaped);
   }
-
-  if(self->action == ACTION_CLEAR) {
-    fprintf(out, "clear ");
-  }
-
-  char *escaped = (char*) calloc(strlen(self->string)*2+1, sizeof(char));
-  escape(self->string, &escaped);
-                                 
-  fprintf(out, "%d %d \"%s\"\n", self->row, self->col, escaped);
-
-  free(escaped);
 }
 
 //------------------------------------------------------------------------------
@@ -627,7 +628,7 @@ void Command_write(Command *self, FILE* out) {
   fputcc(self->row, out);  
   fputcc(self->col, out);
   fputcc(self->len, out);
-  fputcc(Config_index_of_string(config, self->string), out);    
+  fputcc(Config_index_of_string(config, self->string), out);
 }
 
 //------------------------------------------------------------------------------
