@@ -47,6 +47,12 @@ volatile Config* config;    // Configuration is read from eeprom
 static volatile bool reset = false; // Requests a reset from USB
 static volatile char version[64];   // Version string
 
+static volatile uint8_t usbCommand;
+static volatile uint16_t usbDataReceived;
+static volatile uint16_t usbDataLength;
+static volatile uint8_t *usbData;
+static volatile uint16_t usbDataPos;
+
 //------------------------------------------------------------------------------
 
 static void setup() {
@@ -109,6 +115,13 @@ static void setup() {
   
   // Enable Interrupts
   sei();   
+}
+
+//------------------------------------------------------------------------------
+
+void DisableDisplay(void) {
+  EIMSK &= ~(1<<INT2);
+  PCICR = 0; 
 }
 
 //------------------------------------------------------------------------------
@@ -244,8 +257,23 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
   usbRequest_t *usbRequest = (void*) data;
 
   switch(usbRequest->bRequest) {
+
+  case OVERLAY64_FLASH:
+    DisableDisplay();
+    
+    usbCommand = usbRequest->bRequest;
+    usbDataLength = usbRequest->wLength.word;
+    usbDataReceived = 0;
+    
+    if(usbData == NULL) {
+      usbData = (uint8_t*) calloc(1, sizeof(uint8_t) * usbDataLength);
+    }
+    
+    return USB_NO_MSG;
+    break;
     
   case OVERLAY64_BOOT:
+    DisableDisplay();
     EnterBootloader();   
     break;
 
@@ -262,6 +290,34 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     break;
   }
   return 0;
+}
+
+//------------------------------------------------------------------------------
+
+USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
+
+  for(int i=0; usbDataReceived < usbDataLength && i < len; i++, usbDataReceived++) {
+    usbData[usbDataReceived] = (uint8_t) data[i];
+  }
+
+  if(usbDataReceived < usbDataLength) {
+    return 0;
+  }
+  else {
+    if(usbCommand == OVERLAY64_FLASH) {
+      FlashConfigurationFromUSBData();
+    }
+  }
+  
+  free((void*)usbData);
+  usbData = NULL;
+  return 1;
+}
+
+//------------------------------------------------------------------------------
+
+void FlashConfigurationFromUSBData(void) {  
+  reset = fwrite((void*)usbData, sizeof(uint8_t), usbDataLength, &eeprom) == usbDataLength;
 }
 
 //------------------------------------------------------------------------------

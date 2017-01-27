@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef OVERLAY64_H
 #define OVERLAY64_H
 
-typedef enum { BINARY, CONFIG } Format;
+typedef enum { BINARY = 1, CONFIG } Format;
 
 #define USBASP_CONNECT     1
 #define USBASP_WRITEFLASH  6
@@ -27,14 +27,14 @@ typedef enum { BINARY, CONFIG } Format;
 #define USBASP_WRITEEEPROM 8
 #define USBASP_DISCONNECT  2
 
-int convert(int argc, char** argv);
-int configure(int argc, char** argv);
-int update(int argc, char** argv);
-int program(int command, uint8_t* data, int size, unsigned int address);
-int font_convert(char *input, char *output);
-int font_update(char *filename);
-int boot(void);
-int reset(void);
+bool convert(int argc, char** argv);
+bool configure(int argc, char** argv);
+bool update(int argc, char** argv);
+bool program(int command, uint8_t* data, int size, unsigned int address);
+bool font_convert(char *input, char *output);
+bool font_update(char *filename);
+bool boot(void);
+bool reset(void);
 bool identify(void);
 
 bool wait(DeviceInfo *device, const char* message);
@@ -53,6 +53,10 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size);
 
 #if defined(WIN32) && !defined(__CYGWIN__)
   FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode);
+#endif
+
+#if windows
+unsigned int sleep(unsigned int sec) { Sleep(sec*1000); return 0; }
 #endif
 
 uint8_t backspace[]   = { 0x00, 0xc0, 0x60, 0x30, 0x18, 0x0c, 0x06, 0x00 };

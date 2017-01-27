@@ -88,7 +88,7 @@ void Config_apply(volatile Config* self) {
     }
   }
 
-  // link enabled screens into main screen
+  // write and link enabled screens into main screen
   for(uint8_t i=0; i<self->num_screens; i++) {
     Screen* screen = self->screens[i];
     if(screen->enabled) {
@@ -114,15 +114,10 @@ void Control_sample(Control* self) {
 
 void Screen_sample(Screen* self) {
 
-  self->enabled = false;
-
-  if(self->mode == MODE_ALWAYS) {
-    self->enabled = true;
-    return;
-  }
+  self->enabled = (self->mode == MODE_ALWAYS);
 
   for(uint8_t i=0; i<self->num_samples; i++) {
-    Sample_sample(self->samples[i], self);
+    Sample_sample(self->samples[i], self);    
   }
 
   for(uint8_t i=0; i<self->num_controls; i++) {
@@ -138,7 +133,24 @@ void Screen_sample(Screen* self) {
       }
     }
   }
-  self->enabled = self->enabled || (self->timeout > 0);
+  self->enabled = self->enabled || (self->timeout > 0);  
+  self->enabled = self->enabled && Screen_has_effect(self);
+}
+
+//--------------------------------------------------------------------------------
+
+bool Screen_has_effect(Screen* self) {
+  
+  if(self->commands->num_commands) {
+    return true;
+  }
+
+  for(uint8_t i=0; i<self->num_samples; i++) {
+    if(Sample_has_effect(self->samples[i])) {
+      return true;
+    }
+  }  
+  return false;
 }
 
 //------------------------------------------------------------------------------
@@ -196,6 +208,12 @@ void Sample_sample(Sample* self, Screen* screen) {
       Screen_notify(screen);
     }
   }
+}
+
+//------------------------------------------------------------------------------
+
+bool Sample_has_effect(Sample* self) {
+  return self->command_lists[self->value]->num_commands;
 }
 
 //------------------------------------------------------------------------------

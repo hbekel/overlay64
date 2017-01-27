@@ -85,7 +85,17 @@ static bool parseString(StringList* words, int *i, char **str) {
 static bool parseMode(char* word, uint8_t *mode) {
   return
     ((strncmp(word, "manual", 6) == 0) && (*mode = MODE_MANUAL)) ||
-    ((strncmp(word, "notify", 6) == 0) && (*mode = MODE_NOTIFY));
+    ((strncmp(word, "notify", 6) == 0) && (*mode = MODE_NOTIFY)) ||
+    ((strncmp(word, "always", 6) == 0) && (*mode = MODE_ALWAYS));
+}
+
+//------------------------------------------------------------------------------
+
+static bool string_is_empty(char *str) {
+  for(int i=0; i<strlen(str); i++) {
+    if(str[i] != ' ') return false;
+  }
+  return true;
 }
 
 //------------------------------------------------------------------------------
@@ -334,11 +344,17 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
   }
 
   if(parseString(words, i, &string)) {    
-    if(Config_has_string(config, string, &index)) {
-      Command_set_string(self, config->strings[index]);
+    if(string_is_empty(string)) {
+      self->action = ACTION_CLEAR;
+      self->len = strlen(string);
     }
     else {
-      Command_set_string(self, Config_add_string(config, string));
+      if(Config_has_string(config, string, &index)) {
+        Command_set_string(self, config->strings[index]);
+      }
+      else {
+        Command_set_string(self, Config_add_string(config, string));
+      }
     }
     (*i)++;
   }
@@ -434,6 +450,10 @@ void Screen_print(Screen* self, FILE* out) {
     fprintf(out, "notify ");
   }
 
+  if(self->mode == MODE_ALWAYS) {
+    fprintf(out, "always ");
+  }
+  
   fprintf(out, "\n");
 
   CommandList_print(self->commands, out);
@@ -469,8 +489,10 @@ void Sample_print(Sample* self, FILE* out) {
   
   for(int i=0; i<self->num_command_lists; i++) {
     binary(i, &condition);
-    fprintf(out, "when %s\n", condition);
-    CommandList_print(self->command_lists[i], out);
+    if(self->command_lists[i]->num_commands) {
+      fprintf(out, "when %s\n", condition);
+      CommandList_print(self->command_lists[i], out);
+    }
   }
   
   free(condition);

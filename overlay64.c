@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
       result = configure(argc, argv);
     }
     else if(strncmp(argv[0], "boot", 1) == 0) {
-      result = boot() ? EXIT_SUCCESS : EXIT_FAILURE;
+      result = boot();
     }
     else if(strncmp(argv[0], "reset", 1) == 0) {
       result = reset();
@@ -141,18 +141,18 @@ int main(int argc, char **argv) {
   usage:
     usage();
     complain();
-    result = EXIT_FAILURE;
+    result = false;
   }
   
  done:
-  return result;
+  return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 //------------------------------------------------------------------------------
 
-int convert(int argc, char **argv) {
+bool convert(int argc, char **argv) {
 
-  int result = EXIT_FAILURE;
+  bool result = false;
 
   FILE *in  = stdin;
   FILE *out = stdout;
@@ -174,9 +174,6 @@ int convert(int argc, char **argv) {
       fprintf(stderr, "%s: %s\n", argv[1], strerror(errno));
       goto done;
     }
-    if(strncasecmp(argv[1]+(strlen(argv[1])-5), ".conf", 5) == 0) {
-      output_format = CONFIG;
-    }
   }
 
   if(in == stdin) {
@@ -193,7 +190,8 @@ int convert(int argc, char **argv) {
 #endif
   }
   
-  if(Config_read(config, in) || Config_parse(config, in)) {
+  if((Config_read(config, in)  && (output_format = CONFIG)) ||
+     (Config_parse(config, in) && (output_format = BINARY))) {
     
     output_format == BINARY ?
       Config_write(config, out) :
@@ -201,7 +199,7 @@ int convert(int argc, char **argv) {
 
     footprint(config);
     
-    result = EXIT_SUCCESS;
+    result = true;
   }
 
  done:
@@ -211,9 +209,9 @@ int convert(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
-int configure(int argc, char **argv) {
+bool configure(int argc, char **argv) {
 
-  int result = EXIT_FAILURE;
+  bool result = false;
 
   FILE *in  = stdin;
   FILE *out = NULL;
@@ -254,8 +252,32 @@ int configure(int argc, char **argv) {
     fclose(out);
 
     footprint(config);
+
+    if(usb_ping(&usbasp)) {
+      reset();
+    }
     
-    result = program(USBASP_WRITEEEPROM, data, size, 0);
+    fprintf(stderr, "Flashing configuration: %d bytes...", size);
+    fflush(stderr);
+
+    int tries = 5;
+    bool quiet = usb_quiet;
+
+    usb_quiet = true;    
+
+    while(tries--) {
+      if((result = usb_send(&overlay64, OVERLAY64_FLASH, 0, 0, data, size) == size)) {
+        break;
+      }
+    }
+
+    usb_quiet = quiet;
+
+    fprintf(stderr, result ? "ok\n" : "failed!\n");
+
+    if(result) {
+      result = wait(&overlay64, "Resetting device");
+    }
   }
 
  done:  
@@ -268,8 +290,8 @@ int configure(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
-int update(int argc, char **argv) {
-  int result = EXIT_FAILURE;
+bool update(int argc, char **argv) {
+  bool result = false;
 
   unsigned int address = 0;  
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
@@ -308,13 +330,13 @@ int update(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
-int font_update(char* filename) {
-  int result = EXIT_FAILURE;
+bool font_update(char* filename) {
+  bool result = false;
   
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
 
-  if((result = read_file(filename, &data, &size))) {  
+  if((result = read_file(filename, &data, &size)) == size) {  
     result = program(USBASP_WRITEFLASH, data, 96*8, OFFSET);
   }  
 
@@ -324,7 +346,7 @@ int font_update(char* filename) {
 
 //------------------------------------------------------------------------------
 
-int font_convert(char* infile, char* outfile) {
+bool font_convert(char* infile, char* outfile) {
   bool result = false;
   int size = 0;
   
@@ -359,12 +381,12 @@ int font_convert(char* infile, char* outfile) {
  done:
   free(data_in);
   free(data_out);
-  return result ? EXIT_SUCCESS : EXIT_FAILURE;
+  return result;
 }
 
 //------------------------------------------------------------------------------
 
-int program(int command, uint8_t *data, int size, unsigned int address)  {
+bool program(int command, uint8_t *data, int size, unsigned int address)  {
 
   const char *type = (command == USBASP_WRITEEEPROM) ?
     "configuration" :
@@ -390,13 +412,12 @@ int program(int command, uint8_t *data, int size, unsigned int address)  {
     failed(&usbasp);
     return false;
   }
-  wait(&overlay64, "Resetting device");
-  return true;
+  return wait(&overlay64, "Resetting device");
 }
 
 //------------------------------------------------------------------------------
 
-int boot(void) {
+bool boot(void) {
   if(usb_ping(&usbasp)) {
     fprintf(stderr, "Device already in bootloader mode\n");
     return true;
@@ -406,8 +427,19 @@ int boot(void) {
     failed(&overlay64);
     return false;
   }    
+  int tries = 5;
+  bool quiet = usb_quiet;
 
-  usb_control(&overlay64, OVERLAY64_BOOT);
+  usb_quiet = true;
+  
+  while(tries--) {
+    if(usb_control(&overlay64, OVERLAY64_BOOT) >= 0) {
+      break;
+    }
+  }
+
+  usb_quiet = quiet;
+
   return wait(&usbasp, "Entering bootloader");
 }
 
@@ -421,11 +453,7 @@ bool wait(DeviceInfo *device, const char* message) {
   usb_quiet = true;
   
   do {     
-#if windows 
-    Sleep(1000);
-#else
     sleep(1);
-#endif
     fprintf(stderr, "."); fflush(stderr);
     
     if(!--tries) {
@@ -440,7 +468,7 @@ bool wait(DeviceInfo *device, const char* message) {
 
 //------------------------------------------------------------------------------
 
-int reset(void) {
+bool reset(void) {
   
   if(usb_ping(&overlay64)) {
     usb_control(&overlay64, OVERLAY64_RESET);    

@@ -22,5 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OVERLAY64_BOOT     0x01
 #define OVERLAY64_RESET    0x02
 #define OVERLAY64_IDENTIFY 0x03
+#define OVERLAY64_FLASH    0x04
 
 #endif // PROTOTCOL_H

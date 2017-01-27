@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern FILE eeprom;
 int ReadEeprom(FILE* file);
-
+int WriteEeprom(char data, FILE* file);
+                
 #endif // EEPROM_H
 
