@@ -1,7 +1,5 @@
 overlay64 - video overlay module
 
-This project is currently in early beta status.
-
 The overlay64 module allows superimposing predefined texts onto an
 existing composite signal or onto the luminance portion of an s-video
 signal depending on the states of up to sixteen digital input
