@@ -107,10 +107,10 @@ bool Config_parse(volatile Config* self, FILE* in) {
   char* buffer = (char*) calloc(4096, sizeof(char));
   char *line;
   char *word;
-  char *comment;
   char *name;
   char *value;
   char *equals;
+  char *comment;
   int keyword;
   int trailing = 0; 
   uint8_t timeout;
@@ -120,6 +120,8 @@ bool Config_parse(volatile Config* self, FILE* in) {
   fseek(in, 0, SEEK_SET);
 
   int pos = 0;
+  int quotes = 0;
+  
   while(fgets(buffer, 4095, in) != NULL) {
     line = buffer;
     pos++;
@@ -132,7 +134,12 @@ bool Config_parse(volatile Config* self, FILE* in) {
 
     // remove comment at the end of the line
     if((comment = strstr(line, "#")) != NULL) {
-      comment[0] = '\0';
+      for(int i=0; i<comment-line; i++) {
+        if(line[i] == '"') quotes++;        
+      }
+      if(quotes % 2 == 0) {
+        comment[0] = '\0';
+      }
     }
 
     // discard newlines
