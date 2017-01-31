@@ -336,7 +336,7 @@ bool font_update(char* filename) {
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
 
-  if((result = read_file(filename, &data, &size)) == size) {  
+  if(read_file(filename, &data, &size)) {  
     result = program(USBASP_WRITEFLASH, data, 96*8, OFFSET);
   }  
 
