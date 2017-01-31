@@ -228,7 +228,7 @@ void Reset(void) {
 //------------------------------------------------------------------------------
 
 void EnterBootloader(void) {
-  eeprom_write_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
+  eeprom_update_word((uint16_t *)0x0ffe, (uint16_t) 0xb0b0);
   reset = true;
 }
 
@@ -278,6 +278,7 @@ USB_PUBLIC usbMsgLen_t usbFunctionSetup(uint8_t data[8]) {
     break;
 
   case OVERLAY64_RESET:
+    eeprom_update_word((uint16_t *)0x0ffe, (uint16_t) 0xffff);
     reset = true;
     break;
     
@@ -317,7 +318,9 @@ USB_PUBLIC uchar usbFunctionWrite(uchar *data, uchar len) {
 //------------------------------------------------------------------------------
 
 void FlashConfigurationFromUSBData(void) {  
-  reset = fwrite((void*)usbData, sizeof(uint8_t), usbDataLength, &eeprom) == usbDataLength;
+  fwrite((void*)usbData, sizeof(uint8_t), usbDataLength, &eeprom);
+  eeprom_update_word((uint16_t *)0x0ffe, (uint16_t) 0xffff);
+  reset = true;
 }
 
 //------------------------------------------------------------------------------
