@@ -120,8 +120,6 @@ bool Config_parse(volatile Config* self, FILE* in) {
   fseek(in, 0, SEEK_SET);
 
   int pos = 0;
-  int quotes = 0;
-  
   while(fgets(buffer, 4095, in) != NULL) {
     line = buffer;
     pos++;
@@ -134,6 +132,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
 
     // remove comment at the end of the line
     if((comment = strstr(line, "#")) != NULL) {
+      int quotes = 0;
       for(int i=0; i<comment-line; i++) {
         if(line[i] == '"') quotes++;        
       }
