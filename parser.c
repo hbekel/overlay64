@@ -103,7 +103,8 @@ static bool string_is_empty(char *str) {
 //------------------------------------------------------------------------------
 
 bool Config_parse(volatile Config* self, FILE* in) {  
-  bool result = true;
+
+  bool result = false;
   char* buffer = (char*) calloc(4096, sizeof(char));
   char *line;
   char *word;
@@ -164,7 +165,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
       
       if(StringList_has_definition(name)) {
         fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
-        return false;
+        goto done;
       }
       
       StringList_add_definition(name, value);
@@ -182,31 +183,27 @@ bool Config_parse(volatile Config* self, FILE* in) {
       i++;
 
       if(keyword == CONTROL) {
-        if(screen != NULL) {
-          fprintf(stderr, "error: control specified after first screen\n");
-          break;
-        }
-        result = Control_parse(Config_add_control(self, Control_new()), words, &i);
-        if(!result) break;
+        if(!Control_parse(Config_add_control(self, Control_new()), words, &i))
+          goto done;
       }
       
       if(keyword == SCREEN) {
         screen = Screen_new();
-        result = Screen_parse(Config_add_screen(self, screen), words, &i);        
-        if(!result) break;
+        if(!Screen_parse(Config_add_screen(self, screen), words, &i))
+          goto done;
       }
             
       else if(keyword == SAMPLE) {
         if(screen == NULL) {
-          fprintf(stderr, "error: sample specified before any screens\n");
-          break;
+          fprintf(stderr, "error: line %d: sample specified before any screens\n", pos);
+          goto done;
         }
-        result = Sample_parse(Screen_add_sample(screen, Sample_new(screen)), words, &i);
-        if(!result) break;
+        if(!Sample_parse(Screen_add_sample(screen, Sample_new(screen)), words, &i))
+          goto done;
       }
       else if(keyword == WRITE || keyword == CLEAR) {
-        fprintf(stderr, "error: command specified before any screens\n");
-        break;          
+        fprintf(stderr, "error: line %d: command specified before any screens\n", pos);
+        goto done;     
       }
       else if(keyword == TIMEOUT) {
         if(parseInt(StringList_get(words, i), 0,  &timeout)) {
@@ -215,9 +212,17 @@ bool Config_parse(volatile Config* self, FILE* in) {
         i++;
       }
     }
+    else {
+      result = false;
+      fprintf(stderr, "error: line %d: '%s': unknown keyword\n", pos, word);
+      goto done;
+    }
   }
   Config_assign_controls_to_screens(self);
   Config_allocate_rows(self);
+  result = true;
+  
+ done:
   return result;
 }
 
