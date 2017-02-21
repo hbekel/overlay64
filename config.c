@@ -229,6 +229,9 @@ void Config_assign_controls_to_screens(volatile Config* self) {
 
 //------------------------------------------------------------------------------
 
+#define xstr(s) mstr(s)
+#define mstr(s) #s
+
 bool Config_install_fallback(volatile Config* self) {
 
   Screen* screen = Screen_new();
@@ -236,7 +239,7 @@ bool Config_install_fallback(volatile Config* self) {
   
   Command* command;
   
-  Config_add_string(self, "***** OVERLAY64 VERSION 1.0 READY *****");
+  Config_add_string(self, "***** OVERLAY64 VERSION " xstr(VERSION) " READY *****");
   Config_add_string(self, "NO USER CONFIGURATION FOUND");
   Config_add_string(self, "(C)2016 HENNING BEKEL");    
   Config_add_string(self, "WWW.HENNING-BEKEL.DE/OVERLAY64");    

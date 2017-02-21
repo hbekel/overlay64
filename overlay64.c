@@ -290,9 +290,18 @@ bool configure(int argc, char **argv) {
 
 //------------------------------------------------------------------------------
 
+static bool ends_with(const char *str, const char *end) {
+  if(str == NULL || end == NULL) return false;
+  if(strlen(end) > strlen(str)) return false;
+  return strncasecmp(str+strlen(str)-strlen(end), end, strlen(end)) == 0;
+}
+
+//------------------------------------------------------------------------------
+
 bool update(int argc, char **argv) {
   bool result = false;
 
+  char *filename = argv[0];
   unsigned int address = 0;  
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
@@ -302,21 +311,27 @@ bool update(int argc, char **argv) {
     goto done;
   }
   
-  if(!(result = read_file(argv[0], &data, &size))) {
+  if(!(result = read_file(filename, &data, &size))) {
     goto done;
   }
+  
+  if(ends_with(filename, ".hex")) {
+    fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
+    
+    data = readhex(data, &size, &address);
 
-  fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
-
-  data = readhex(data, &size, &address);
-
-  if(!data) {
-    fprintf(stderr, "FAILED!\n");
-    errno = EINVAL;
-    goto error;
+    if(!data) {
+      fprintf(stderr, "FAILED!\n");
+      errno = EINVAL;
+      goto error;
+    }
+    fprintf(stderr, "OK\nParsed %d bytes starting at 0x%02X\n", size, address);
   }
-  fprintf(stderr, "OK\nParsed %d bytes starting at 0x%02X\n", size, address);
-
+  else if(!ends_with(filename, ".bin")) {
+    fprintf(stderr, "error: please supply firmware as a .bin or .hex file\n");
+    goto done;
+  }
+          
   result = program(USBASP_WRITEFLASH, data, size, address);
   
  done:
@@ -683,7 +698,7 @@ void usage(void) {
   printf("  Files:\n");
   printf("      <infile>   : input file, format is autodetected\n");
   printf("      <outfile>  : output file, format determined by extension\n");
-  printf("      <firmware> : firmware in Intel HEX format\n");    
+  printf("      <firmware> : firmware in binary or Intel HEX format (.bin or .hex)\n");    
   printf("\n");
   printf("      *.conf : plain text config file format\n");
   printf("      *.bin  : binary file format (default)\n");
@@ -695,7 +710,7 @@ void usage(void) {
 //------------------------------------------------------------------------------
 
 void complain(void) {
-#if windows
+#if defined(WIN32) && !defined(__CYGWIN__)
   if(!(!GetConsoleTitle(NULL, 0) && GetLastError() == ERROR_SUCCESS)) {
     printf("\n!THIS IS A COMMANDLINE APPLICTION, PLEASE RUN "
            "IT FROM A COMMAND PROMPT INSTEAD!\n\n");
