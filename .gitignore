@@ -12,3 +12,4 @@ firmware/font.c
 intelhex/ihex2bin
 intelhex/*.o
 *.zip
+factory/progmem

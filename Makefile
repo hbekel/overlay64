@@ -133,7 +133,10 @@ overlay64-application-and-bootloader-$(VERSION).hex: firmware bootloader
 	(head -n-1 firmware/main.hex; cat bootloader/firmware/main.hex) > $@
 
 overlay64-application-and-bootloader-$(VERSION).bin: overlay64-application-and-bootloader-$(VERSION).hex intelhex
-	intelhex/ihex2bin -i overlay64-application-and-bootloader-$(VERSION).hex -o $@
+	intelhex/ihex2bin -i overlay64-application-and-bootloader-$(VERSION).hex -o tmp.bin
+	dd if=/dev/zero bs=1024 count=128 | tr "\000" "\377" > $@
+	dd if=tmp.bin of=$@ conv=notrunc
+	rm -f tmp.bin
 
 hex: overlay64-application-$(VERSION).hex  overlay64-bootloader-$(VERSION).hex overlay64-application-and-bootloader-$(VERSION).hex
 
