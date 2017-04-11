@@ -99,6 +99,9 @@ static void setup() {
     (1<<CPHA) | (1<<CPOL);         // Setup with falling edge of SCK
   SPSR = (1<<SPI2X);               // Double speed
 
+  // Setup input and control lines
+  Config_setup(config);
+  
   // Setup USB
   usbInit();
 
@@ -107,11 +110,6 @@ static void setup() {
   _delay_ms(500);
 
   usbDeviceConnect();
-
-  _delay_ms(1000);
-
-  // Setup input and control lines
-  Config_setup(config);
   
   // Enable Interrupts
   sei();   
