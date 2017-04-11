@@ -58,7 +58,9 @@ static volatile uint16_t usbDataPos;
 static void setup() {
 
   wdt_disable();
-
+  CheckBootloader();
+  
+  // Initialize Version string and font data
   SetupVersionString();  
   SetupFont();
   
@@ -221,6 +223,18 @@ void Reset(void) {
   cli();
   wdt_enable(WDTO_250MS);
   for(;;);
+}
+
+//------------------------------------------------------------------------------
+
+void CheckBootloader(void) {
+  DDRD &= ~(1<<PD0);
+  PORTD |= (1<<PD0);
+
+  if((PIND & (1<<PD0)) == 0) {
+    EnterBootloader();
+    Reset();
+  }
 }
 
 //------------------------------------------------------------------------------

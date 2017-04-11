@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FORTYTWO_NOPS() TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TEN_NOPS(); TWO_NOPS()
 #define ONEHUNDRED_AND_TEN_NOPS() ONEHUNDRED_NOPS(); TEN_NOPS()
 
+void CheckBootloader(void);
+void EnterBootloader(void);
 void SetupFont(void);
 void SetupVersionString(void);
 void FlashConfigurationFromUSBData(void);

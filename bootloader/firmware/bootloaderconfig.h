@@ -637,10 +637,10 @@ static inline bool bootLoaderCondition(void)
   
   if((MCUSR & (1 << WDRF))) { // reset by watchdog
     magic = eeprom_read_word((const uint16_t *)0x0ffe);
-    result =  magic == 0xb0b0;
+    result = magic == 0xb0b0;
     eeprom_write_word((uint16_t *)0x0ffe, (uint16_t) 0xffff);
   }
-  else if((MCUSR & (1 << EXTRF))) { // external reset
+  else { // power up
     result = (((PIN_PIN(JUMPER_PORT) & (1 << PIN(JUMPER_PORT, JUMPER_BIT))) == 0));
   }
   MCUSR = 0;
