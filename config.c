@@ -28,13 +28,13 @@ static uint8_t B = 1;
 static uint8_t C = 2;
 static uint8_t D = 3;
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 volatile Config* Config_new(void) {
   return Config_new_with_ports(NULL, NULL, NULL, NULL);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 volatile Config* Config_new_with_ports(uint8_t volatile *a,
                                        uint8_t volatile *b,
@@ -92,7 +92,7 @@ volatile Config* Config_new_with_ports(uint8_t volatile *a,
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_free(volatile Config* self) {
 
@@ -119,7 +119,7 @@ void Config_free(volatile Config* self) {
   free((void*)self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Control* Config_add_control(volatile Config *self, Control* control) {
   self->controls =
@@ -130,7 +130,7 @@ Control* Config_add_control(volatile Config *self, Control* control) {
   return control;  
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Screen* Config_add_screen(volatile Config *self, Screen* screen) {
   self->screens =
@@ -141,7 +141,7 @@ Screen* Config_add_screen(volatile Config *self, Screen* screen) {
   return screen;  
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Config_has_string(volatile Config *self, char* string, uint8_t *index) {
 
@@ -154,7 +154,7 @@ bool Config_has_string(volatile Config *self, char* string, uint8_t *index) {
   return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 char* Config_add_string(volatile Config *self, char* string) {
   self->strings = (char**) realloc(self->strings, (self->num_strings+1) * sizeof(char *));
@@ -164,7 +164,7 @@ char* Config_add_string(volatile Config *self, char* string) {
   return self->strings[self->num_strings-1];
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_each_command(volatile Config* self,
                          void (*callback)
@@ -199,7 +199,7 @@ void Config_each_command(volatile Config* self,
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_allocate_row_for_command(Screen* screen, Command *command) {  
   if(screen->rows[command->row] == NULL) {
@@ -207,13 +207,13 @@ void Config_allocate_row_for_command(Screen* screen, Command *command) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_allocate_rows(volatile Config *self) {
   Config_each_command(self, &Config_allocate_row_for_command);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_assign_controls_to_screens(volatile Config* self) {
 
@@ -227,7 +227,7 @@ void Config_assign_controls_to_screens(volatile Config* self) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 #define xstr(s) mstr(s)
 #define mstr(s) #s
@@ -278,7 +278,7 @@ bool Config_install_fallback(volatile Config* self) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Control* Control_new(void) {
   Control* self = (Control*) calloc(1, sizeof(Sample));
@@ -290,14 +290,14 @@ Control* Control_new(void) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Control_free(Control* self) {
   free(self->screens);
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Control_add_screen(Control* self, uint8_t index) {
   self->screens = (uint8_t*) realloc(self->screens, (self->num_screens+1)*sizeof(uint8_t));
@@ -305,7 +305,7 @@ void Control_add_screen(Control* self, uint8_t index) {
   self->num_screens++;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Screen* Screen_new(void) {
   Screen* self = (Screen*) calloc(1, sizeof(Screen));
@@ -327,7 +327,7 @@ Screen* Screen_new(void) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Screen* Screen_add_control(Screen *self, Control* control) {
   self->controls =
@@ -338,7 +338,7 @@ Screen* Screen_add_control(Screen *self, Control* control) {
   return self;  
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Sample* Screen_add_sample(Screen *self, Sample* sample) {
   self->samples = (Sample**) realloc(self->samples, (self->num_samples+1)*sizeof(Sample**));
@@ -347,7 +347,7 @@ Sample* Screen_add_sample(Screen *self, Sample* sample) {
   return sample;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Screen_free(Screen* self) {
   free(self->controls);
@@ -362,7 +362,7 @@ void Screen_free(Screen* self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Sample* Sample_new(Screen *screen) {
   Sample* self = (Sample*) calloc(1, sizeof(Sample));
@@ -377,7 +377,7 @@ Sample* Sample_new(Screen *screen) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Pin* Sample_add_pin(Sample* self, Pin* pin) {
   self->pins = (Pin**) realloc(self->pins, (self->num_pins+1)*sizeof(Pin**));
@@ -386,7 +386,7 @@ Pin* Sample_add_pin(Sample* self, Pin* pin) {
   return pin;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 CommandList* Sample_add_commands(Sample* self, CommandList* commands) {
   self->command_lists =
@@ -397,7 +397,7 @@ CommandList* Sample_add_commands(Sample* self, CommandList* commands) {
   return commands;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Sample_free(Sample* self) {
   for(uint8_t i=0; i<self->num_command_lists; i++) {
@@ -407,7 +407,7 @@ void Sample_free(Sample* self) {
   free(self->command_lists);  
 };
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Command* Command_new(Screen* screen) {
   Command* self = (Command*) calloc(1, sizeof(Command));
@@ -420,14 +420,14 @@ Command* Command_new(Screen* screen) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Command_set_string(Command* self, char *string) {
   self->string = string;
   self->len = strlen(string);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Command_equals(Command* self, Command* command) {
   return
@@ -438,13 +438,13 @@ bool Command_equals(Command* self, Command* command) {
     (self->string == command->string);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Command_free(Command* self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 CommandList* CommandList_new(Screen* screen) {
   CommandList* self = (CommandList*) calloc(1, sizeof(CommandList));
@@ -454,7 +454,7 @@ CommandList* CommandList_new(Screen* screen) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Command* CommandList_add_command(CommandList *self, Command* command) {
 
@@ -466,7 +466,7 @@ Command* CommandList_add_command(CommandList *self, Command* command) {
   return command;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void CommandList_free(CommandList* self) {
 
@@ -479,7 +479,7 @@ void CommandList_free(CommandList* self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 Pin *Pin_new(volatile Config* c, uint8_t port, uint8_t pos) {
   Pin* self = (Pin*) calloc(1, sizeof(Pin));
@@ -490,15 +490,15 @@ Pin *Pin_new(volatile Config* c, uint8_t port, uint8_t pos) {
   return self;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Pin_free(Pin* self) {
   free(self);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // functions to read datastructures from binary format
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool Config_peek_magic(FILE* in) {
   char c;
@@ -561,7 +561,7 @@ bool Config_read(volatile Config *self, FILE *in) {
   return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Control_read(Control* self, FILE* in) {
   self->pin = config->pins[fgetc(in)];
@@ -572,7 +572,7 @@ void Control_read(Control* self, FILE* in) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Screen_read(Screen* self, FILE* in) {
   self->mode = fgetc(in);
@@ -585,7 +585,7 @@ void Screen_read(Screen* self, FILE* in) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void CommandList_read(CommandList *self, FILE* in) {
   uint8_t num_commands = fgetc(in);
@@ -598,7 +598,7 @@ void CommandList_read(CommandList *self, FILE* in) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Command_read(Command* self, FILE* in) {
   self->action = fgetc(in);
@@ -612,7 +612,7 @@ void Command_read(Command* self, FILE* in) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Sample_read(Sample* self, FILE* in) {
   uint8_t num_pins = fgetc(in);
@@ -629,4 +629,4 @@ void Sample_read(Sample* self, FILE* in) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------

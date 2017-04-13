@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "intelhex.h"
 #include "overlay64.h"
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 #if linux
   char* device = "/dev/overlay64";
@@ -54,7 +54,7 @@ DeviceInfo usbasp;
 
 extern uint16_t written;
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 int main(int argc, char **argv) {  
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv) {
   return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool convert(int argc, char **argv) {
 
@@ -207,7 +207,7 @@ bool convert(int argc, char **argv) {
   return result;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool configure(int argc, char **argv) {
 
@@ -288,7 +288,7 @@ bool configure(int argc, char **argv) {
   return result;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool ends_with(const char *str, const char *end) {
   if(str == NULL || end == NULL) return false;
@@ -296,7 +296,7 @@ static bool ends_with(const char *str, const char *end) {
   return strncasecmp(str+strlen(str)-strlen(end), end, strlen(end)) == 0;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool update(int argc, char **argv) {
   bool result = false;
@@ -343,7 +343,7 @@ bool update(int argc, char **argv) {
   goto done;  
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool font_update(char* filename) {
   bool result = false;
@@ -359,7 +359,7 @@ bool font_update(char* filename) {
   return result;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool font_convert(char* infile, char* outfile) {
   bool result = false;
@@ -399,7 +399,7 @@ bool font_convert(char* infile, char* outfile) {
   return result;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool program(int command, uint8_t *data, int size, unsigned int address)  {
 
@@ -430,7 +430,7 @@ bool program(int command, uint8_t *data, int size, unsigned int address)  {
   return wait(&overlay64, "Resetting device");
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool boot(void) {
   if(usb_ping(&usbasp)) {
@@ -458,7 +458,7 @@ bool boot(void) {
   return wait(&usbasp, "Entering bootloader");
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool wait(DeviceInfo *device, const char* message) {
 
@@ -481,7 +481,7 @@ bool wait(DeviceInfo *device, const char* message) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool reset(void) {
   
@@ -501,7 +501,7 @@ bool reset(void) {
   return wait(&overlay64, "Resetting device");
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool identify(void) {
   char id[64];
@@ -523,7 +523,7 @@ bool identify(void) {
   return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void prepare_devices(void) {
   strncpy(overlay64.path, device, 4096);
@@ -541,7 +541,7 @@ void prepare_devices(void) {
   usbasp.pid = USBASP_PID;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool is_file(const char* path) {
   FILE *in = NULL;
@@ -557,7 +557,7 @@ bool is_file(const char* path) {
   return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool read_file(char* filename, uint8_t **data, int *size) {
 
@@ -592,7 +592,7 @@ bool read_file(char* filename, uint8_t **data, int *size) {
   goto done;    
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool write_file(char* filename, uint8_t *data, int size) {
   bool result = false;
@@ -613,7 +613,7 @@ bool write_file(char* filename, uint8_t *data, int size) {
   goto done;    
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
@@ -633,7 +633,7 @@ FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 }
 #endif
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -642,7 +642,7 @@ void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
 #endif
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void footprint(volatile Config* config) {
 
@@ -655,7 +655,7 @@ void footprint(volatile Config* config) {
           written, 4096-written);    
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void version(void) {
   printf("overlay64 v%.1f\n", VERSION);    
@@ -665,7 +665,7 @@ void version(void) {
   printf("There is NO WARRANTY, to the extent permitted by law.\n");
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void usage(void) {
   version();
@@ -707,7 +707,7 @@ void usage(void) {
   printf("\n");
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void complain(void) {
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -719,11 +719,11 @@ void complain(void) {
 #endif  
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void failed(DeviceInfo *device) {
   fprintf(stderr, "error: failed to open %s device \"%s\" (%04X:%04X)\n",
           device->role, device->path, device->vid, device->pid);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------

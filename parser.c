@@ -44,9 +44,9 @@ static int fputcc(int ch, FILE* fp) {
   return ch;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Utitlity functions for parsing
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool parseKeyword(char* word, int *keyword) {
   return
@@ -59,7 +59,7 @@ static bool parseKeyword(char* word, int *keyword) {
     ((strncmp(word, "control",  7) == 0) && (*keyword = CONTROL));
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool parseInt(char* word, int base, uint8_t *value) {
   char *failed;
@@ -67,7 +67,7 @@ static bool parseInt(char* word, int base, uint8_t *value) {
   return (word != failed);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool parseString(StringList* words, int *i, char **str) {
   if((*i) < words->size) {
@@ -80,7 +80,7 @@ static bool parseString(StringList* words, int *i, char **str) {
   return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool parseMode(char* word, uint8_t *mode) {
   return
@@ -89,7 +89,7 @@ static bool parseMode(char* word, uint8_t *mode) {
     ((strncmp(word, "always", 6) == 0) && (*mode = MODE_ALWAYS));
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static bool string_is_empty(char *str) {
   for(int i=0; i<strlen(str); i++) {
@@ -98,9 +98,9 @@ static bool string_is_empty(char *str) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Functions for parsing datatstructures from text format
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Config_parse(volatile Config* self, FILE* in) {  
 
@@ -226,7 +226,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
   return result;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Control_parse(Control* self, StringList* words, int *i) {
   uint8_t pin;
@@ -251,7 +251,7 @@ bool Control_parse(Control* self, StringList* words, int *i) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Screen_parse(Screen* self, StringList* words, int *i) {
   uint8_t mode;
@@ -277,7 +277,7 @@ bool Screen_parse(Screen* self, StringList* words, int *i) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Sample_parse(Sample* self, StringList* words, int *i) {
 
@@ -331,7 +331,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
     return false;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
 
@@ -377,9 +377,9 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
   return true;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Function for writing out datastructures in text format
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Config_print(volatile Config* self, FILE* out) {
 
@@ -394,7 +394,7 @@ void Config_print(volatile Config* self, FILE* out) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
   for(int i=0; i<NUM_PINS; i++) {
@@ -405,7 +405,7 @@ uint8_t Config_index_of_pin(volatile Config* self, Pin* pin) {
   return 0xff;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint8_t Config_index_of_screen(volatile Config* self, Screen* screen) {
   for(int i=0; i<self->num_screens; i++) {
@@ -416,7 +416,7 @@ uint8_t Config_index_of_screen(volatile Config* self, Screen* screen) {
   return 0xff;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint8_t Config_index_of_string(volatile Config* self, char* string) {
   for(int i=0; i<self->num_strings; i++) {
@@ -427,7 +427,7 @@ uint8_t Config_index_of_string(volatile Config* self, char* string) {
   return 0xff;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Control_print(Control* self, FILE* out) {
   fprintf(out, "control ");
@@ -448,7 +448,7 @@ void Control_print(Control* self, FILE* out) {
   fprintf(out, "\n");
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Screen_print(Screen* self, FILE* out) {
   fprintf(out, "screen ");
@@ -474,7 +474,7 @@ void Screen_print(Screen* self, FILE* out) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static void binary(uint8_t value, char **result) {
   uint8_t pos = 0;
@@ -484,7 +484,7 @@ static void binary(uint8_t value, char **result) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Sample_print(Sample* self, FILE* out) {
 
@@ -509,7 +509,7 @@ void Sample_print(Sample* self, FILE* out) {
   free(condition);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void CommandList_print(CommandList *self, FILE* out) {
   for(int i=0; i<self->num_commands; i++) {
@@ -517,7 +517,7 @@ void CommandList_print(CommandList *self, FILE* out) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static void escape(char *input, char **output) {
   char c;
@@ -551,15 +551,15 @@ void Command_print(Command *self, FILE* out) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
    
 void Pin_print(Pin* self, FILE* out) {
   fprintf(out, "%d ", Config_index_of_pin(config, self));
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Functions to write datastructures in binary format
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 static void Config_write_magic(FILE* out) {
   fputcc(CONFIG_MAGIC[0], out);
@@ -601,7 +601,7 @@ void Config_write(volatile Config* self, FILE* out) {
   Config_write_screens(self, out);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Control_write(Control* self, FILE* out) {
   Pin_write(self->pin, out);
@@ -613,7 +613,7 @@ void Control_write(Control* self, FILE* out) {
   }         
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Screen_write(Screen* self, FILE* out) {
   fputcc(self->mode, out);
@@ -626,7 +626,7 @@ void Screen_write(Screen* self, FILE* out) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Sample_write(Sample* self, FILE* out) {
 
@@ -639,13 +639,13 @@ void Sample_write(Sample* self, FILE* out) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
   
 void Pin_write(Pin* self, FILE* out) {
   fputcc(Config_index_of_pin(config, self), out);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void CommandList_write(CommandList *self, FILE* out) {
   fputcc(self->num_commands, out);
@@ -654,7 +654,7 @@ void CommandList_write(CommandList *self, FILE* out) {
   }
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 void Command_write(Command *self, FILE* out) {
   fputcc(self->action, out);
@@ -664,9 +664,9 @@ void Command_write(Command *self, FILE* out) {
   fputcc(Config_index_of_string(config, self->string), out);
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // functions for calculating the required memory footprint
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint16_t Config_get_footprint(volatile Config* self) {
   uint16_t fp = 0;
@@ -708,7 +708,7 @@ uint16_t Config_get_footprint(volatile Config* self) {
   return fp;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 int Control_get_footprint(Control* self) {
   int fp = 2; // Pin pointer
@@ -719,7 +719,7 @@ int Control_get_footprint(Control* self) {
   return fp;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 int Screen_get_footprint(Screen* self) {
   int fp = 1; // mode
@@ -746,7 +746,7 @@ int Screen_get_footprint(Screen* self) {
   return fp;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint16_t Sample_get_footprint(Sample* self) {
   uint16_t fp = 0;
@@ -764,7 +764,7 @@ uint16_t Sample_get_footprint(Sample* self) {
   return fp;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint16_t CommandList_get_footprint(CommandList* self) {
   uint16_t fp = 0;
@@ -778,7 +778,7 @@ uint16_t CommandList_get_footprint(CommandList* self) {
   return fp;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
  
 uint16_t CommandList_get_sparse_footprint(CommandList* self) {
   uint16_t fp = 0;
@@ -787,7 +787,7 @@ uint16_t CommandList_get_sparse_footprint(CommandList* self) {
   return fp;
 }
  
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
 uint16_t Command_get_footprint(Command* self) {
   uint16_t fp = 0;
@@ -795,5 +795,5 @@ uint16_t Command_get_footprint(Command* self) {
   return fp;
 }
 
-//------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
