@@ -6,6 +6,7 @@ CFLAGS=-std=gnu99 -g -O2 -Wall -DVERSION=$(VERSION) -DOFFSET=$(OFFSET)
 LIBS=-lusb-1.0
 
 PREFIX?=/usr/local
+SYSCONFDIR?=/etc
 DESTDIR=
 
 UNAME=$(shell uname)
@@ -95,6 +96,10 @@ test-plot: clean
 install: overlay64
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m755 overlay64 $(DESTDIR)$(PREFIX)/bin
+	install -d $(DESTDIR)$(SYSCONFDIR)/bash_completion.d/	
+	install -m644 completion/overlay64 \
+			$(DESTDIR)$(SYSCONFDIR)/bash_completion.d/
+
 	([ "$(UDEV)x" = "1x" ] && make udev-install) || true
 
 udev-install:

@@ -1,0 +1,25 @@
+# -*- shell-script -*-
+
+function _overlay64 {
+
+    COMPREPLY=()
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD-1]}"
+    local sec="${COMP_WORDS[1]}"
+
+    local long_options="--help --version"
+    local short_options="-h -v"
+    local commands="configure convert update font-convert font-update identify boot reset"
+    
+    if [[ "$cur" =~ ^\-\- ]]; then
+	COMPREPLY=( $(compgen -W "$long_options" -- "${cur}") )
+
+    elif [[ "$cur" =~ ^\-[^\-]? ]]; then
+	COMPREPLY=( $(compgen -W "$short_options" -- "${cur}") )
+
+    else
+	COMPREPLY=( $(compgen -W "$commands" -- "${cur}") )
+    fi
+    return 0
+}
+complete -f -F _overlay64 overlay64
