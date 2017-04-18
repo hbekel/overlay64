@@ -462,7 +462,7 @@ bool boot(void) {
 
 bool wait(DeviceInfo *device, const char* message) {
 
-  fprintf(stderr, message); fflush(stderr);
+  fprintf(stderr, "%s", message); fflush(stderr);
   
   uint8_t tries = 10;
   usb_quiet = true;
@@ -615,17 +615,22 @@ bool write_file(char* filename, uint8_t *data, int size) {
 
 //-----------------------------------------------------------------------------
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if (defined(WIN32) && !defined(__CYGWIN__)) || defined(__APPLE__)
 FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
   FILE* result;
-  char path[MAX_PATH+1]; 
-  char file[MAX_PATH+1];
+  char path[4096]; 
+  char file[4096] = "overlay64-XXXXXX";
 
-  if(!GetTempPath(MAX_PATH+1, path)) return NULL;
+#if defined(WIN32)  
+  if(!GetTempPath(4096, path)) return NULL;
   if(!GetTempFileName(path, "key", 0, file)) return NULL;
-
   result = fopen(file, "wbD+");
+#else
+  int fd = mkstemp(file);
+  result = fdopen(fd, "w+");
+#endif
+  
   fwrite(buf, sizeof(char), size, result);
   fseek(result, 0, SEEK_SET);
   
