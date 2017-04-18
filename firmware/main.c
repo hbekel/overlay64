@@ -17,7 +17,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include <avr/io.h>
 #include <avr/wdt.h>
 #include <avr/interrupt.h>
@@ -126,8 +125,8 @@ void DisableDisplay(void) {
 
 //-----------------------------------------------------------------------------
 
-ISR(INT1_vect) { // VSYNC (each frame)...
-
+ISR(INT1_vect, ISR_NOBLOCK) { // VSYNC (each frame)...
+  
   // Decrease timeout counters for all screens
   Config_tick(config);
    
@@ -137,8 +136,8 @@ ISR(INT1_vect) { // VSYNC (each frame)...
 
 //-----------------------------------------------------------------------------
 
-ISR(PCINT1_vect) { // HSYNC (each line)...
-
+ISR(PCINT1_vect, ISR_NOBLOCK) { // HSYNC (each line)...
+  
   // Return immediately unless pin has changed to low
   if(PINB & (1<<PB0)) return;
 
@@ -147,34 +146,28 @@ ISR(PCINT1_vect) { // HSYNC (each line)...
   // signal from the LM1881, which is triggered about 8us after HSYNC,
   // to trigger another interrupt while only executing NOPS. This way
   // the next interrupt gets triggered after a fixed number of cycles,
-  // and the display is stable.
+  // and the display is reasonable stable. There is still a slight
+  // overall instability in the display since the video and avr clocks
+  // are not perfectly synchronized to start with.
 
-  // Disable PCINT1 (HSYNC), disable INT0 (USB), enable INT2 (BACK PORCH)
+  // Disable PCINT1 (HSYNC), enable INT2 (BACK PORCH)
   PCICR = 0;
   EIMSK |= (1<<INT2);
-  EIMSK &= ~(1<<INT0);
   
-  // Enable interrupt handling
-  sei();
-
   // Enter INT2_vect somewhere along these nops...
   ONEHUNDRED_AND_TEN_NOPS();
 
   // Now we're back from INT2_vect, at the end of the line
   
-  // Disable interrupt handling again
-  cli();
-  
-  // Disable INT2 (BACK PORCH), enable PCINT1 (HSYNC) and INT0 (USB) again
+  // Disable INT2 (BACK PORCH), enable PCINT1 (HSYNC) again
   EIMSK &= ~(1<<INT2);
-  EIMSK |= (1<<INT0);
   PCICR = (1<<PCIE1);
 }
 
 //-----------------------------------------------------------------------------
 
-ISR(INT2_vect) { // BACK PORCH (8us after HSYNC)
-  
+ISR(INT2_vect, ISR_NOBLOCK) { // BACK PORCH (8us after HSYNC)
+
   uint8_t* row;   // Character data for the current row
   uint8_t line;   // Logical line of the visible screen
   uint8_t column; // Current character column in the current row 
@@ -185,8 +178,9 @@ ISR(INT2_vect) { // BACK PORCH (8us after HSYNC)
   if(config->enabled && (scanline >= SCREEN_TOP && scanline < SCREEN_BOTTOM)) {
 
     // The display is enabled and we're on a vertical line inside of
-    // the logical screen area, but still outside of the visible horizonzal area.
-    // So there is time to precalculate some values for the current line...
+    // the logical screen area, but still outside of the visible
+    // horizonzal area. So there is time to precalculate some values
+    // for the current line...
     
     line = scanline - SCREEN_TOP;
     row = config->rows[line / CHAR_HEIGHT];
@@ -360,7 +354,7 @@ int main(void) {
       Reset();
     }
     
-    // Sample input and control lines and update screen according to user config
+    // Sample input/control lines and update screen according to user config
     Config_apply(config);
   }
   
