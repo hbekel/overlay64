@@ -37,7 +37,7 @@ bool boot(void);
 bool reset(void);
 bool identify(void);
 
-bool wait(DeviceInfo *device, const char* message);
+bool expect(DeviceInfo *device, const char* message);
 void prepare_devices(void);
 bool is_file(const char* path);
 bool read_file(char* filename, uint8_t **data, int *size);

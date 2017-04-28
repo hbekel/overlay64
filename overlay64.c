@@ -276,7 +276,7 @@ bool configure(int argc, char **argv) {
     fprintf(stderr, result ? "ok\n" : "failed!\n");
 
     if(result) {
-      result = wait(&overlay64, "Resetting device");
+      result = expect(&overlay64, "Resetting device");
     }
   }
 
@@ -427,7 +427,7 @@ bool program(int command, uint8_t *data, int size, unsigned int address)  {
     failed(&usbasp);
     return false;
   }
-  return wait(&overlay64, "Resetting device");
+  return expect(&overlay64, "Resetting device");
 }
 
 //-----------------------------------------------------------------------------
@@ -455,12 +455,12 @@ bool boot(void) {
 
   usb_quiet = quiet;
 
-  return wait(&usbasp, "Entering bootloader");
+  return expect(&usbasp, "Entering bootloader");
 }
 
 //-----------------------------------------------------------------------------
 
-bool wait(DeviceInfo *device, const char* message) {
+bool expect(DeviceInfo *device, const char* message) {
 
   fprintf(stderr, "%s", message); fflush(stderr);
   
@@ -498,7 +498,7 @@ bool reset(void) {
     failed(&usbasp);
     return false;
   }
-  return wait(&overlay64, "Resetting device");
+  return expect(&overlay64, "Resetting device");
 }
 
 //-----------------------------------------------------------------------------
@@ -619,10 +619,10 @@ bool write_file(char* filename, uint8_t *data, int size) {
 FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 
   FILE* result;
-  char path[4096]; 
   char file[4096] = "overlay64-XXXXXX";
 
 #if defined(WIN32)  
+  char path[4096];
   if(!GetTempPath(4096, path)) return NULL;
   if(!GetTempFileName(path, "key", 0, file)) return NULL;
   result = fopen(file, "wbD+");
@@ -641,7 +641,7 @@ FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
 //-----------------------------------------------------------------------------
 
 void fmemupdate(FILE *fp, void *buf,  uint16_t size) {
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(WIN32) && !defined(__CYGWIN__) || defined(__APPLE__)
   fseek(fp, 0, SEEK_SET);
   fread(buf, sizeof(uint8_t), size, fp);
 #endif
