@@ -99,6 +99,13 @@ static bool string_is_empty(char *str) {
 }
 
 //-----------------------------------------------------------------------------
+
+static bool isSymbolName(char *name) {
+  return strspn(name, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_")
+    == strlen(name);
+}
+
+//-----------------------------------------------------------------------------
 // Functions for parsing datatstructures from text format
 //-----------------------------------------------------------------------------
 
@@ -114,6 +121,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
   char *comment;
   int keyword;
   int trailing = 0; 
+  int i = 0;
   uint8_t timeout;
   Screen* screen = NULL;
   StringList* words = StringList_new();
@@ -152,14 +160,19 @@ bool Config_parse(volatile Config* self, FILE* in) {
     }
 
     // check if this command is a definition
-    if((equals = strstr(line, "=")) != NULL) {
-      name = line;
+    if((strstr(line, "=")) != NULL) {
+      name = strdup(line);
+      equals = strstr(name, "=");
       equals[0] = '\0';
 
       if((trailing = strcspn(name, ws)) > 0) {
         name[trailing] = '\0';
       }
-
+      
+      if(!isSymbolName(name) || parseKeyword(name, &keyword)) {
+        goto not_a_symbol;
+      }
+      
       value = equals+1;
       value = trim(value);
       
@@ -167,7 +180,6 @@ bool Config_parse(volatile Config* self, FILE* in) {
         fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
         goto done;
       }
-      
       StringList_add_definition(name, value);
     }
     else {
@@ -175,7 +187,8 @@ bool Config_parse(volatile Config* self, FILE* in) {
     }
   }
 
-  int i = 0;
+ not_a_symbol:
+  
   while(i<words->size) {
     word = StringList_get(words, i);
     
