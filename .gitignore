@@ -12,4 +12,10 @@ firmware/font.c
 intelhex/ihex2bin
 intelhex/*.o
 *.zip
+*.tar.gz
+bootloader/**/*.asm
+bootloader/**/*.o
+bootloader/**/*.map
+bootloader/**/*.raw
 factory/progmem
+download
