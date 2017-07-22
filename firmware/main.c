@@ -158,6 +158,9 @@ ISR(PCINT1_vect, ISR_NOBLOCK) { // HSYNC (each line)...
   ONEHUNDRED_AND_TEN_NOPS();
 
   // Now we're back from INT2_vect, at the end of the line
+
+  // Disable the SPI pin to avoid disturbing the next hsync.
+  DISABLE_SPI;
   
   // Disable INT2 (BACK PORCH), enable PCINT1 (HSYNC) again
   EIMSK &= ~(1<<INT2);
