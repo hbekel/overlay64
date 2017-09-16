@@ -82,7 +82,7 @@ static bool parseString(StringList* words, int *i, char **str) {
 
 //-----------------------------------------------------------------------------
 
-static bool parseMode(char* word, uint8_t *mode) {
+static bool parseMode(char* word, uint8_t *mode) {  
   return
     ((strncmp(word, "manual", 6) == 0) && (*mode = MODE_MANUAL)) ||
     ((strncmp(word, "notify", 6) == 0) && (*mode = MODE_NOTIFY)) ||
@@ -172,10 +172,10 @@ bool Config_parse(volatile Config* self, FILE* in) {
       if(!isSymbolName(name) || parseKeyword(name, &keyword)) {
         goto not_a_symbol;
       }
-      
+
       value = equals+1;
       value = trim(value);
-      
+
       if(StringList_has_definition(name)) {
         fprintf(stderr, "error: line %d: '%s': symbol already defined\n", pos, name);
         goto done;
@@ -188,7 +188,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
   }
 
  not_a_symbol:
-  
+
   while(i<words->size) {
     word = StringList_get(words, i);
     
@@ -271,7 +271,7 @@ bool Screen_parse(Screen* self, StringList* words, int *i) {
   int keyword;
   Command* command;
 
-  if(parseMode(StringList_get(words, *i), &mode)) {
+  if((*i)<words->size && parseMode(StringList_get(words, *i), &mode)) {
      self->mode = mode;
      (*i)++;
   }

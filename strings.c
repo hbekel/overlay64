@@ -212,6 +212,18 @@ void StringList_free(StringList *self) {
   free(self);
 }
 
+void StringList_debug(StringList *self) {
+
+  for(int i=0; i<self->size; i++) {
+    fprintf(stderr, "%02d: [%s]\n", i, self->strings[i]);
+  }
+
+  for(int i=0; i<StringList_num_definitions; i++) {
+    fprintf(stderr, "[%s] = [%s]\n",
+            StringList_definitions[i]->name, StringList_definitions[i]->value);
+  }
+}
+
 char* trim(char* s) 
 {
   int len = strlen(s);

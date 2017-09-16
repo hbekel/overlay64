@@ -44,6 +44,7 @@ char* StringList_get(StringList *self, int index);
 char* StringList_last(StringList *self);
 void StringList_remove_last(StringList *self);
 void StringList_free(StringList *self);
+void StringList_debug(StringList *self);
 
 char* trim(char* s);
   
