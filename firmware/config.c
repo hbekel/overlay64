@@ -168,6 +168,8 @@ void Screen_write(Screen* self) {
 
   for(uint8_t i=0; i<self->num_samples; i++) {
     Sample* sample = self->samples[i];
+    CommandList_execute_with_value(sample->command_list, sample->value);
+
     CommandList *commands = sample->command_lists[sample->value];
     CommandList_execute(commands);
   }
@@ -213,7 +215,9 @@ void Sample_sample(Sample* self, Screen* screen) {
 //-----------------------------------------------------------------------------
 
 bool Sample_has_effect(Sample* self) {
-  return self->command_lists[self->value]->num_commands;
+  
+  return self->command_list->num_commands ||
+    self->command_lists[self->value]->num_commands;
 }
 
 //-----------------------------------------------------------------------------
@@ -296,6 +300,14 @@ void CommandList_execute(CommandList* self) {
 
 //-----------------------------------------------------------------------------
 
+void CommandList_execute_with_value(CommandList* self, uint8_t value) {
+  for(uint8_t i=0; i<self->num_commands; i++) {
+    Command_execute_with_value(self->commands[i], value);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void Command_execute(Command* self) {
 
   uint8_t* row = ((Screen *)self->screen)->rows[self->row];
@@ -310,12 +322,50 @@ void Command_execute(Command* self) {
 
 //-----------------------------------------------------------------------------
 
+void Command_execute_with_value(Command* self, uint8_t value) {
+
+  uint8_t* row = ((Screen *)self->screen)->rows[self->row];
+  
+  if(self->action == ACTION_WRITE) {
+
+    if(strstr(self->string, "%") == NULL) {
+      Row_write(row, self->col, self->string);
+    }
+    else {
+      Row_printf(row, self->col, self->string, value);
+    }         
+  }
+  else if(self->action == ACTION_CLEAR) {
+    Row_clear(row, self->col, self->len);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 void Row_write(uint8_t* row, uint8_t col, char *str) {
   uint8_t* dst = row+col;
   uint8_t len = strlen(str);
   
   for(uint8_t i=0; i<len && col+i < SCREEN_COLUMNS; i++) {
     dst[i] = (uint8_t) str[i]-0x20;
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+void Row_printf(uint8_t* row, uint8_t col, char *fmt, uint8_t value) {
+
+  char tmp[SCREEN_COLUMNS+1];
+
+  snprintf(tmp, SCREEN_COLUMNS, fmt,
+           value, value, value, value, value, value, value, value,
+           value, value, value, value, value, value, value, value);
+
+  char* dst = (char*) (row+col);
+  uint8_t len = strlen(tmp);
+
+  for(uint8_t i=0; i<len && col+i < SCREEN_COLUMNS; i++) {
+    dst[i] = (uint8_t) tmp[i]-0x20;
   }
 }
 

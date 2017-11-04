@@ -81,6 +81,8 @@ typedef struct {
   Pin **pins; // pointers into Config->pins
   uint8_t num_pins;
   uint8_t value;
+
+  CommandList *command_list; // immediate commands
   
   CommandList **command_lists; // one command list for each state
   uint8_t num_command_lists;

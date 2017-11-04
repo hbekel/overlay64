@@ -44,8 +44,11 @@ bool Pin_is_rising(Pin* self);
 bool Pin_is_falling(Pin* self); 
 bool Pin_has_changed(Pin* self);
 void CommandList_execute(CommandList* self);
+void CommandList_execute_with_value(CommandList* self, uint8_t value);
 void Command_execute(Command* self);
+void Command_execute_with_value(Command* self, uint8_t value);
 void Row_write(uint8_t* row, uint8_t col, char *str);
+void Row_printf(uint8_t* row, uint8_t col, char *str, uint8_t value);
 void Row_clear(uint8_t* row, uint8_t col, uint8_t len);
 
 #endif // FIRMWARE_CONFIG_H

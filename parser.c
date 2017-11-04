@@ -307,7 +307,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
 
   int keyword;
   Command *command;
-  CommandList *commands = self->command_lists[0];
+  CommandList *commands = self->command_list;
   uint8_t index;
   
   while((*i)<words->size && parseKeyword(StringList_get(words, *i), &keyword)) {
@@ -509,6 +509,8 @@ void Sample_print(Sample* self, FILE* out) {
   
   fprintf(out, "\n");
 
+  CommandList_print(self->command_list, out);
+  
   char *condition = (char*) calloc(9, sizeof(char));
   
   for(int i=0; i<self->num_command_lists; i++) {
@@ -647,6 +649,9 @@ void Sample_write(Sample* self, FILE* out) {
   for(uint8_t i=0; i<self->num_pins; i++) {
     Pin_write(self->pins[i], out);
   }
+
+  CommandList_write(self->command_list, out);
+  
   for(uint8_t i=0; i<self->num_command_lists; i++) {
     CommandList_write(self->command_lists[i], out);
   }

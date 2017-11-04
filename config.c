@@ -186,7 +186,14 @@ void Config_each_command(volatile Config* self,
     
     for(uint8_t k=0; k<screen->num_samples; k++) {
       sample = screen->samples[k];
-      
+
+      commands = sample->command_list;
+
+      for(uint8_t l=0; l<commands->num_commands; l++) {
+        command = commands->commands[l];
+        callback(screen, command);
+      }
+
       for(uint8_t m=0; m<sample->num_command_lists; m++) {
         commands = sample->command_lists[m];
         
@@ -370,6 +377,8 @@ Sample* Sample_new(Screen *screen) {
   self->pins = (Pin**) calloc(1, sizeof(Pin**));
   self->num_pins = 0;
   self->value = 0;
+
+  self->command_list = CommandList_new(self->screen);
   
   self->command_lists = (CommandList**) calloc(1, sizeof(CommandList**));
   self->num_command_lists = 0;
@@ -400,6 +409,8 @@ CommandList* Sample_add_commands(Sample* self, CommandList* commands) {
 //-----------------------------------------------------------------------------
 
 void Sample_free(Sample* self) {
+  CommandList_free(self->command_list);
+
   for(uint8_t i=0; i<self->num_command_lists; i++) {
     CommandList_free(self->command_lists[i]);
   }
@@ -620,6 +631,8 @@ void Sample_read(Sample* self, FILE* in) {
   for(uint8_t i=0; i<num_pins; i++) {
     Sample_add_pin(self, config->pins[fgetc(in)]);
   }
+
+  CommandList_read(self->command_list, in);
 
   uint8_t num_command_lists = 1<<(self->num_pins);
   for(uint8_t i=0; i<num_command_lists; i++) {
