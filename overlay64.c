@@ -118,9 +118,6 @@ int main(int argc, char **argv) {
     if(strncmp(argv[0], "configure", 4) == 0) {
       result = configure(--argc, ++argv);
     }
-    else if(strcmp(argv[0], "update") == 0) {
-      result = update(--argc, ++argv);
-    }
     else if(strcmp(argv[0], "font-update") == 0) {
       result = font_update(argv[1]);
     }
@@ -130,6 +127,9 @@ int main(int argc, char **argv) {
   else if(argc == 3) {
     if(strncmp(argv[0], "convert", 4) == 0) {
       result = convert(--argc, ++argv);
+    }
+    else if(strcmp(argv[0], "update") == 0) {
+      result = update(--argc, ++argv);
     }
     else if(strcmp(argv[0], "font-convert") == 0) {
       result = font_convert(argv[1], argv[2]);
@@ -331,8 +331,32 @@ bool update(int argc, char **argv) {
     fprintf(stderr, "error: please supply firmware as a .bin or .hex file\n");
     goto done;
   }
-          
-  result = program(USBASP_WRITEFLASH, data, size, address);
+
+  if(argc == 2) {
+    uint8_t erased[2] = { 0x00, 0x00 };
+    
+    if(!usb_ping(&overlay64)) {
+      fprintf(stderr, "error: could not connect to overlay64\n");
+      goto done;
+    }
+    
+    fprintf(stderr, "Deactivating existing configuration...");
+    fflush(stderr);
+
+    result = usb_send(&overlay64, OVERLAY64_FLASH, 0, 0, erased, 2) == 2;
+    fprintf(stderr, result ? "ok\n" : "failed!\n");
+    if(!result) goto done;
+
+    expect(&overlay64, "Waiting for overlay64 to reboot");
+  }
+  
+  if((result = program(USBASP_WRITEFLASH, data, size, address))) {
+
+    if(argc == 2) {
+      argc--; argv++;
+      result = configure(argc, argv);
+    }
+  }
   
  done:
   free(data);
@@ -679,7 +703,7 @@ void usage(void) {
   printf("      overlay64 <options>\n");
   printf("      overlay64 [configure] <infile|->\n");  
   printf("      overlay64 convert [<infile>|-] [<outfile>|-]\n");
-  printf("      overlay64 update <firmware>\n");
+  printf("      overlay64 update <firmware> [<config>]\n");
   printf("      overlay64 font-convert <infile> <outfile>\n");
   printf("      overlay64 font-update <infile>\n");
   printf("      overlay64 identify\n");
