@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "firmware/config.h"
 #include "firmware/font.h"
 
-volatile Config* config;
+extern volatile Config* config;
 
 void putbyte(uint8_t byte) {
   for(int i=7; i>=0; i--) {
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   Config_parse(config, stdin);
 
   Config_apply(config);
-  
+
   for(int line=0; line<SCREEN_ROWS*CHAR_HEIGHT; line++) {
 
     uint8_t* row = config->rows[line/CHAR_HEIGHT];
@@ -53,7 +53,6 @@ int main(int argc, char **argv) {
   }
 
   Config_free(config);
-    
+
   return 0;
 }
-

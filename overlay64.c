@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "target.h"
 
-#if windows  
+#if windows
   #include <io.h>
   #include <fcntl.h>
 #endif
@@ -53,49 +53,50 @@ DeviceInfo overlay64;
 DeviceInfo usbasp;
 
 extern uint16_t written;
+extern volatile Config *config;
 
 //-----------------------------------------------------------------------------
 
-int main(int argc, char **argv) {  
+int main(int argc, char **argv) {
 
   int result = EXIT_SUCCESS;
-  
+
   struct option options[] = {
     { "help",     no_argument,       0, 'h' },
     { "version",  no_argument,       0, 'v' },
     { 0, 0, 0, 0 },
   };
   int option, option_index;
-  
+
   while(1) {
     option = getopt_long(argc, argv, "hv", options, &option_index);
 
     if(option == -1)
       break;
-    
+
     switch (option) {
-      
+
     case 'h':
       usage();
       goto done;
-      break;      
-      
+      break;
+
     case 'v':
       version();
       goto done;
       break;
-            
+
     case '?':
     case ':':
       goto done;
-    }    
+    }
   }
-  
+
   argc -= optind;
   argv += optind;
 
   prepare_devices();
-  
+
   if(argc == 1) {
 
     if(is_file(argv[0])) {
@@ -114,7 +115,7 @@ int main(int argc, char **argv) {
   }
 
   else if(argc == 2) {
-    
+
     if(strncmp(argv[0], "configure", 4) == 0) {
       result = configure(--argc, ++argv);
     }
@@ -143,7 +144,7 @@ int main(int argc, char **argv) {
     complain();
     result = false;
   }
-  
+
  done:
   return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -159,7 +160,7 @@ bool convert(int argc, char **argv) {
   Format output_format = BINARY;
 
   config = Config_new();
-  
+
   if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
 
     if((in = fopen(argv[0], "rb")) == NULL) {
@@ -189,16 +190,16 @@ bool convert(int argc, char **argv) {
     setmode(_fileno(stdout), O_BINARY);
 #endif
   }
-  
+
   if((Config_read(config, in)  && (output_format = CONFIG)) ||
      (Config_parse(config, in) && (output_format = BINARY))) {
-    
+
     output_format == BINARY ?
       Config_write(config, out) :
       Config_print(config, out);
 
     footprint(config);
-    
+
     result = true;
   }
 
@@ -219,7 +220,7 @@ bool configure(int argc, char **argv) {
   uint16_t size = 0;
 
   config = Config_new();
-  
+
   if(argc >= 1 && (strncmp(argv[0], "-", 1) != 0)) {
 
     if((in = fopen(argv[0], "rb")) == NULL) {
@@ -232,23 +233,23 @@ bool configure(int argc, char **argv) {
     fprintf(stderr, "Reading from stdin...\n");
 #if windows
     setmode(_fileno(stdin), O_BINARY);
-#endif    
+#endif
   }
 
   fprintf(stderr, "Reading %s...\n", argv[0]);
-  
+
   if(Config_read(config, in) || Config_parse(config, in)) {
 
     data = (uint8_t*) calloc(4096, sizeof(char));
-  
+
     if((out = fmemopen(data, 4096, "wb")) == NULL) {
       fprintf(stderr, "error: %s\n", strerror(errno));
       goto done;
     }
-  
+
     Config_write(config, out);
     size = ftell(out);
-    fmemupdate(out, data, size);  
+    fmemupdate(out, data, size);
     fclose(out);
 
     footprint(config);
@@ -256,14 +257,14 @@ bool configure(int argc, char **argv) {
     if(usb_ping(&usbasp)) {
       reset();
     }
-    
+
     fprintf(stderr, "Flashing configuration: %d bytes...", size);
     fflush(stderr);
 
     int tries = 5;
     bool quiet = usb_quiet;
 
-    usb_quiet = true;    
+    usb_quiet = true;
 
     while(tries--) {
       if((result = usb_send(&overlay64, OVERLAY64_FLASH, 0, 0, data, size) == size)) {
@@ -280,7 +281,7 @@ bool configure(int argc, char **argv) {
     }
   }
 
- done:  
+ done:
   Config_free(config);
   fclose(in);
 
@@ -302,22 +303,22 @@ bool update(int argc, char **argv) {
   bool result = false;
 
   char *filename = argv[0];
-  unsigned int address = 0;  
+  unsigned int address = 0;
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
-  
+
   if(!argc) {
     usage();
     goto done;
   }
-  
+
   if(!(result = read_file(filename, &data, &size))) {
     goto done;
   }
-  
+
   if(ends_with(filename, ".hex")) {
     fprintf(stderr, "Trying to parse Intel HEX format..."); fflush(stderr);
-    
+
     data = readhex(data, &size, &address);
 
     if(!data) {
@@ -334,12 +335,12 @@ bool update(int argc, char **argv) {
 
   if(argc == 2) {
     uint8_t erased[2] = { 0x00, 0x00 };
-    
+
     if(!usb_ping(&overlay64)) {
       fprintf(stderr, "error: could not connect to overlay64\n");
       goto done;
     }
-    
+
     fprintf(stderr, "Deactivating existing configuration...");
     fflush(stderr);
 
@@ -349,7 +350,7 @@ bool update(int argc, char **argv) {
 
     expect(&overlay64, "Waiting for overlay64 to reboot");
   }
-  
+
   if((result = program(USBASP_WRITEFLASH, data, size, address))) {
 
     if(argc == 2) {
@@ -357,27 +358,27 @@ bool update(int argc, char **argv) {
       result = configure(argc, argv);
     }
   }
-  
+
  done:
   free(data);
   return result;
 
  error:
   fprintf(stderr, "%s: %s\n", argv[0], strerror(errno));
-  goto done;  
+  goto done;
 }
 
 //-----------------------------------------------------------------------------
 
 bool font_update(char* filename) {
   bool result = false;
-  
+
   uint8_t *data = (uint8_t *) calloc(1, sizeof(uint8_t));
   int size = 0;
 
-  if(read_file(filename, &data, &size)) {  
+  if(read_file(filename, &data, &size)) {
     result = program(USBASP_WRITEFLASH, data, 96*8, OFFSET);
-  }  
+  }
 
   free(data);
   return result;
@@ -388,10 +389,10 @@ bool font_update(char* filename) {
 bool font_convert(char* infile, char* outfile) {
   bool result = false;
   int size = 0;
-  
+
   uint8_t *data_in = (uint8_t*) calloc(1, sizeof(uint8_t));
   uint8_t *data_out = (uint8_t*) calloc(1, sizeof(uint8_t));
-  
+
   if((result = read_file(infile, &data_in, &size))) {
     if(size < (256+32)*8) {
       fprintf(stderr, "error: input file must be at least %d bytes\n", (256+32)*8);
@@ -413,10 +414,10 @@ bool font_convert(char* infile, char* outfile) {
     memcpy(data_out + 93*8, right_curly, 8);
     memcpy(data_out + 94*8, tilde, 8);
     memcpy(data_out + 95*8, del, 8);
-    
+
     result = write_file(outfile, data_out, 96*8);
   }
-  
+
  done:
   free(data_in);
   free(data_out);
@@ -433,7 +434,7 @@ bool program(int command, uint8_t *data, int size, unsigned int address)  {
 
   if(boot()) {
     usb_control(&usbasp, USBASP_CONNECT);
-    
+
     for(uint32_t i=0; i<size+64; i+=64) {
       usb_send(&usbasp, command,
                (uint16_t) (address & 0xffff), (uint16_t) (address>>16),
@@ -444,7 +445,7 @@ bool program(int command, uint8_t *data, int size, unsigned int address)  {
     }
     fprintf(stderr, "OK\n");
 
-    usb_quiet = true;  
+    usb_quiet = true;
     usb_control(&usbasp, USBASP_DISCONNECT);
   }
   else {
@@ -461,16 +462,16 @@ bool boot(void) {
     fprintf(stderr, "Device already in bootloader mode\n");
     return true;
   }
-  
+
   if(!usb_ping(&overlay64)) {
     failed(&overlay64);
     return false;
-  }    
+  }
   int tries = 5;
   bool quiet = usb_quiet;
 
   usb_quiet = true;
-  
+
   while(tries--) {
     if(usb_control(&overlay64, OVERLAY64_BOOT) >= 0) {
       break;
@@ -487,19 +488,19 @@ bool boot(void) {
 bool expect(DeviceInfo *device, const char* message) {
 
   fprintf(stderr, "%s", message); fflush(stderr);
-  
+
   uint8_t tries = 10;
   usb_quiet = true;
-  
-  do {     
+
+  do {
     sleep(1);
     fprintf(stderr, "."); fflush(stderr);
-    
+
     if(!--tries) {
       return false;
     }
   } while(!usb_ping(device));
-  
+
   fprintf(stderr, "\n");
   identify();
   return true;
@@ -508,9 +509,9 @@ bool expect(DeviceInfo *device, const char* message) {
 //-----------------------------------------------------------------------------
 
 bool reset(void) {
-  
+
   if(usb_ping(&overlay64)) {
-    usb_control(&overlay64, OVERLAY64_RESET);    
+    usb_control(&overlay64, OVERLAY64_RESET);
   }
   else if(usb_ping(&usbasp)) {
     usb_quiet = true;
@@ -530,7 +531,7 @@ bool reset(void) {
 bool identify(void) {
   char id[64];
 
-  if(usb_ping(&overlay64)) {  
+  if(usb_ping(&overlay64)) {
     if(usb_receive(&overlay64, OVERLAY64_IDENTIFY, 0, 0, (uint8_t*) id, 64) > 0) {
       printf("%s\n", id);
       return true;
@@ -539,7 +540,7 @@ bool identify(void) {
   else if(usb_ping(&usbasp)) {
     fprintf(stderr, "USBaspLoader (C)2008 by OBJECTIVE DEVELOPMENT Software GmbH\n");
     return true;
-  } 
+  }
   else {
     failed(&overlay64);
     failed(&usbasp);
@@ -569,7 +570,7 @@ void prepare_devices(void) {
 
 bool is_file(const char* path) {
   FILE *in = NULL;
-  
+
   if(strlen(path) == 1 && path[0] == '-') {
     return true;
   }
@@ -587,9 +588,9 @@ bool read_file(char* filename, uint8_t **data, int *size) {
 
   bool result = false;
   FILE *in = NULL;
-  
+
   struct stat st;
-  
+
   if((in = fopen(filename, "rb")) == NULL) {
     goto error;
   }
@@ -607,13 +608,13 @@ bool read_file(char* filename, uint8_t **data, int *size) {
   fclose(in);
 
   result = true;
-  
+
  done:
   return result;
 
  error:
   fprintf(stderr, "%s: %s\n", filename, strerror(errno));
-  goto done;    
+  goto done;
 }
 
 //-----------------------------------------------------------------------------
@@ -627,14 +628,14 @@ bool write_file(char* filename, uint8_t *data, int size) {
   }
 
   result = fwrite(data, sizeof(uint8_t), size, f) == size;
-  
+
  done:
   if(f) fclose(f);
   return result;
 
  error:
   fprintf(stderr, "%s: %s\n", filename, strerror(errno));
-  goto done;    
+  goto done;
 }
 
 //-----------------------------------------------------------------------------
@@ -645,7 +646,7 @@ FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
   FILE* result;
   char file[4096] = "overlay64-XXXXXX";
 
-#if defined(WIN32)  
+#if defined(WIN32)
   char path[4096];
   if(!GetTempPath(4096, path)) return NULL;
   if(!GetTempFileName(path, "key", 0, file)) return NULL;
@@ -654,10 +655,10 @@ FILE* fmemopen(void *__restrict buf, size_t size, const char *__restrict mode) {
   int fd = mkstemp(file);
   result = fdopen(fd, "w+");
 #endif
-  
+
   fwrite(buf, sizeof(char), size, result);
   fseek(result, 0, SEEK_SET);
-  
+
   return result;
 }
 #endif
@@ -679,15 +680,15 @@ void footprint(volatile Config* config) {
 
   fprintf(stderr, "SRAM:\t%5d of 16384 bytes used (%5d bytes free)\n",
           footprint, 16384-footprint);
-  
+
   fprintf(stderr, "EEPROM:\t%5d of  4096 bytes used (%5d bytes free)\n",
-          written, 4096-written);    
+          written, 4096-written);
 }
 
 //-----------------------------------------------------------------------------
 
 void version(void) {
-  printf("overlay64 v%.1f\n", VERSION);    
+  printf("overlay64 v%.1f\n", VERSION);
   printf("Copyright (C) 2016 Henning Bekel.\n");
   printf("License GPLv3: GNU GPL version 3 <http://gnu.org/licenses/gpl.html>.\n");
   printf("This is free software: you are free to change and redistribute it.\n");
@@ -701,14 +702,14 @@ void usage(void) {
   printf("\n");
   printf("Usage:\n");
   printf("      overlay64 <options>\n");
-  printf("      overlay64 [configure] <infile|->\n");  
+  printf("      overlay64 [configure] <infile|->\n");
   printf("      overlay64 convert [<infile>|-] [<outfile>|-]\n");
   printf("      overlay64 update <firmware> [<config>]\n");
   printf("      overlay64 font-convert <infile> <outfile>\n");
   printf("      overlay64 font-update <infile>\n");
   printf("      overlay64 identify\n");
   printf("      overlay64 boot\n");
-  printf("      overlay64 reset\n");          
+  printf("      overlay64 reset\n");
   printf("\n");
   printf("  Options:\n");
   printf("      -v, --version : print version information\n");
@@ -719,19 +720,19 @@ void usage(void) {
   printf("      convert      : convert configuration to/from binary/text format\n");
   printf("      update       : update firmware from Intel HEX file\n");
   printf("      font-convert : convert C64 charset to overlay64 font file\n");
-  printf("      font-update  : install font from overlay64 font file\n");    
+  printf("      font-update  : install font from overlay64 font file\n");
   printf("      identify     : report firmware version and build date\n");
   printf("      boot         : make device enter bootloader mode\n");
-  printf("      reset        : reset device (leave bootloader/restart application)\n"); 
+  printf("      reset        : reset device (leave bootloader/restart application)\n");
   printf("\n");
   printf("  Files:\n");
   printf("      <infile>   : input file, format is autodetected\n");
   printf("      <outfile>  : output file, format determined by extension\n");
-  printf("      <firmware> : firmware in binary or Intel HEX format (.bin or .hex)\n");    
+  printf("      <firmware> : firmware in binary or Intel HEX format (.bin or .hex)\n");
   printf("\n");
   printf("      *.conf : plain text config file format\n");
   printf("      *.bin  : binary file format (default)\n");
-  printf("      *.hex  : Intel HEX file format\n");  
+  printf("      *.hex  : Intel HEX file format\n");
   printf("      -      : standard input/output\n");
   printf("\n");
 }
@@ -743,9 +744,9 @@ void complain(void) {
   if(!(!GetConsoleTitle(NULL, 0) && GetLastError() == ERROR_SUCCESS)) {
     printf("\n!THIS IS A COMMANDLINE APPLICTION, PLEASE RUN "
            "IT FROM A COMMAND PROMPT INSTEAD!\n\n");
-    system("pause");    
+    system("pause");
   }
-#endif  
+#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -46,7 +46,7 @@ extern uint8_t CONFIG_MAGIC[2];
 
 typedef struct {
   uint8_t volatile *port; // pointer into Config->ports
-  uint8_t pos;  
+  uint8_t pos;
   uint8_t edge[2];
 } Pin;
 
@@ -55,7 +55,7 @@ typedef struct {
 
   uint8_t mode;
   bool asserted;
-  
+
   uint8_t *screens; // index into config->screens
   uint8_t num_screens;
 
@@ -77,13 +77,13 @@ typedef struct {
 } CommandList;
 
 typedef struct {
-  void *screen; 
+  void *screen;
   Pin **pins; // pointers into Config->pins
   uint8_t num_pins;
   uint8_t value;
 
   CommandList *command_list; // immediate commands
-  
+
   CommandList **command_lists; // one command list for each state
   uint8_t num_command_lists;
 } Sample;
@@ -95,14 +95,14 @@ typedef struct {
 
   Sample **samples;
   uint8_t num_samples;
- 
+
   Control **controls;
-  uint8_t num_controls;  
-  
+  uint8_t num_controls;
+
   CommandList* commands;
 
   uint8_t **rows;
-  
+
 } Screen;
 
 typedef struct {
@@ -114,18 +114,16 @@ typedef struct {
 
   char **strings;
   uint8_t num_strings;
-  
+
   Control **controls;
   uint8_t num_controls;
 
   Screen **screens;
   uint8_t num_screens;
-  
-  uint8_t **rows;
-  
-} Config;
 
-volatile Config* config;
+  uint8_t **rows;
+
+} Config;
 
 volatile Config *Config_new(void);
 volatile Config* Config_new_with_ports(uint8_t volatile *a,

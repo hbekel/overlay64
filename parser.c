@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SCREEN  0x07
 #define CONTROL 0x08
 
-volatile Config* config;
+extern volatile Config* config;
 uint16_t written = 0;
 const char *ws = " \t";
 
@@ -82,7 +82,7 @@ static bool parseString(StringList* words, int *i, char **str) {
 
 //-----------------------------------------------------------------------------
 
-static bool parseMode(char* word, uint8_t *mode) {  
+static bool parseMode(char* word, uint8_t *mode) {
   return
     ((strncmp(word, "manual", 6) == 0) && (*mode = MODE_MANUAL)) ||
     ((strncmp(word, "notify", 6) == 0) && (*mode = MODE_NOTIFY)) ||
@@ -109,7 +109,7 @@ static bool isSymbolName(char *name) {
 // Functions for parsing datatstructures from text format
 //-----------------------------------------------------------------------------
 
-bool Config_parse(volatile Config* self, FILE* in) {  
+bool Config_parse(volatile Config* self, FILE* in) {
 
   bool result = false;
   char* buffer = (char*) calloc(4096, sizeof(char));
@@ -120,12 +120,12 @@ bool Config_parse(volatile Config* self, FILE* in) {
   char *equals;
   char *comment;
   int keyword;
-  int trailing = 0; 
+  int trailing = 0;
   int i = 0;
   uint8_t timeout;
   Screen* screen = NULL;
   StringList* words = StringList_new();
-  
+
   fseek(in, 0, SEEK_SET);
 
   int pos = 0;
@@ -143,7 +143,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
     if((comment = strstr(line, "#")) != NULL) {
       int quotes = 0;
       for(int i=0; i<comment-line; i++) {
-        if(line[i] == '"') quotes++;        
+        if(line[i] == '"') quotes++;
       }
       if(quotes % 2 == 0) {
         comment[0] = '\0';
@@ -168,7 +168,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
       if((trailing = strcspn(name, ws)) > 0) {
         name[trailing] = '\0';
       }
-      
+
       if(!isSymbolName(name) || parseKeyword(name, &keyword)) {
         goto not_a_symbol;
       }
@@ -191,7 +191,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
 
   while(i<words->size) {
     word = StringList_get(words, i);
-    
+
     if(parseKeyword(word, &keyword)) {
       i++;
 
@@ -199,13 +199,13 @@ bool Config_parse(volatile Config* self, FILE* in) {
         if(!Control_parse(Config_add_control(self, Control_new()), words, &i))
           goto done;
       }
-      
+
       if(keyword == SCREEN) {
         screen = Screen_new();
         if(!Screen_parse(Config_add_screen(self, screen), words, &i))
           goto done;
       }
-            
+
       else if(keyword == SAMPLE) {
         if(screen == NULL) {
           fprintf(stderr, "error: line %d: sample specified before any screens\n", pos);
@@ -216,7 +216,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
       }
       else if(keyword == WRITE || keyword == CLEAR) {
         fprintf(stderr, "error: line %d: command specified before any screens\n", pos);
-        goto done;     
+        goto done;
       }
       else if(keyword == TIMEOUT) {
         if(parseInt(StringList_get(words, i), 0,  &timeout)) {
@@ -234,7 +234,7 @@ bool Config_parse(volatile Config* self, FILE* in) {
   Config_assign_controls_to_screens(self);
   Config_allocate_rows(self);
   result = true;
-  
+
  done:
   return result;
 }
@@ -245,7 +245,7 @@ bool Control_parse(Control* self, StringList* words, int *i) {
   uint8_t pin;
   uint8_t mode;
   uint8_t index;
-  
+
   if(!parseInt(StringList_get(words, *i), 0, &pin)) {
     fprintf(stderr, "error: control: no control pin specified\n");
     return false;
@@ -280,7 +280,7 @@ bool Screen_parse(Screen* self, StringList* words, int *i) {
     if(keyword == WRITE || keyword == CLEAR) {
       (*i)++;
       command = Command_new(self);
-      Command_parse(command, keyword, words, i);     
+      Command_parse(command, keyword, words, i);
       CommandList_add_command(self->commands, command);
     }
     else {
@@ -294,8 +294,8 @@ bool Screen_parse(Screen* self, StringList* words, int *i) {
 
 bool Sample_parse(Sample* self, StringList* words, int *i) {
 
-  uint8_t pin;  
-  
+  uint8_t pin;
+
   while(parseInt(StringList_get(words, *i), 0, &pin)) {
     Sample_add_pin(self, config->pins[pin]);
     (*i)++;
@@ -309,7 +309,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
   Command *command;
   CommandList *commands = self->command_list;
   uint8_t index;
-  
+
   while((*i)<words->size && parseKeyword(StringList_get(words, *i), &keyword)) {
 
     if(keyword == WHEN) {
@@ -324,7 +324,7 @@ bool Sample_parse(Sample* self, StringList* words, int *i) {
       if(index >= self->num_command_lists) {
         fprintf(stderr, "condition out of range\n");
         goto error;
-      }      
+      }
       commands = self->command_lists[index];
     }
     else if(keyword == WRITE || keyword == CLEAR) {
@@ -351,23 +351,23 @@ bool Command_parse(Command *self, int keyword, StringList* words, int *i) {
   uint8_t value;
   char *string = (char*) calloc(4096, sizeof(char));
   char *ptr = string;
-  
+
   uint8_t index;
-  
+
   self->action = (keyword == WRITE) ?
-    ACTION_WRITE : ((keyword == CLEAR) ? ACTION_CLEAR : ACTION_NONE);  
-  
+    ACTION_WRITE : ((keyword == CLEAR) ? ACTION_CLEAR : ACTION_NONE);
+
   if(parseInt(StringList_get(words, *i), 0, &value)) {
     self->row = value;
     (*i)++;
   }
-  
+
   if(parseInt(StringList_get(words, *i), 0, &value)) {
     self->col = value;
     (*i)++;
   }
 
-  if(parseString(words, i, &string)) {    
+  if(parseString(words, i, &string)) {
     if(string_is_empty(string)) {
       self->action = ACTION_CLEAR;
       self->len = strlen(string);
@@ -457,7 +457,7 @@ void Control_print(Control* self, FILE* out) {
   for(int i=0; i<self->num_screens; i++) {
     fprintf(out, "%d ", self->screens[i]);
   }
-  
+
   fprintf(out, "\n");
 }
 
@@ -477,11 +477,11 @@ void Screen_print(Screen* self, FILE* out) {
   if(self->mode == MODE_ALWAYS) {
     fprintf(out, "always ");
   }
-  
+
   fprintf(out, "\n");
 
   CommandList_print(self->commands, out);
-  
+
   for(int i=0; i<self->num_samples; i++) {
     Sample_print(self->samples[i], out);
   }
@@ -491,7 +491,7 @@ void Screen_print(Screen* self, FILE* out) {
 
 static void binary(uint8_t value, char **result) {
   uint8_t pos = 0;
-  
+
   for(int i=7; i>=0; i--) {
     (*result)[pos++] = (value & (1<<i)) ? '1' : '0';
   }
@@ -506,13 +506,13 @@ void Sample_print(Sample* self, FILE* out) {
   for(int i=0; i<self->num_pins; i++) {
     Pin_print(self->pins[i], out);
   }
-  
+
   fprintf(out, "\n");
 
   CommandList_print(self->command_list, out);
-  
+
   char *condition = (char*) calloc(9, sizeof(char));
-  
+
   for(int i=0; i<self->num_command_lists; i++) {
     binary(i, &condition);
     if(self->command_lists[i]->num_commands) {
@@ -520,7 +520,7 @@ void Sample_print(Sample* self, FILE* out) {
       CommandList_print(self->command_lists[i], out);
     }
   }
-  
+
   free(condition);
 }
 
@@ -537,7 +537,7 @@ void CommandList_print(CommandList *self, FILE* out) {
 static void escape(char *input, char **output) {
   char c;
   int pos = 0;
-  
+
   for(int i=0; i<strlen(input); i++) {
     c = input[i];
 
@@ -553,21 +553,21 @@ void Command_print(Command *self, FILE* out) {
   if(self->action == ACTION_CLEAR) {
     fprintf(out, "clear %d %d %d\n", self->row, self->col, self->len);
   }
-  
+
   if(self->action == ACTION_WRITE) {
     fprintf(out, "write ");
 
     char *escaped = (char*) calloc(strlen(self->string)*2+1, sizeof(char));
     escape(self->string, &escaped);
-    
+
     fprintf(out, "%d %d \"%s\"\n", self->row, self->col, escaped);
-    
+
     free(escaped);
   }
 }
 
 //-----------------------------------------------------------------------------
-   
+
 void Pin_print(Pin* self, FILE* out) {
   fprintf(out, "%d ", Config_index_of_pin(config, self));
 }
@@ -622,10 +622,10 @@ void Control_write(Control* self, FILE* out) {
   Pin_write(self->pin, out);
   fputcc(self->mode, out);
 
-  fputcc(self->num_screens, out);  
+  fputcc(self->num_screens, out);
   for(uint8_t i=0; i<self->num_screens; i++) {
     fputcc(self->screens[i], out);
-  }         
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -651,14 +651,14 @@ void Sample_write(Sample* self, FILE* out) {
   }
 
   CommandList_write(self->command_list, out);
-  
+
   for(uint8_t i=0; i<self->num_command_lists; i++) {
     CommandList_write(self->command_lists[i], out);
   }
 }
 
 //-----------------------------------------------------------------------------
-  
+
 void Pin_write(Pin* self, FILE* out) {
   fputcc(Config_index_of_pin(config, self), out);
 }
@@ -676,7 +676,7 @@ void CommandList_write(CommandList *self, FILE* out) {
 
 void Command_write(Command *self, FILE* out) {
   fputcc(self->action, out);
-  fputcc(self->row, out);  
+  fputcc(self->row, out);
   fputcc(self->col, out);
   fputcc(self->len, out);
   fputcc(Config_index_of_string(config, self->string), out);
@@ -696,8 +696,8 @@ uint16_t Config_get_footprint(volatile Config* self) {
   fp += NUM_PINS*sizeof(Pin);     // the actual pins
 
   fp += 1; // enabled
-  fp += 1; // timeout 
-  
+  fp += 1; // timeout
+
   fp += 1;                     // num_strings
   fp += self->num_strings * 2; // the pointers to the strings;
 
@@ -717,7 +717,7 @@ uint16_t Config_get_footprint(volatile Config* self) {
   for(uint8_t i=0; i<self->num_screens; i++) {
     fp += Screen_get_footprint(self->screens[i]);
   }
-  
+
   fp += SCREEN_ROWS * 2;  // the pointers to the rows
 
   fp += 64*8;  // the font data
@@ -754,7 +754,7 @@ int Screen_get_footprint(Screen* self) {
   fp += self->num_controls*2; // control pointers
 
   fp += CommandList_get_footprint(self->commands);
-  
+
   fp += SCREEN_ROWS * 2;  // the pointers to the rows
 
   // the allocated rows themselves
@@ -778,7 +778,7 @@ uint16_t Sample_get_footprint(Sample* self) {
   for(uint8_t i=0; i<self->num_command_lists; i++) {
     fp += CommandList_get_sparse_footprint(self->command_lists[i]);
   }
-  
+
   return fp;
 }
 
@@ -797,14 +797,14 @@ uint16_t CommandList_get_footprint(CommandList* self) {
 }
 
 //-----------------------------------------------------------------------------
- 
+
 uint16_t CommandList_get_sparse_footprint(CommandList* self) {
   uint16_t fp = 0;
   fp += 1;                       // num_commands;
   fp += self->num_commands * 2;  // the pointers to the commands
   return fp;
 }
- 
+
 //-----------------------------------------------------------------------------
 
 uint16_t Command_get_footprint(Command* self) {
@@ -814,4 +814,3 @@ uint16_t Command_get_footprint(Command* self) {
 }
 
 //-----------------------------------------------------------------------------
-
