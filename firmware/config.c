@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static bool enabled;
 
+extern volatile Config* config;
+
 //-----------------------------------------------------------------------------
 
 void Config_setup(volatile Config* self) {
@@ -43,7 +45,7 @@ void Config_setup_pins(volatile Config* self) {
 void Config_sample_pins(volatile Config* self) {
   for(uint8_t i=0; i<NUM_PINS; i++) {
     Pin_sample(self->pins[i]);
-  }  
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -68,15 +70,15 @@ void Config_apply(volatile Config* self) {
 
   // Check wether any controls are asserted
   for(uint8_t i=0; i<self->num_controls; i++) {
-    Control* control = self->controls[i];    
+    Control* control = self->controls[i];
     Control_sample(control);
   }
 
   // Determine state of samples and screen state
-  for(uint8_t i=0; i<self->num_screens; i++) {    
-    Screen* screen = self->screens[i];    
+  for(uint8_t i=0; i<self->num_screens; i++) {
+    Screen* screen = self->screens[i];
     Screen_sample(screen);
-    
+
     enabled = enabled || screen->enabled;
   }
 
@@ -117,12 +119,12 @@ void Screen_sample(Screen* self) {
   self->enabled = (self->mode == MODE_ALWAYS);
 
   for(uint8_t i=0; i<self->num_samples; i++) {
-    Sample_sample(self->samples[i], self);    
+    Sample_sample(self->samples[i], self);
   }
 
   for(uint8_t i=0; i<self->num_controls; i++) {
     Control *control = self->controls[i];
-    
+
     if(control->asserted) {
       if(control->mode == MODE_NOTIFY) {
         self->timeout = config->timeout;
@@ -133,14 +135,14 @@ void Screen_sample(Screen* self) {
       }
     }
   }
-  self->enabled = self->enabled || (self->timeout > 0);  
+  self->enabled = self->enabled || (self->timeout > 0);
   self->enabled = self->enabled && Screen_has_effect(self);
 }
 
 //-------------------------------------------------------------------------------
 
 bool Screen_has_effect(Screen* self) {
-  
+
   if(self->commands->num_commands) {
     return true;
   }
@@ -149,7 +151,7 @@ bool Screen_has_effect(Screen* self) {
     if(Sample_has_effect(self->samples[i])) {
       return true;
     }
-  }  
+  }
   return false;
 }
 
@@ -200,12 +202,12 @@ void Screen_unlink(Screen* self) {
 void Sample_sample(Sample* self, Screen* screen) {
   Pin *pin;
   self->value = 0;
-  
+
   for(uint8_t i=0; i<self->num_pins; i++) {
     pin = self->pins[i];
 
     self->value |= (Pin_state(pin) << i);
-    
+
     if(Pin_has_changed(pin)) {
       Screen_notify(screen);
     }
@@ -215,7 +217,7 @@ void Sample_sample(Sample* self, Screen* screen) {
 //-----------------------------------------------------------------------------
 
 bool Sample_has_effect(Sample* self) {
-  
+
   return self->command_list->num_commands ||
     self->command_lists[self->value]->num_commands;
 }
@@ -224,7 +226,7 @@ bool Sample_has_effect(Sample* self) {
 
 void Pin_setup(Pin* self) {
   uint8_t mask = (1<<(self->pos));
-  
+
   if(self->port == &PINA) {
     DDRA &= ~mask;
     PORTA |= mask;
@@ -311,7 +313,7 @@ void CommandList_execute_with_value(CommandList* self, uint8_t value) {
 void Command_execute(Command* self) {
 
   uint8_t* row = ((Screen *)self->screen)->rows[self->row];
-  
+
   if(self->action == ACTION_WRITE) {
     Row_write(row, self->col, self->string);
   }
@@ -325,7 +327,7 @@ void Command_execute(Command* self) {
 void Command_execute_with_value(Command* self, uint8_t value) {
 
   uint8_t* row = ((Screen *)self->screen)->rows[self->row];
-  
+
   if(self->action == ACTION_WRITE) {
 
     if(strstr(self->string, "%") == NULL) {
@@ -333,7 +335,7 @@ void Command_execute_with_value(Command* self, uint8_t value) {
     }
     else {
       Row_printf(row, self->col, self->string, value);
-    }         
+    }
   }
   else if(self->action == ACTION_CLEAR) {
     Row_clear(row, self->col, self->len);
@@ -345,7 +347,7 @@ void Command_execute_with_value(Command* self, uint8_t value) {
 void Row_write(uint8_t* row, uint8_t col, char *str) {
   uint8_t* dst = row+col;
   uint8_t len = strlen(str);
-  
+
   for(uint8_t i=0; i<len && col+i < SCREEN_COLUMNS; i++) {
     dst[i] = (uint8_t) str[i]-0x20;
   }
